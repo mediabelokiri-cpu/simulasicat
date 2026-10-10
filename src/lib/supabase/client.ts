@@ -29,3 +29,6 @@ export function createClient() {
 
   return createBrowserClient(url, pubKey);
 }
+
+export const createSupabaseBrowserClient = createClient;
+
