@@ -60,6 +60,92 @@ export function saveStoredProfiles(profiles: ProfileRow[]): void {
   window.localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(profiles));
 }
 
+/**
+ * Mengambil seluruh profil pengguna dari tabel Supabase `public.profiles`
+ * dan menggabungkannya dengan cache lokal agar akun yang mendaftar di HP / perangkat lain
+ * langsung tampil di Panel Admin (Manajemen Peserta, Kelompok, Dashboard).
+ */
+export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
+  const localProfiles = getStoredProfiles();
+  if (!isSupabaseConfigured()) {
+    return localProfiles;
+  }
+
+  const fetchedRows: ProfileRow[] = [];
+  const now = new Date().toISOString();
+
+  // 1. Query langsung melalui browser Supabase client (menggunakan sesi Admin yang sedang login)
+  try {
+    const supabase = createSupabaseBrowserClient();
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!error && Array.isArray(data)) {
+      for (const row of data) {
+        fetchedRows.push({
+          id: String(row.id),
+          full_name: String(row.full_name || "Peserta"),
+          email: String(row.email || "").toLowerCase(),
+          role: (row.role === "admin" ? "admin" : "user") as UserRole,
+          is_active: row.is_active !== false,
+          phone: row.phone ? String(row.phone) : null,
+          institution: row.institution ? String(row.institution) : null,
+          target_selection: row.target_selection
+            ? String(row.target_selection)
+            : "CPNS",
+          email_verified: Boolean(row.email_verified ?? true),
+          created_at: row.created_at ? String(row.created_at) : now,
+          updated_at: row.updated_at ? String(row.updated_at) : now,
+        });
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  // 2. Fallback / tambahan melalui endpoint server /api/profiles
+  if (fetchedRows.length === 0 && typeof window !== "undefined") {
+    try {
+      const res = await fetch("/api/profiles", { cache: "no-store" });
+      if (res.ok) {
+        const json = (await res.json()) as { profiles?: ProfileRow[] };
+        if (Array.isArray(json.profiles)) {
+          fetchedRows.push(...json.profiles);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  if (fetchedRows.length === 0) {
+    return localProfiles;
+  }
+
+  // Gabungkan fetchedRows (dari Supabase) dengan localProfiles berdasarkan email / id
+  const mergedByEmail = new Map<string, ProfileRow>();
+  for (const lp of localProfiles) {
+    mergedByEmail.set(lp.email.toLowerCase(), lp);
+  }
+  for (const remote of fetchedRows) {
+    const emailKey = remote.email.toLowerCase();
+    const existing = mergedByEmail.get(emailKey);
+    mergedByEmail.set(emailKey, {
+      ...existing,
+      ...remote,
+      institution: remote.institution || existing?.institution || null,
+      target_selection:
+        remote.target_selection || existing?.target_selection || "CPNS",
+    });
+  }
+
+  const finalProfiles = Array.from(mergedByEmail.values());
+  saveStoredProfiles(finalProfiles);
+  return finalProfiles;
+}
+
 export function getCurrentUserClient(): ProfileRow | null {
   if (typeof window === "undefined") return null;
   try {
@@ -274,8 +360,120 @@ export async function authenticateUserAsync(
 }
 
 /**
- * Registrasi Mandiri Peserta
- * PENTING (Bab 3.3 & 13 PRD): Registrasi publik SELALU menghasilkan role 'user'.
+ * Registrasi Mandiri Peserta (Asinkron — Menunggu penyimpanan ke Supabase Auth & public.profiles)
+ * PENTING: Memastikan akun yang didaftarkan dari HP langsung masuk ke Supabase
+ * sehingga otomatis muncul di tab Peserta pada Panel Admin di perangkat lain.
+ */
+export async function registerPublicUserAsync(input: {
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  targetSelection?: string;
+  institution?: string;
+}): Promise<AuthResult> {
+  const fullName = input.fullName.trim();
+  const email = input.email.trim().toLowerCase();
+
+  if (fullName.length < 3) {
+    return { ok: false, error: "Nama lengkap minimal terdiri dari 3 karakter." };
+  }
+  if (!email.includes("@") || !email.includes(".")) {
+    return { ok: false, error: "Format alamat email tidak valid." };
+  }
+  if (input.password.length < 8) {
+    return {
+      ok: false,
+      error: "Kata sandi minimal 8 karakter demi keamanan akun Anda.",
+    };
+  }
+  if (input.password !== input.confirmPassword) {
+    return {
+      ok: false,
+      error: "Konfirmasi kata sandi tidak cocok dengan kata sandi yang dimasukkan.",
+    };
+  }
+
+  const now = new Date().toISOString();
+  let supabaseUserId: string | null = null;
+
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password: input.password,
+        options: {
+          data: {
+            full_name: fullName,
+            institution: input.institution?.trim() || null,
+            target_selection: input.targetSelection || "CPNS",
+          },
+        },
+      });
+
+      if (error && error.message.toLowerCase().includes("already registered")) {
+        return {
+          ok: false,
+          error:
+            "Alamat email ini sudah terdaftar. Silakan masuk melalui halaman Login.",
+        };
+      }
+
+      if (data?.user?.id) {
+        supabaseUserId = data.user.id;
+        // Perbarui kolom institution & target_selection pada baris public.profiles yang dibuat oleh trigger on_auth_user_created
+        await supabase
+          .from("profiles")
+          .update({
+            full_name: fullName,
+            institution: input.institution?.trim() || null,
+            target_selection: input.targetSelection || "CPNS",
+            updated_at: now,
+          })
+          .eq("id", supabaseUserId);
+      }
+    } catch {
+      // Lanjutkan ke penyimpanan lokal jika terjadi gangguan jaringan sementara
+    }
+  }
+
+  const profiles = getStoredProfiles();
+  if (!supabaseUserId && profiles.some((p) => p.email.toLowerCase() === email)) {
+    return {
+      ok: false,
+      error: "Alamat email ini sudah terdaftar. Silakan masuk melalui halaman Login.",
+    };
+  }
+
+  const newUser: ProfileRow = {
+    id: supabaseUserId || `usr-${Date.now()}`,
+    full_name: fullName,
+    email,
+    role: "user" as UserRole,
+    is_active: true,
+    phone: null,
+    institution: input.institution?.trim() || null,
+    target_selection: input.targetSelection || "CPNS",
+    email_verified: true,
+    created_at: now,
+    updated_at: now,
+  };
+
+  const filtered = profiles.filter((p) => p.email.toLowerCase() !== email);
+  const updated = [newUser, ...filtered];
+  saveStoredProfiles(updated);
+  setCurrentUserClient(newUser);
+
+  return {
+    ok: true,
+    user: newUser,
+    redirectTo: "/dashboard",
+  };
+}
+
+/**
+ * Registrasi Mandiri Peserta (Sinkron fallback)
  */
 export function registerPublicUser(input: {
   fullName: string;
@@ -317,7 +515,6 @@ export function registerPublicUser(input: {
 
   const now = new Date().toISOString();
 
-  // Sinkronkan pendaftaran ke Supabase Auth jika telah dikonfigurasi
   if (isSupabaseConfigured()) {
     const supabase = createSupabaseBrowserClient();
     void supabase?.auth.signUp({
@@ -333,7 +530,6 @@ export function registerPublicUser(input: {
     });
   }
 
-  // Role dipaksa 'user' — tidak menerima input role dari form publik
   const newUser: ProfileRow = {
     id: `usr-${Date.now()}`,
     full_name: fullName,
@@ -376,7 +572,6 @@ export function updateProfileClient(
     return { ok: false, error: "Profil pengguna tidak ditemukan." };
   }
 
-  // Keamanan: Hanya memperbarui field profil yang diizinkan (bukan role atau is_active)
   const updatedUser: ProfileRow = {
     ...profiles[idx],
     full_name: patch.full_name.trim(),
@@ -389,6 +584,20 @@ export function updateProfileClient(
   profiles[idx] = updatedUser;
   saveStoredProfiles(profiles);
   setCurrentUserClient(updatedUser);
+
+  if (isSupabaseConfigured()) {
+    const supabase = createSupabaseBrowserClient();
+    void supabase
+      ?.from("profiles")
+      .update({
+        full_name: updatedUser.full_name,
+        phone: updatedUser.phone,
+        institution: updatedUser.institution,
+        target_selection: updatedUser.target_selection,
+        updated_at: updatedUser.updated_at,
+      })
+      .eq("id", userId);
+  }
 
   return { ok: true, user: updatedUser };
 }

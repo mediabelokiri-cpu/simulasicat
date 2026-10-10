@@ -336,17 +336,25 @@ BEGIN
         email,
         role,
         is_active,
+        institution,
+        target_selection,
         email_verified
     )
     VALUES (
         NEW.id,
         COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
         NEW.email,
-        CASE WHEN lower(NEW.email) = 'admin@primarib.id' THEN 'admin' ELSE 'user' END,
+        CASE WHEN lower(NEW.email) IN ('admin@primarib.id', 'admin@simulasicat.id') THEN 'admin' ELSE 'user' END,
         true,
-        NEW.email_confirmed_at IS NOT NULL
+        NEW.raw_user_meta_data->>'institution',
+        COALESCE(NEW.raw_user_meta_data->>'target_selection', 'CPNS'),
+        true
     )
-    ON CONFLICT (id) DO NOTHING;
+    ON CONFLICT (id) DO UPDATE
+    SET full_name = COALESCE(EXCLUDED.full_name, public.profiles.full_name),
+        institution = COALESCE(EXCLUDED.institution, public.profiles.institution),
+        target_selection = COALESCE(EXCLUDED.target_selection, public.profiles.target_selection),
+        updated_at = now();
 
     RETURN NEW;
 END;
@@ -422,16 +430,12 @@ ALTER TABLE public.exam_audit_logs ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "profiles_select_own_or_admin" ON public.profiles;
 CREATE POLICY "profiles_select_own_or_admin" ON public.profiles
-    FOR SELECT USING (auth.uid() = id OR public.is_admin());
+    FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "profiles_update_own_safe" ON public.profiles;
 CREATE POLICY "profiles_update_own_safe" ON public.profiles
-    FOR UPDATE USING (auth.uid() = id)
-    WITH CHECK (
-        auth.uid() = id
-        AND role = (SELECT p.role FROM public.profiles p WHERE p.id = auth.uid())
-        AND is_active = (SELECT p.is_active FROM public.profiles p WHERE p.id = auth.uid())
-    );
+    FOR UPDATE USING (auth.uid() = id OR public.is_admin())
+    WITH CHECK (auth.uid() = id OR public.is_admin());
 
 DROP POLICY IF EXISTS "profiles_admin_all" ON public.profiles;
 CREATE POLICY "profiles_admin_all" ON public.profiles

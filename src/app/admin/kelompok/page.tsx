@@ -19,7 +19,7 @@ import {
   inputBaseClasses,
   ToastNotification,
 } from "@/components/ui";
-import { getStoredProfiles } from "@/lib/auth";
+import { getStoredProfiles, syncProfilesFromSupabase } from "@/lib/auth";
 import {
   getGroups,
   saveGroups,
@@ -73,6 +73,10 @@ export default function ManajemenKelompokPage() {
     setAssignments(getRunAssignments());
     setExams(getExams());
     setRuns(getExamRuns());
+
+    void syncProfilesFromSupabase().then((synced) => {
+      setProfiles(synced.filter((p) => p.role === "user"));
+    });
   }, []);
 
   function openCreateModal() {

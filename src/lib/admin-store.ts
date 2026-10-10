@@ -242,5 +242,17 @@ export function toggleUserActiveStatus(
     },
   });
 
+  if (typeof window !== "undefined") {
+    void fetch("/api/profiles", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: userId,
+        email: profiles[idx].email,
+        is_active: newActiveState,
+      }),
+    }).catch(() => {});
+  }
+
   return profiles[idx];
 }

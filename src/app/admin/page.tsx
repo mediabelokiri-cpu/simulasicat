@@ -22,7 +22,7 @@ import {
   StatusBadge,
   Button,
 } from "@/components/ui";
-import { getStoredProfiles } from "@/lib/auth";
+import { getStoredProfiles, syncProfilesFromSupabase } from "@/lib/auth";
 import {
   getExams,
   getExamRuns,
@@ -55,6 +55,10 @@ export default function AdminDashboardPage() {
     setSessions(getExamSessions());
     setIncidents(getIncidents());
     setAuditLogs(getAuditLogs());
+
+    void syncProfilesFromSupabase().then((synced) => {
+      setProfiles(synced);
+    });
   }, []);
 
   const participants = profiles.filter((p) => p.role === "user");

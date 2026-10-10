@@ -11,7 +11,7 @@ import {
   inputBaseClasses,
   ToastNotification,
 } from "@/components/ui";
-import { registerPublicUser } from "@/lib/auth";
+import { registerPublicUserAsync } from "@/lib/auth";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -25,12 +25,12 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
 
-    const res = registerPublicUser({
+    const res = await registerPublicUserAsync({
       fullName,
       email,
       password,

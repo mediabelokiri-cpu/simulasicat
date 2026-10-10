@@ -10,6 +10,7 @@ import {
   History,
   X,
   Plus,
+  RefreshCw,
 } from "lucide-react";
 import {
   AppShell,
@@ -25,7 +26,11 @@ import {
   ConfirmDialog,
   ToastNotification,
 } from "@/components/ui";
-import { getStoredProfiles, saveStoredProfiles } from "@/lib/auth";
+import {
+  getStoredProfiles,
+  saveStoredProfiles,
+  syncProfilesFromSupabase,
+} from "@/lib/auth";
 import {
   getGroups,
   getGroupMembers,
@@ -50,6 +55,7 @@ export default function ManajemenPesertaPage() {
   const [groupMembers, setGroupMembers] = useState<GroupMemberRow[]>([]);
   const [results, setResults] = useState<ResultRow[]>([]);
   const [runs, setRuns] = useState<ExamRunRow[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "INACTIVE">("ALL");
@@ -71,7 +77,27 @@ export default function ManajemenPesertaPage() {
     setGroupMembers(getGroupMembers());
     setResults(getResults());
     setRuns(getExamRuns());
+
+    void syncProfilesFromSupabase().then((synced) => {
+      setProfiles(synced);
+    });
   }, []);
+
+  async function handleManualSync() {
+    setIsSyncing(true);
+    try {
+      const synced = await syncProfilesFromSupabase();
+      setProfiles(synced);
+      const totalUsers = synced.filter((p) => p.role === "user").length;
+      setToast({
+        type: "success",
+        title: "Sinkronisasi Peserta Selesai",
+        desc: `Berhasil memuat ${totalUsers} akun peserta dari database Supabase & penyimpanan lokal.`,
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  }
 
   const participants = profiles.filter((p) => p.role === "user");
 
@@ -142,6 +168,15 @@ export default function ManajemenPesertaPage() {
     saveStoredProfiles(all);
     setProfiles(all);
     setSelectedUser(all[idx]);
+    void fetch("/api/profiles", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: user.id,
+        email: user.email,
+        email_verified: true,
+      }),
+    }).catch(() => {});
     appendAuditLog({
       action: "VERIFY_USER_EMAIL_MANUAL",
       entity_type: "profiles",
@@ -218,6 +253,21 @@ export default function ManajemenPesertaPage() {
             variant="ongoing"
             label={`${participants.length} Peserta Terdaftar`}
           />
+        }
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleManualSync}
+            disabled={isSyncing}
+            leftIcon={
+              <RefreshCw
+                className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
+              />
+            }
+          >
+            {isSyncing ? "Menyinkronkan..." : "Sinkronkan Data Peserta"}
+          </Button>
         }
       />
 
