@@ -14,6 +14,7 @@ import {
   BarChart3,
   AlertTriangle,
   Settings,
+  LayoutTemplate,
   Menu,
   X,
   UserCircle,
@@ -41,6 +42,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: "Monitoring Realtime", href: "/admin/monitoring", icon: Activity },
   { label: "Hasil & Analitik", href: "/admin/hasil", icon: BarChart3 },
   { label: "Insiden", href: "/admin/insiden", icon: AlertTriangle },
+  { label: "Kelola Homepage", href: "/admin/homepage", icon: LayoutTemplate },
   { label: "Pengaturan", href: "/admin/pengaturan", icon: Settings },
 ];
 
