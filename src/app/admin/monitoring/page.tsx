@@ -13,6 +13,7 @@ import {
   RefreshCw,
   RotateCcw,
   Send,
+  Trash2,
   Users,
 } from "lucide-react";
 import {
@@ -31,8 +32,10 @@ import {
 import { getStoredProfiles, syncProfilesFromSupabase } from "@/lib/auth";
 import {
   appendAuditLog,
+  deleteSingleExamSessionAndResult,
   getExamRuns,
   getExamSessions,
+  resetAllMonitoringAndResults,
   saveExamSessions,
   syncAdminStoreFromSupabase,
 } from "@/lib/admin-store";
@@ -68,6 +71,11 @@ export default function AdminRealtimeMonitoringPage() {
     session: ExamSessionRow;
     mode: "pause" | "resume" | "reopen" | "force_submit";
   } | null>(null);
+
+  // Modal Reset / Bersihkan Semua Data & Hapus Sesi Individu
+  const [showResetModal, setShowResetModal] = useState<boolean>(false);
+  const [deleteSessionTarget, setDeleteSessionTarget] =
+    useState<ExamSessionRow | null>(null);
 
   const [toast, setToast] = useState<{
     type: "success" | "info";
@@ -260,6 +268,36 @@ export default function AdminRealtimeMonitoringPage() {
     });
   }
 
+  async function handleResetAllMonitoring() {
+    await resetAllMonitoringAndResults(
+      "usr-admin-01",
+      "Admin mereset dan membersihkan seluruh data Monitoring Realtime & Hasil Ujian"
+    );
+    loadMonitoringData();
+    setShowResetModal(false);
+    setToast({
+      type: "success",
+      title: "Data Monitoring & Hasil Dibersihkan",
+      desc: "Seluruh data sesi pengerjaan dan hasil ujian telah direset hingga kembali kosong.",
+    });
+  }
+
+  async function handleDeleteSingleSession() {
+    if (!deleteSessionTarget) return;
+    const target = deleteSessionTarget;
+    const prof = profiles.find((p) => p.id === target.user_id);
+    await deleteSingleExamSessionAndResult(target.id);
+    loadMonitoringData();
+    setDeleteSessionTarget(null);
+    setToast({
+      type: "info",
+      title: "Sesi Peserta Dihapus",
+      desc: `Data sesi pengerjaan dan hasil ujian milik ${
+        prof?.full_name || "Peserta"
+      } telah dihapus.`,
+    });
+  }
+
   return (
     <AppShell
       role="admin"
@@ -283,6 +321,14 @@ export default function AdminRealtimeMonitoringPage() {
               leftIcon={<RefreshCw className="h-4 w-4" />}
             >
               Segarkan Data
+            </Button>
+            <Button
+              variant="danger"
+              disabled={sessions.length === 0}
+              onClick={() => setShowResetModal(true)}
+              leftIcon={<Trash2 className="h-4 w-4" />}
+            >
+              Reset / Bersihkan Data
             </Button>
             <Link href="/admin/insiden">
               <Button
@@ -574,11 +620,33 @@ export default function AdminRealtimeMonitoringPage() {
                         Buka Kembali
                       </Button>
                     )}
+
+                    <button
+                      type="button"
+                      onClick={() => setDeleteSessionTarget(ses)}
+                      title="Hapus sesi peserta ini"
+                      aria-label="Hapus sesi peserta ini"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-red-50/70 text-red-600 transition-colors hover:bg-red-600 hover:text-white cursor-pointer"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 </div>
               </div>
             );
           })}
+
+          {filteredSessions.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-neutral-300 bg-[#fcfbf7] p-8 text-center">
+              <Users className="mx-auto h-8 w-8 text-neutral-400 mb-2" />
+              <p className="text-sm font-bold text-[#151515]">
+                Belum Ada Data Sesi Pengerjaan Peserta
+              </p>
+              <p className="text-xs text-neutral-500 mt-1">
+                Data monitoring realtime akan otomatis muncul saat peserta mulai mengerjakan ujian.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -665,6 +733,28 @@ export default function AdminRealtimeMonitoringPage() {
           />
         </FormField>
       </ConfirmDialog>
+
+      {/* Dialog Konfirmasi Reset / Bersihkan Semua Data Monitoring */}
+      <ConfirmDialog
+        open={showResetModal}
+        onClose={() => setShowResetModal(false)}
+        onConfirm={() => void handleResetAllMonitoring()}
+        variant="danger"
+        title="Reset & Bersihkan Seluruh Data Monitoring?"
+        description={`Tindakan ini akan menghapus seluruh ${sessions.length} sesi pengerjaan peserta beserta hasil ujian terkait di seluruh perangkat hingga kembali kosong (0 data).`}
+        confirmLabel="Ya, Bersihkan Semua Data"
+      />
+
+      {/* Dialog Konfirmasi Hapus 1 Sesi Peserta */}
+      <ConfirmDialog
+        open={Boolean(deleteSessionTarget)}
+        onClose={() => setDeleteSessionTarget(null)}
+        onConfirm={() => void handleDeleteSingleSession()}
+        variant="danger"
+        title="Hapus Sesi Pengerjaan Peserta?"
+        description="Data sesi pengerjaan dan hasil ujian peserta ini akan dihapus secara permanen dari Monitoring Realtime maupun Hasil & Analitik."
+        confirmLabel="Ya, Hapus Sesi"
+      />
     </AppShell>
   );
 }

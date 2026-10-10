@@ -139,12 +139,28 @@ function pickNewerRecord(
 export async function pushStoreKeyToSupabase(
   storageKey: string,
   data: unknown,
-  explicitSave = true
+  explicitSave = true,
+  customResetToken?: string
 ): Promise<void> {
   if (!isSupabaseConfigured()) return;
   const storeUuid = STORE_KEY_UUIDS[storageKey];
   if (!storeUuid) return;
   try {
+    let phoneValue = explicitSave ? "EXPLICIT_SAVE" : "AUTO_SYNC";
+    if (customResetToken) {
+      phoneValue = customResetToken;
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(`${storageKey}_reset_token`, customResetToken);
+      }
+    } else if (typeof window !== "undefined") {
+      const existingToken = window.localStorage.getItem(
+        `${storageKey}_reset_token`
+      );
+      if (existingToken && existingToken.startsWith("RESET_AT:")) {
+        phoneValue = existingToken;
+      }
+    }
+
     const supabase = createSupabaseBrowserClient();
     const now = new Date().toISOString();
     await supabase.from("profiles").upsert(
@@ -154,7 +170,7 @@ export async function pushStoreKeyToSupabase(
         email: getStoreEmail(storageKey),
         role: "admin",
         is_active: false,
-        phone: explicitSave ? "EXPLICIT_SAVE" : "AUTO_SYNC",
+        phone: phoneValue,
         institution: JSON.stringify(data),
         target_selection: "SYSTEM",
         email_verified: true,
@@ -278,6 +294,24 @@ export async function syncAdminStoreFromSupabase(): Promise<boolean> {
           const remoteParsed = JSON.parse(remoteRow.institution);
           if (Array.isArray(remoteParsed)) {
             if (mergeByIdKeys.has(key)) {
+              // Jika Admin baru saja melakukan Reset / Bersihkan Data di server,
+              // buang cache lama di browser ini agar data lama tidak hidup kembali
+              if (
+                remoteRow.phone &&
+                remoteRow.phone.startsWith("RESET_AT:")
+              ) {
+                const localToken = window.localStorage.getItem(
+                  `${key}_reset_token`
+                );
+                if (localToken !== remoteRow.phone) {
+                  localArr = [];
+                  window.localStorage.setItem(
+                    `${key}_reset_token`,
+                    remoteRow.phone
+                  );
+                }
+              }
+
               const mergedMap = new Map<string, Record<string, unknown>>();
               for (const item of localArr as Record<string, unknown>[]) {
                 if (item && typeof item.id === "string") {
@@ -717,4 +751,132 @@ export async function deleteUserAccountPermanently(
     }).catch(() => {});
   }
 }
+
+/**
+ * Mengosongkan (Reset / Bersihkan) seluruh data Monitoring Realtime & Hasil/Analitik Ujian
+ * baik di penyimpanan lokal maupun di Supabase agar kembali kosong (0 sesi & 0 hasil)
+ * di seluruh perangkat/browser.
+ */
+export async function resetAllMonitoringAndResults(
+  actorId: string = "usr-admin-01",
+  reason: string = "Admin mereset dan membersihkan seluruh data monitoring & hasil ujian"
+): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  const resetToken = `RESET_AT:${Date.now()}`;
+  const targetKeys = [
+    KEYS.sessions,
+    KEYS.results,
+    KEYS.sessionQuestions,
+    KEYS.sessionAnswers,
+  ];
+
+  for (const key of targetKeys) {
+    window.localStorage.setItem(key, "[]");
+    window.localStorage.setItem(`${key}_reset_token`, resetToken);
+  }
+  window.localStorage.removeItem("prima_cat_live_score_submitting_v2_prod");
+
+  appendAuditLog({
+    actor_id: actorId,
+    action: "RESET_ALL_MONITORING_AND_RESULTS",
+    entity_type: "exam_sessions",
+    entity_id: "ALL",
+    reason,
+    details: {
+      reset_token: resetToken,
+      timestamp: new Date().toISOString(),
+    },
+  });
+
+  await Promise.all(
+    targetKeys.map((key) =>
+      pushStoreKeyToSupabase(key, [], true, resetToken)
+    )
+  );
+
+  window.dispatchEvent(new CustomEvent("prima-store-synced"));
+  window.dispatchEvent(new CustomEvent("prima-live-score-event"));
+}
+
+/**
+ * Menghapus satu sesi pengerjaan peserta beserta hasil dan lembar jawabannya secara permanen
+ * dari Monitoring Realtime dan Hasil & Analitik di seluruh browser.
+ */
+export async function deleteSingleExamSessionAndResult(
+  sessionId: string,
+  actorId: string = "usr-admin-01"
+): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  const resetToken = `RESET_AT:${Date.now()}`;
+
+  const nextSessions = getExamSessions().filter((s) => s.id !== sessionId);
+  const nextResults = getResults().filter(
+    (r) => r.exam_session_id !== sessionId && r.id !== sessionId
+  );
+
+  let nextQuestions: Record<string, unknown>[] = [];
+  let nextAnswers: Record<string, unknown>[] = [];
+  try {
+    const rawQ = window.localStorage.getItem(KEYS.sessionQuestions);
+    if (rawQ) {
+      const parsedQ = JSON.parse(rawQ);
+      if (Array.isArray(parsedQ)) {
+        nextQuestions = parsedQ.filter(
+          (q: Record<string, unknown>) => q.exam_session_id !== sessionId
+        );
+      }
+    }
+  } catch {
+    nextQuestions = [];
+  }
+
+  try {
+    const rawA = window.localStorage.getItem(KEYS.sessionAnswers);
+    if (rawA) {
+      const parsedA = JSON.parse(rawA);
+      if (Array.isArray(parsedA)) {
+        nextAnswers = parsedA.filter(
+          (a: Record<string, unknown>) => a.exam_session_id !== sessionId
+        );
+      }
+    }
+  } catch {
+    nextAnswers = [];
+  }
+
+  const updates: Array<[string, unknown[]]> = [
+    [KEYS.sessions, nextSessions],
+    [KEYS.results, nextResults],
+    [KEYS.sessionQuestions, nextQuestions],
+    [KEYS.sessionAnswers, nextAnswers],
+  ];
+
+  for (const [key, arr] of updates) {
+    window.localStorage.setItem(key, JSON.stringify(arr));
+    window.localStorage.setItem(`${key}_reset_token`, resetToken);
+  }
+
+  appendAuditLog({
+    actor_id: actorId,
+    action: "DELETE_EXAM_SESSION_AND_RESULT",
+    entity_type: "exam_sessions",
+    entity_id: sessionId,
+    reason: `Admin menghapus data sesi/hasil ujian (${sessionId})`,
+    details: {
+      reset_token: resetToken,
+    },
+  });
+
+  await Promise.all(
+    updates.map(([key, arr]) =>
+      pushStoreKeyToSupabase(key, arr, true, resetToken)
+    )
+  );
+
+  window.dispatchEvent(new CustomEvent("prima-store-synced"));
+  window.dispatchEvent(new CustomEvent("prima-live-score-event"));
+}
+
 

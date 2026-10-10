@@ -9,6 +9,7 @@ import {
   Eye,
   Globe,
   Lock,
+  Trash2,
   Trophy,
   Users,
   X,
@@ -23,16 +24,19 @@ import {
   SearchInput,
   FormField,
   selectBaseClasses,
+  ConfirmDialog,
   ToastNotification,
 } from "@/components/ui";
 import { ScoreBreakdown } from "@/components/hasil/ScoreBreakdown";
 import { getStoredProfiles, syncProfilesFromSupabase } from "@/lib/auth";
 import {
   appendAuditLog,
+  deleteSingleExamSessionAndResult,
   getExamRuns,
   getExamSessions,
   getExams,
   getResults,
+  resetAllMonitoringAndResults,
   saveExams,
   saveResults,
   syncAdminStoreFromSupabase,
@@ -59,6 +63,9 @@ export default function AdminHasilAnalitikPage() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [search, setSearch] = useState<string>("");
   const [inspectResult, setInspectResult] = useState<ResultRow | null>(null);
+  const [showResetModal, setShowResetModal] = useState<boolean>(false);
+  const [deleteResultTarget, setDeleteResultTarget] =
+    useState<ResultRow | null>(null);
   const [toast, setToast] = useState<{
     type: "success" | "info";
     title: string;
@@ -334,6 +341,36 @@ export default function AdminHasilAnalitikPage() {
     });
   }
 
+  async function handleResetAllResults() {
+    await resetAllMonitoringAndResults(
+      "usr-admin-01",
+      "Admin mereset dan membersihkan seluruh data Hasil, Peringkat & Analitik Ujian"
+    );
+    loadAnalyticsData();
+    setShowResetModal(false);
+    setToast({
+      type: "success",
+      title: "Data Hasil & Analitik Dibersihkan",
+      desc: "Seluruh data hasil ujian, peringkat, dan analitik telah direset hingga kembali kosong.",
+    });
+  }
+
+  async function handleDeleteSingleResult() {
+    if (!deleteResultTarget) return;
+    const target = deleteResultTarget;
+    const prof = profiles.find((p) => p.id === target.user_id);
+    await deleteSingleExamSessionAndResult(target.exam_session_id || target.id);
+    loadAnalyticsData();
+    setDeleteResultTarget(null);
+    setToast({
+      type: "info",
+      title: "Data Hasil Peserta Dihapus",
+      desc: `Hasil ujian milik ${
+        prof?.full_name || "Peserta"
+      } berhasil dihapus dari papan peringkat dan analitik.`,
+    });
+  }
+
   return (
     <AppShell
       role="admin"
@@ -350,13 +387,24 @@ export default function AdminHasilAnalitikPage() {
           />
         }
         actions={
-          <Button
-            variant="primary"
-            onClick={handleExportCsv}
-            leftIcon={<Download className="h-4 w-4" />}
-          >
-            Ekspor CSV Hasil Sesi
-          </Button>
+          <div className="flex flex-wrap gap-2.5">
+            <Button
+              variant="danger"
+              disabled={results.length === 0}
+              onClick={() => setShowResetModal(true)}
+              leftIcon={<Trash2 className="h-4 w-4" />}
+            >
+              Reset / Bersihkan Data
+            </Button>
+            <Button
+              variant="primary"
+              disabled={rankedResults.length === 0}
+              onClick={handleExportCsv}
+              leftIcon={<Download className="h-4 w-4" />}
+            >
+              Ekspor CSV Hasil Sesi
+            </Button>
+          </div>
         }
       />
 
@@ -667,22 +715,71 @@ export default function AdminHasilAnalitikPage() {
                       )}
                     </td>
                     <td className="py-3.5 px-3 text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setInspectResult(row)}
-                        leftIcon={<Eye className="h-3.5 w-3.5" />}
-                      >
-                        Rincian
-                      </Button>
+                      <div className="inline-flex items-center justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setInspectResult(row)}
+                          leftIcon={<Eye className="h-3.5 w-3.5" />}
+                        >
+                          Rincian
+                        </Button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteResultTarget(row)}
+                          title="Hapus hasil peserta ini"
+                          aria-label="Hapus hasil peserta ini"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-red-50/70 text-red-600 transition-colors hover:bg-red-600 hover:text-white cursor-pointer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
               })}
+              {visibleResults.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={9}
+                    className="py-10 px-4 text-center text-neutral-500"
+                  >
+                    <Trophy className="mx-auto h-8 w-8 text-neutral-300 mb-2" />
+                    <p className="text-sm font-bold text-[#151515]">
+                      Belum Ada Data Hasil &amp; Peringkat Ujian
+                    </p>
+                    <p className="text-xs text-neutral-500 mt-1">
+                      Hasil ujian dan peringkat peserta akan muncul secara otomatis setelah peserta menyelesaikan sesi ujian.
+                    </p>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </section>
+
+      {/* Dialog Konfirmasi Reset / Bersihkan Semua Data Hasil & Analitik */}
+      <ConfirmDialog
+        open={showResetModal}
+        onClose={() => setShowResetModal(false)}
+        onConfirm={() => void handleResetAllResults()}
+        variant="danger"
+        title="Reset & Bersihkan Seluruh Data Hasil & Analitik?"
+        description={`Tindakan ini akan menghapus seluruh ${results.length} data hasil ujian, papan peringkat (leaderboard), dan sesi pengerjaan terkait hingga kembali kosong (0 data).`}
+        confirmLabel="Ya, Bersihkan Semua Data"
+      />
+
+      {/* Dialog Konfirmasi Hapus 1 Hasil Peserta */}
+      <ConfirmDialog
+        open={Boolean(deleteResultTarget)}
+        onClose={() => setDeleteResultTarget(null)}
+        onConfirm={() => void handleDeleteSingleResult()}
+        variant="danger"
+        title="Hapus Data Hasil Peserta?"
+        description="Data hasil ujian peserta ini akan dihapus secara permanen dari Peringkat, Analitik, dan Leaderboard Homepage."
+        confirmLabel="Ya, Hapus Hasil"
+      />
 
       {/* Modal Detail Hasil Peserta */}
       {inspectResult && (
