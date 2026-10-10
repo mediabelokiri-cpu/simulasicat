@@ -34,7 +34,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#fcfbf7] text-[#151515] flex flex-col">
       {/* Top Navbar */}
-      <header className="sticky top-0 z-30 border-b border-neutral-200/80 bg-[#fcfbf7]/95 backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-[#093db0] bg-[#0b49d0] text-white shadow-xs">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6">
           <div className="flex items-center gap-3">
             <img
@@ -43,10 +43,10 @@ export default function LandingPage() {
               className="h-10 w-10 rounded-xl object-contain"
             />
             <div>
-              <span className="block text-sm sm:text-base font-extrabold tracking-tight text-[#151515]">
+              <span className="block text-sm sm:text-base font-extrabold tracking-tight text-white">
                 Prima RIB
               </span>
-              <span className="block text-[11px] font-medium text-neutral-500">
+              <span className="block text-[11px] font-medium text-white/80">
                 Portal Resmi Simulasi CAT
               </span>
             </div>
@@ -59,7 +59,7 @@ export default function LandingPage() {
                   href={activeUser.role === "admin" ? "/admin" : "/dashboard"}
                 >
                   <Button
-                    variant="primary"
+                    variant="accent"
                     size="sm"
                     rightIcon={<ArrowRight className="h-4 w-4" />}
                   >
@@ -70,6 +70,7 @@ export default function LandingPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleLogout}
+                  className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:border-white/50"
                   leftIcon={<LogOut className="h-4 w-4" />}
                 >
                   Keluar
@@ -81,6 +82,7 @@ export default function LandingPage() {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:border-white/50"
                     leftIcon={<LogIn className="h-4 w-4" />}
                   >
                     Masuk
@@ -88,7 +90,7 @@ export default function LandingPage() {
                 </Link>
                 <Link href="/register">
                   <Button
-                    variant="primary"
+                    variant="accent"
                     size="sm"
                     leftIcon={<UserPlus className="h-4 w-4" />}
                   >

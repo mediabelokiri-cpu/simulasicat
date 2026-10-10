@@ -153,7 +153,7 @@ export function Topbar({
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white/95 backdrop-blur-xs">
+    <header className="sticky top-0 z-30 border-b border-[#093db0] bg-[#0b49d0] text-white shadow-xs">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
         <div className="flex items-center gap-3">
           {role === "admin" && (
@@ -161,7 +161,7 @@ export function Topbar({
               type="button"
               onClick={onOpenMobileMenu}
               aria-label="Buka menu navigasi"
-              className="flex h-11 w-11 items-center justify-center rounded-xl border border-neutral-200 text-[#151515] hover:bg-neutral-100 lg:hidden"
+              className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/25 bg-white/10 text-white hover:bg-white/20 lg:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -175,10 +175,10 @@ export function Topbar({
                 className="h-9 w-9 rounded-xl object-contain"
               />
               <div>
-                <span className="block text-sm sm:text-base font-extrabold tracking-tight text-[#0b49d0]">
+                <span className="block text-sm sm:text-base font-extrabold tracking-tight text-white">
                   SIMULASI CAT
                 </span>
-                <span className="block text-[11px] font-semibold text-neutral-500">
+                <span className="block text-[11px] font-semibold text-white/80">
                   PRIMA RIB
                 </span>
               </div>
@@ -192,7 +192,7 @@ export function Topbar({
                 alt="Logo Prima RIB"
                 className="h-8 w-8 rounded-lg object-contain"
               />
-              <span className="text-sm font-bold text-[#0b49d0]">
+              <span className="text-sm font-bold text-white">
                 Admin Prima RIB
               </span>
             </div>
@@ -219,8 +219,8 @@ export function Topbar({
                   className={cn(
                     "flex min-h-[42px] items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition-colors",
                     isActive
-                      ? "bg-[#0b49d0] text-white"
-                      : "text-[#151515] hover:bg-neutral-100"
+                      ? "bg-[#ffc63d] text-[#151515] font-bold shadow-xs"
+                      : "text-white/90 hover:bg-white/10 hover:text-white"
                   )}
                 >
                   <Icon className="h-4 w-4" aria-hidden="true" />
@@ -234,14 +234,14 @@ export function Topbar({
         {/* User Profile Pill */}
         <div className="flex items-center gap-3">
           <div className="hidden sm:block text-right">
-            <p className="text-sm font-bold text-[#151515] leading-tight">
+            <p className="text-sm font-bold text-white leading-tight">
               {userName}
             </p>
-            <p className="text-xs text-neutral-500">{userSubtitle}</p>
+            <p className="text-xs text-white/80">{userSubtitle}</p>
           </div>
           <Link
             href={role === "admin" ? "/admin/pengaturan" : "/profil"}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef4ff] text-[#0b49d0] font-bold border border-[#0b49d0]/20"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ffc63d] text-[#151515] font-extrabold border border-[#e5ad28]"
             title="Profil & Pengaturan"
           >
             {userName.charAt(0).toUpperCase()}
