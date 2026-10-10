@@ -1,18 +1,23 @@
 import { createBrowserClient } from "@supabase/ssr";
 
+export function getSupabasePublicKey(): string | undefined {
+  return (
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+}
+
 /**
- * Mengecek apakah kredensial Supabase telah dikonfigurasi secara nyata di .env.local.
- * Sebelum masuk fase Prepare Deployment, fungsi ini akan bernilai false sehingga
- * localhost otomatis menggunakan Localhost Adapter Store (19 Tabel ERD).
+ * Mengecek apakah kredensial Supabase telah dikonfigurasi secara nyata di .env.local / Vercel.
  */
 export function isSupabaseConfigured(): boolean {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const pubKey = getSupabasePublicKey();
   return Boolean(
     url &&
-      anonKey &&
+      pubKey &&
       !url.includes("your-project-id") &&
-      !anonKey.includes("your-anon-key")
+      !pubKey.includes("your-anon-key")
   );
 }
 
@@ -20,8 +25,7 @@ export function createClient() {
   const url =
     process.env.NEXT_PUBLIC_SUPABASE_URL ||
     "https://placeholder-project.supabase.co";
-  const anonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key";
+  const pubKey = getSupabasePublicKey() || "placeholder-anon-key";
 
-  return createBrowserClient(url, anonKey);
+  return createBrowserClient(url, pubKey);
 }

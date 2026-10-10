@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { getSupabasePublicKey } from "./client";
 
 /**
  * Supabase Server Client menggunakan session cookies pengguna yang sedang login.
@@ -11,8 +12,7 @@ export async function createServerSupabaseClient() {
   const url =
     process.env.NEXT_PUBLIC_SUPABASE_URL ||
     "https://placeholder-project.supabase.co";
-  const anonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key";
+  const anonKey = getSupabasePublicKey() || "placeholder-anon-key";
 
   return createServerClient(url, anonKey, {
     cookies: {
@@ -49,7 +49,9 @@ export function createServiceRoleClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL ||
     "https://placeholder-project.supabase.co";
   const serviceKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY || "placeholder-service-role-key";
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SECRET_KEY ||
+    "placeholder-service-role-key";
 
   return createSupabaseAdmin(url, serviceKey, {
     auth: {
