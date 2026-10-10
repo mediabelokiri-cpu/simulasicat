@@ -17,6 +17,7 @@ import {
   ExamRunAssignmentRow,
   ExamSessionRow,
   ResultRow,
+  ProfileRow,
 } from "@/types/database";
 import {
   INITIAL_GROUPS,
@@ -390,8 +391,80 @@ export function saveResults(results: ResultRow[]): void {
 }
 
 /**
+ * Mengambil seluruh daftar kelompok (GroupRow) tempat peserta tergabung,
+ * mencocokkan berdasarkan user.id maupun pencocokan alamat email lintas-perangkat.
+ */
+export function getUserEnrolledGroups(user: {
+  id: string;
+  email?: string;
+}): GroupRow[] {
+  const allGroups = getGroups();
+  const allMembers = getGroupMembers();
+  const allProfiles = getStoredProfiles();
+
+  const targetEmail = String(user.email || "").toLowerCase();
+  const matchingUserIds = new Set<string>([user.id]);
+
+  if (targetEmail) {
+    for (const p of allProfiles) {
+      if (p.email.toLowerCase() === targetEmail) {
+        matchingUserIds.add(p.id);
+      }
+    }
+  }
+
+  const groupIds = new Set<string>();
+  for (const gm of allMembers) {
+    if (
+      matchingUserIds.has(gm.user_id) ||
+      (targetEmail && gm.user_id.toLowerCase() === targetEmail)
+    ) {
+      groupIds.add(gm.group_id);
+    }
+  }
+
+  return allGroups.filter((g) => groupIds.has(g.id));
+}
+
+/**
+ * Mengambil pesan/alasan penonaktifan akun terbaru dari Admin untuk ditampilkan
+ * pada halaman profil dan dashboard peserta ketika akun berstatus Nonaktif.
+ */
+export function getUserDeactivationNotice(user: {
+  id: string;
+  email?: string;
+  is_active: boolean;
+}): { reason: string; updatedAt: string } | null {
+  if (user.is_active) return null;
+  const logs = getAuditLogs();
+  const targetEmail = String(user.email || "").toLowerCase();
+
+  const matchingLog = logs.find((log) => {
+    if (log.action !== "DEACTIVATE_USER_ACCOUNT") return false;
+    if (log.entity_id === user.id) return true;
+    const logEmail = String(
+      (log.details as Record<string, unknown> | undefined)?.email || ""
+    ).toLowerCase();
+    return Boolean(targetEmail && logEmail === targetEmail);
+  });
+
+  if (matchingLog && matchingLog.reason) {
+    return {
+      reason: matchingLog.reason,
+      updatedAt: matchingLog.created_at,
+    };
+  }
+
+  return {
+    reason:
+      "Akun Anda saat ini dinonaktifkan sementara oleh Administrator. Silakan hubungi Admin Prima Catania untuk informasi pengaktifan kembali.",
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+/**
  * Mengubah status aktif/nonaktif akun peserta tanpa menghapus riwayat ujian,
- * disertai pencatatan wajib ke dalam exam_audit_logs.
+ * disertai pencatatan wajib ke dalam exam_audit_logs dan sinkronisasi ke Supabase.
  */
 export function toggleUserActiveStatus(
   userId: string,
@@ -402,12 +475,14 @@ export function toggleUserActiveStatus(
   const idx = profiles.findIndex((p) => p.id === userId);
   if (idx === -1) return null;
 
+  const now = new Date().toISOString();
   const previous = profiles[idx].is_active;
-  profiles[idx] = {
+  const updatedProfile: ProfileRow = {
     ...profiles[idx],
     is_active: newActiveState,
-    updated_at: new Date().toISOString(),
+    updated_at: now,
   };
+  profiles[idx] = updatedProfile;
   saveStoredProfiles(profiles);
 
   appendAuditLog({
@@ -416,23 +491,123 @@ export function toggleUserActiveStatus(
     entity_id: userId,
     reason,
     details: {
-      email: profiles[idx].email,
+      email: updatedProfile.email,
       previous_is_active: previous,
       new_is_active: newActiveState,
     },
   });
 
   if (typeof window !== "undefined") {
+    if (isSupabaseConfigured()) {
+      const supabase = createSupabaseBrowserClient();
+      void supabase
+        .from("profiles")
+        .upsert(
+          {
+            id: updatedProfile.id,
+            full_name: updatedProfile.full_name,
+            email: updatedProfile.email.toLowerCase(),
+            role: updatedProfile.role,
+            is_active: newActiveState,
+            phone: updatedProfile.phone ?? null,
+            institution: updatedProfile.institution ?? null,
+            target_selection: updatedProfile.target_selection || "CPNS",
+            email_verified: updatedProfile.email_verified ?? true,
+            created_at: updatedProfile.created_at || now,
+            updated_at: now,
+          },
+          { onConflict: "email" }
+        )
+        .then(() => {});
+    }
+
     void fetch("/api/profiles", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         id: userId,
-        email: profiles[idx].email,
+        email: updatedProfile.email,
         is_active: newActiveState,
       }),
     }).catch(() => {});
   }
 
-  return profiles[idx];
+  return updatedProfile;
 }
+
+/**
+ * Menghapus akun peserta secara permanen dari penyimpanan lokal, keanggotaan kelompok,
+ * penugasan sesi, serta tabel `public.profiles` di Supabase.
+ */
+export async function deleteUserAccountPermanently(
+  user: ProfileRow
+): Promise<void> {
+  const cleanEmail = user.email.toLowerCase();
+
+  // 1. Hapus dari daftar profil lokal
+  const remainingProfiles = getStoredProfiles().filter(
+    (p) => p.id !== user.id && p.email.toLowerCase() !== cleanEmail
+  );
+  saveStoredProfiles(remainingProfiles);
+
+  // 2. Bersihkan keanggotaan kelompok & grant akses milik akun tersebut
+  const remainingMembers = getGroupMembers().filter(
+    (gm) => gm.user_id !== user.id && gm.user_id.toLowerCase() !== cleanEmail
+  );
+  saveGroupMembers(remainingMembers);
+
+  const remainingGrants = getAccessGrants().filter(
+    (g) => g.user_id !== user.id
+  );
+  saveAccessGrants(remainingGrants);
+
+  const remainingAssignments = getRunAssignments().filter(
+    (a) => a.user_id !== user.id
+  );
+  saveRunAssignments(remainingAssignments);
+
+  appendAuditLog({
+    action: "DELETE_USER_ACCOUNT",
+    entity_type: "profiles",
+    entity_id: user.id,
+    reason: `Penghapusan permanen akun peserta ${user.full_name} (${user.email}) oleh Admin`,
+    details: {
+      email: cleanEmail,
+      full_name: user.full_name,
+    },
+  });
+
+  // 3. Hapus / tandai terhapus di Supabase public.profiles & API server
+  if (typeof window !== "undefined") {
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createSupabaseBrowserClient();
+        await supabase.from("profiles").delete().eq("id", user.id);
+        await supabase.from("profiles").delete().eq("email", cleanEmail);
+        // Pastikan jika kebijakan RLS membatasi DELETE langsung dari anon key,
+        // baris ditandai sebagai __DELETED_USER__ agar tersinkron terhapus di semua browser
+        await supabase.from("profiles").upsert(
+          {
+            id: user.id,
+            full_name: "__DELETED_USER__",
+            email: cleanEmail,
+            role: "user",
+            is_active: false,
+            email_verified: false,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "email" }
+        );
+      } catch {
+        // ignore
+      }
+    }
+
+    await fetch("/api/profiles", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: user.id, email: cleanEmail }),
+    }).catch(() => {});
+  }
+}
+

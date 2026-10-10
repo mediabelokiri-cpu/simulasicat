@@ -11,6 +11,7 @@ import {
   X,
   Plus,
   RefreshCw,
+  Trash2,
 } from "lucide-react";
 import {
   AppShell,
@@ -38,6 +39,9 @@ import {
   getResults,
   getExamRuns,
   toggleUserActiveStatus,
+  deleteUserAccountPermanently,
+  getUserEnrolledGroups,
+  syncAdminStoreFromSupabase,
   appendAuditLog,
 } from "@/lib/admin-store";
 import {
@@ -63,6 +67,7 @@ export default function ManajemenPesertaPage() {
 
   const [selectedUser, setSelectedUser] = useState<ProfileRow | null>(null);
   const [toggleTarget, setToggleTarget] = useState<ProfileRow | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ProfileRow | null>(null);
   const [auditReason, setAuditReason] = useState("");
   const [selectedGroupIdToAdd, setSelectedGroupIdToAdd] = useState("");
   const [toast, setToast] = useState<{
@@ -72,14 +77,21 @@ export default function ManajemenPesertaPage() {
   } | null>(null);
 
   useEffect(() => {
-    setProfiles(getStoredProfiles());
-    setGroups(getGroups());
-    setGroupMembers(getGroupMembers());
-    setResults(getResults());
-    setRuns(getExamRuns());
+    const refreshLocal = () => {
+      setProfiles(getStoredProfiles());
+      setGroups(getGroups());
+      setGroupMembers(getGroupMembers());
+      setResults(getResults());
+      setRuns(getExamRuns());
+    };
+    refreshLocal();
 
     const refreshProfiles = () => {
-      void syncProfilesFromSupabase().then((synced) => {
+      void Promise.all([
+        syncAdminStoreFromSupabase(),
+        syncProfilesFromSupabase(),
+      ]).then(([, synced]) => {
+        refreshLocal();
         setProfiles(synced);
       });
     };
@@ -96,8 +108,13 @@ export default function ManajemenPesertaPage() {
   async function handleManualSync() {
     setIsSyncing(true);
     try {
-      const synced = await syncProfilesFromSupabase();
+      const [, synced] = await Promise.all([
+        syncAdminStoreFromSupabase(),
+        syncProfilesFromSupabase(),
+      ]);
       setProfiles(synced);
+      setGroups(getGroups());
+      setGroupMembers(getGroupMembers());
       const totalUsers = synced.filter((p) => p.role === "user").length;
       setToast({
         type: "success",
@@ -126,11 +143,16 @@ export default function ManajemenPesertaPage() {
     return matchesSearch && matchesStatus && matchesTarget;
   });
 
-  function getUserGroups(userId: string): GroupRow[] {
-    const memberIds = groupMembers
-      .filter((gm) => gm.user_id === userId)
-      .map((gm) => gm.group_id);
-    return groups.filter((g) => memberIds.includes(g.id));
+  function getUserGroups(userOrId: ProfileRow | string): GroupRow[] {
+    if (typeof userOrId === "string") {
+      const found = profiles.find((p) => p.id === userOrId);
+      if (found) return getUserEnrolledGroups(found);
+      const memberIds = groupMembers
+        .filter((gm) => gm.user_id === userOrId)
+        .map((gm) => gm.group_id);
+      return groups.filter((g) => memberIds.includes(g.id));
+    }
+    return getUserEnrolledGroups(userOrId);
   }
 
   function handleConfirmToggleStatus() {
@@ -138,7 +160,7 @@ export default function ManajemenPesertaPage() {
     const reason =
       auditReason.trim() ||
       (toggleTarget.is_active
-        ? "Penonaktifan akun peserta oleh Admin"
+        ? "Akun Anda dinonaktifkan sementara oleh Administrator. Silakan hubungi Admin Prima Catania untuk informasi lebih lanjut."
         : "Pengaktifan kembali akun peserta oleh Admin");
 
     const updated = toggleUserActiveStatus(
@@ -158,12 +180,33 @@ export default function ManajemenPesertaPage() {
         title: updated.is_active
           ? "Akun Peserta Diaktifkan"
           : "Akun Peserta Dinonaktifkan",
-        desc: `Status akun ${updated.full_name} berhasil diperbarui (riwayat ujian tetap tersimpan) dan tercatat di Audit Log.`,
+        desc: updated.is_active
+          ? `Status akun ${updated.full_name} berhasil diaktifkan kembali.`
+          : `Akun ${updated.full_name} telah dinonaktifkan dan pesan Admin telah dikirim ke akun peserta.`,
       });
     }
 
     setToggleTarget(null);
     setAuditReason("");
+  }
+
+  async function handleConfirmDeleteUser() {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    setDeleteTarget(null);
+    if (selectedUser?.id === target.id) {
+      setSelectedUser(null);
+    }
+
+    await deleteUserAccountPermanently(target);
+    setProfiles(getStoredProfiles());
+    setGroupMembers(getGroupMembers());
+
+    setToast({
+      type: "success",
+      title: "Akun Peserta Dihapus Permanen",
+      desc: `Akun ${target.full_name} (${target.email}) telah dihapus secara permanen dari sistem.`,
+    });
   }
 
   function handleVerifyEmailByAdmin(user: ProfileRow) {
@@ -429,7 +472,7 @@ export default function ManajemenPesertaPage() {
             header: "Aksi",
             className: "text-right",
             render: (row) => (
-              <div className="flex items-center justify-end gap-2">
+              <div className="flex items-center justify-end gap-1.5">
                 <Button
                   variant="outline"
                   size="sm"
@@ -452,12 +495,21 @@ export default function ManajemenPesertaPage() {
                 >
                   {row.is_active ? "Nonaktifkan" : "Aktifkan"}
                 </Button>
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(row)}
+                  title="Hapus akun peserta secara permanen"
+                  aria-label="Hapus akun peserta secara permanen"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-200 bg-rose-50/70 text-rose-600 transition-colors hover:bg-rose-600 hover:text-white"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             ),
           },
         ]}
         renderMobileCard={(row) => {
-          const uGroups = getUserGroups(row.id);
+          const uGroups = getUserGroups(row);
           return (
             <MobileRecordCard
               title={row.full_name}
@@ -488,7 +540,7 @@ export default function ManajemenPesertaPage() {
                 },
               ]}
               actions={
-                <>
+                <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -504,7 +556,15 @@ export default function ManajemenPesertaPage() {
                   >
                     {row.is_active ? "Nonaktifkan" : "Aktifkan"}
                   </Button>
-                </>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => setDeleteTarget(row)}
+                    leftIcon={<Trash2 className="h-3.5 w-3.5" />}
+                  >
+                    Hapus Permanen
+                  </Button>
+                </div>
               }
             />
           );
@@ -610,7 +670,7 @@ export default function ManajemenPesertaPage() {
                 <span>Keanggotaan Kelompok Peserta</span>
               </h3>
               <div className="flex flex-wrap gap-2">
-                {getUserGroups(selectedUser.id).map((g) => (
+                {getUserGroups(selectedUser).map((g) => (
                   <span
                     key={g.id}
                     className="inline-flex items-center gap-2 rounded-xl border border-[#0b49d0]/25 bg-[#eef4ff] px-3 py-1.5 text-xs font-bold text-[#0b49d0]"
@@ -628,7 +688,7 @@ export default function ManajemenPesertaPage() {
                     </button>
                   </span>
                 ))}
-                {getUserGroups(selectedUser.id).length === 0 && (
+                {getUserGroups(selectedUser).length === 0 && (
                   <span className="text-xs text-neutral-500">
                     Belum bergabung ke kelompok mana pun.
                   </span>
@@ -709,15 +769,25 @@ export default function ManajemenPesertaPage() {
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-100 pt-4">
-              <Button
-                variant={selectedUser.is_active ? "danger" : "primary"}
-                size="sm"
-                onClick={() => setToggleTarget(selectedUser)}
-              >
-                {selectedUser.is_active
-                  ? "Nonaktifkan Akun Peserta"
-                  : "Aktifkan Kembali Akun"}
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={selectedUser.is_active ? "danger" : "primary"}
+                  size="sm"
+                  onClick={() => setToggleTarget(selectedUser)}
+                >
+                  {selectedUser.is_active
+                    ? "Nonaktifkan Akun Peserta"
+                    : "Aktifkan Kembali Akun"}
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => setDeleteTarget(selectedUser)}
+                  leftIcon={<Trash2 className="h-3.5 w-3.5" />}
+                >
+                  Hapus Permanen Akun
+                </Button>
+              </div>
               <Button variant="outline" onClick={() => setSelectedUser(null)}>
                 Tutup
               </Button>
@@ -726,7 +796,7 @@ export default function ManajemenPesertaPage() {
         </div>
       )}
 
-      {/* Dialog Konfirmasi Aktif/Nonaktif dengan Alasan Audit */}
+      {/* Dialog Konfirmasi Aktif/Nonaktif dengan Pesan Admin ke Peserta */}
       <ConfirmDialog
         open={Boolean(toggleTarget)}
         onClose={() => {
@@ -742,7 +812,7 @@ export default function ManajemenPesertaPage() {
         }
         description={
           toggleTarget?.is_active
-            ? `Akun ${toggleTarget.full_name} tidak akan dapat memulai ujian baru, namun seluruh riwayat ujian dan hasil lama tetap tersimpan utuh.`
+            ? `Akun ${toggleTarget.full_name} tidak akan dapat memulai ujian baru dan akan melihat pesan dari Admin di halaman akun/dashboard mereka.`
             : `Akun ${toggleTarget?.full_name} akan diizinkan kembali mengakses dashboard dan mengikuti ujian sesuai hak aksesnya.`
         }
         confirmLabel={
@@ -751,7 +821,11 @@ export default function ManajemenPesertaPage() {
       >
         <FormField
           id="audit-reason-input"
-          label="Alasan Tindakan (Dicatat di Audit Log)"
+          label={
+            toggleTarget?.is_active
+              ? "Pesan untuk Peserta / Alasan Penonaktifan (Tampil di Akun Peserta)"
+              : "Alasan Pengaktifan Kembali (Dicatat di Audit Log)"
+          }
           required
         >
           <input
@@ -759,11 +833,33 @@ export default function ManajemenPesertaPage() {
             type="text"
             value={auditReason}
             onChange={(e) => setAuditReason(e.target.value)}
-            placeholder="Contoh: Masa bimbingan batch 1 telah berakhir"
+            placeholder={
+              toggleTarget?.is_active
+                ? "Contoh: Masa bimbingan batch 1 telah berakhir. Hubungi Admin untuk perpanjangan."
+                : "Contoh: Pembayaran perpanjangan paket simulasi telah diverifikasi."
+            }
             className={inputBaseClasses}
           />
         </FormField>
       </ConfirmDialog>
+
+      {/* Dialog Konfirmasi Hapus Permanen Akun Peserta */}
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          void handleConfirmDeleteUser();
+        }}
+        variant="danger"
+        title="Hapus Permanen Akun Peserta?"
+        description={
+          deleteTarget
+            ? `Apakah Anda yakin ingin menghapus akun peserta "${deleteTarget.full_name}" (${deleteTarget.email}) secara permanen? Tindakan ini akan menghapus akun dari database dan tidak dapat dibatalkan.`
+            : ""
+        }
+        confirmLabel="Ya, Hapus Permanen"
+        cancelLabel="Batal"
+      />
     </AppShell>
   );
 }

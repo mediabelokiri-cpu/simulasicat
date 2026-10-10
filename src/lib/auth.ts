@@ -39,7 +39,8 @@ export function getStoredProfiles(): ProfileRow[] {
         !String(p.email || "")
           .toLowerCase()
           .endsWith("@internal.primarib.id") &&
-        p.full_name !== "__SYSTEM_STORE__"
+        p.full_name !== "__SYSTEM_STORE__" &&
+        p.full_name !== "__DELETED_USER__"
     );
     let modified = false;
     for (const initProfile of INITIAL_PROFILES) {
@@ -98,6 +99,7 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
   }
 
   const fetchedRows: ProfileRow[] = [];
+  const deletedEmails = new Set<string>();
   const now = new Date().toISOString();
 
   // 1. Query langsung melalui browser Supabase client
@@ -115,6 +117,10 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
           emailStr.endsWith("@internal.primarib.id") ||
           row.full_name === "__SYSTEM_STORE__"
         ) {
+          continue;
+        }
+        if (row.full_name === "__DELETED_USER__") {
+          deletedEmails.add(emailStr);
           continue;
         }
         fetchedRows.push({
@@ -156,7 +162,10 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
   // 3. Push akun peserta lokal (role === 'user') yang belum tercatat di Supabase public.profiles
   const remoteEmails = new Set(fetchedRows.map((r) => r.email.toLowerCase()));
   const unsyncedLocalUsers = localProfiles.filter(
-    (lp) => lp.role === "user" && !remoteEmails.has(lp.email.toLowerCase())
+    (lp) =>
+      lp.role === "user" &&
+      !remoteEmails.has(lp.email.toLowerCase()) &&
+      !deletedEmails.has(lp.email.toLowerCase())
   );
 
   if (unsyncedLocalUsers.length > 0) {
@@ -199,17 +208,20 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
     }
   }
 
-  if (fetchedRows.length === 0) {
+  if (fetchedRows.length === 0 && deletedEmails.size === 0) {
     return localProfiles;
   }
 
   // Gabungkan fetchedRows (dari Supabase) dengan localProfiles berdasarkan email
   const mergedByEmail = new Map<string, ProfileRow>();
   for (const lp of localProfiles) {
-    mergedByEmail.set(lp.email.toLowerCase(), lp);
+    if (!deletedEmails.has(lp.email.toLowerCase())) {
+      mergedByEmail.set(lp.email.toLowerCase(), lp);
+    }
   }
   for (const remote of fetchedRows) {
     const emailKey = remote.email.toLowerCase();
+    if (deletedEmails.has(emailKey)) continue;
     const existing = mergedByEmail.get(emailKey);
     mergedByEmail.set(emailKey, {
       ...existing,
@@ -222,6 +234,33 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
 
   const finalProfiles = Array.from(mergedByEmail.values());
   saveStoredProfiles(finalProfiles);
+
+  // Perbarui atau hapus sesi pengguna aktif jika terdampak perubahan/penghapusan dari Admin
+  if (typeof window !== "undefined") {
+    try {
+      const activeRaw = window.localStorage.getItem(AUTH_STORAGE_KEY);
+      if (activeRaw) {
+        const activeParsed = JSON.parse(activeRaw) as ProfileRow;
+        const activeEmail = String(activeParsed.email || "").toLowerCase();
+        if (deletedEmails.has(activeEmail)) {
+          setCurrentUserClient(null);
+        } else {
+          const syncedSelf =
+            finalProfiles.find((p) => p.id === activeParsed.id) ||
+            finalProfiles.find((p) => p.email.toLowerCase() === activeEmail);
+          if (syncedSelf) {
+            window.localStorage.setItem(
+              AUTH_STORAGE_KEY,
+              JSON.stringify(syncedSelf)
+            );
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   return finalProfiles;
 }
 
@@ -231,8 +270,20 @@ export function getCurrentUserClient(): ProfileRow | null {
     const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as ProfileRow;
-    // Sinkronkan dengan daftar profil terbaru (mis. jika Admin menonaktifkan akun)
-    const latest = getStoredProfiles().find((p) => p.id === parsed.id);
+    // Sinkronkan dengan daftar profil terbaru berdasarkan ID maupun email
+    const stored = getStoredProfiles();
+    const latest =
+      stored.find((p) => p.id === parsed.id) ||
+      stored.find(
+        (p) =>
+          p.email.toLowerCase() === String(parsed.email || "").toLowerCase()
+      );
+    if (
+      latest &&
+      (latest.id !== parsed.id || latest.is_active !== parsed.is_active)
+    ) {
+      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(latest));
+    }
     return latest ?? parsed;
   } catch {
     return null;

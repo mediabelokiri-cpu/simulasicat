@@ -18,6 +18,7 @@ import {
   FormField,
   inputBaseClasses,
   ToastNotification,
+  ConfirmDialog,
 } from "@/components/ui";
 import { getStoredProfiles, syncProfilesFromSupabase } from "@/lib/auth";
 import {
@@ -26,7 +27,9 @@ import {
   getGroupMembers,
   saveGroupMembers,
   getAccessGrants,
+  saveAccessGrants,
   getRunAssignments,
+  saveRunAssignments,
   getExams,
   getExamRuns,
   appendAuditLog,
@@ -53,6 +56,7 @@ export default function ManajemenKelompokPage() {
 
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingGroup, setEditingGroup] = useState<GroupRow | null>(null);
+  const [groupToDelete, setGroupToDelete] = useState<GroupRow | null>(null);
   const [groupName, setGroupName] = useState("");
   const [groupDesc, setGroupDesc] = useState("");
 
@@ -216,6 +220,41 @@ export default function ManajemenKelompokPage() {
     });
   }
 
+  function handleDeleteGroup(group: GroupRow) {
+    const nextGroups = groups.filter((g) => g.id !== group.id);
+    const nextMembers = members.filter((m) => m.group_id !== group.id);
+    const nextGrants = grants.filter((gr) => gr.group_id !== group.id);
+    const nextAssigns = assignments.filter((asg) => asg.group_id !== group.id);
+
+    saveGroups(nextGroups);
+    saveGroupMembers(nextMembers);
+    saveAccessGrants(nextGrants);
+    saveRunAssignments(nextAssigns);
+
+    setGroups(nextGroups);
+    setMembers(nextMembers);
+    setGrants(nextGrants);
+    setAssignments(nextAssigns);
+    if (activeGroupForMembers?.id === group.id) {
+      setActiveGroupForMembers(null);
+    }
+    setGroupToDelete(null);
+
+    appendAuditLog({
+      action: "DELETE_GROUP",
+      entity_type: "groups",
+      entity_id: group.id,
+      reason: `Menghapus kelompok peserta "${group.name}"`,
+      details: { name: group.name },
+    });
+
+    setToast({
+      type: "success",
+      title: "Kelompok Dihapus",
+      desc: `Kelompok "${group.name}" beserta keanggotaan dan penugasan terkait telah dihapus.`,
+    });
+  }
+
   return (
     <AppShell
       role="admin"
@@ -280,11 +319,22 @@ export default function ManajemenKelompokPage() {
                       </p>
                     </div>
                   </div>
-                  <StatusBadge
-                    variant={grp.is_active ? "active" : "archived"}
-                    label={grp.is_active ? "Aktif" : "Arsip"}
-                    size="sm"
-                  />
+                  <div className="flex items-center gap-1.5">
+                    <StatusBadge
+                      variant={grp.is_active ? "active" : "archived"}
+                      label={grp.is_active ? "Aktif" : "Arsip"}
+                      size="sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setGroupToDelete(grp)}
+                      title="Hapus kelompok ini"
+                      aria-label="Hapus kelompok ini"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-200 bg-rose-50/70 text-rose-600 transition-colors hover:bg-rose-600 hover:text-white"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
 
                 <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
@@ -325,14 +375,16 @@ export default function ManajemenKelompokPage() {
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-100 pt-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => openEditModal(grp)}
-                  leftIcon={<Edit3 className="h-3.5 w-3.5" />}
-                >
-                  Ubah Nama
-                </Button>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openEditModal(grp)}
+                    leftIcon={<Edit3 className="h-3.5 w-3.5" />}
+                  >
+                    Ubah Nama
+                  </Button>
+                </div>
                 <Button
                   variant="primary"
                   size="sm"
@@ -346,6 +398,24 @@ export default function ManajemenKelompokPage() {
           );
         })}
       </div>
+
+      {/* Dialog Konfirmasi Hapus Kelompok */}
+      <ConfirmDialog
+        open={groupToDelete !== null}
+        onClose={() => setGroupToDelete(null)}
+        onConfirm={() => {
+          if (groupToDelete) handleDeleteGroup(groupToDelete);
+        }}
+        variant="danger"
+        title="Hapus Kelompok Peserta?"
+        description={
+          groupToDelete
+            ? `Apakah Anda yakin ingin menghapus kelompok "${groupToDelete.name}" beserta daftar anggotanya? Akun peserta di dalamnya tidak akan ikut terhapus.`
+            : ""
+        }
+        confirmLabel="Ya, Hapus Kelompok"
+        cancelLabel="Batal"
+      />
 
       {/* Modal Tambah / Edit Kelompok */}
       {showFormModal && (

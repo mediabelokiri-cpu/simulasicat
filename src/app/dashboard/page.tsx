@@ -11,6 +11,8 @@ import {
   Megaphone,
   ArrowRight,
   Sparkles,
+  AlertTriangle,
+  UsersRound,
 } from "lucide-react";
 import {
   AppShell,
@@ -30,6 +32,8 @@ import {
   getExamRuns,
   getExamSections,
   getResults,
+  getUserEnrolledGroups,
+  getUserDeactivationNotice,
   syncAdminStoreFromSupabase,
 } from "@/lib/admin-store";
 import {
@@ -41,9 +45,11 @@ import {
   ExamRow,
   ExamRunRow,
   ExamSectionRow,
+  GroupRow,
   ProfileRow,
   ResultRow,
 } from "@/types/database";
+import { formatDateTimeID } from "@/lib/utils";
 
 export default function UserDashboardPage() {
   const router = useRouter();
@@ -52,6 +58,11 @@ export default function UserDashboardPage() {
   const [runs, setRuns] = useState<ExamRunRow[]>([]);
   const [sections, setSections] = useState<ExamSectionRow[]>([]);
   const [results, setResults] = useState<ResultRow[]>([]);
+  const [userGroups, setUserGroups] = useState<GroupRow[]>([]);
+  const [deactivationNotice, setDeactivationNotice] = useState<{
+    reason: string;
+    updatedAt: string;
+  } | null>(null);
 
   const [categoryFilter, setCategoryFilter] = useState("ALL");
   const [sekdinInstFilter, setSekdinInstFilter] = useState("ALL");
@@ -65,14 +76,16 @@ export default function UserDashboardPage() {
     }
     setUser(active);
 
-    const refreshFromLocal = () => {
+    const refreshFromLocal = (currentUser: ProfileRow) => {
       setExams(getExams());
       setRuns(getExamRuns());
       setSections(getExamSections());
       setResults(getResults());
+      setUserGroups(getUserEnrolledGroups(currentUser));
+      setDeactivationNotice(getUserDeactivationNotice(currentUser));
     };
 
-    refreshFromLocal();
+    refreshFromLocal(active);
 
     let isMounted = true;
     const syncRemote = async () => {
@@ -82,8 +95,12 @@ export default function UserDashboardPage() {
       ]);
       if (!isMounted) return;
       const latestUser = getCurrentUserClient();
-      if (latestUser) setUser(latestUser);
-      refreshFromLocal();
+      if (!latestUser) {
+        router.replace("/login");
+        return;
+      }
+      setUser(latestUser);
+      refreshFromLocal(latestUser);
     };
 
     void syncRemote();
@@ -187,6 +204,71 @@ export default function UserDashboardPage() {
           </div>
         }
       />
+
+      {/* Pesan dari Admin ketika Akun Peserta Dinonaktifkan */}
+      {!user.is_active && (
+        <div
+          role="alert"
+          className="mb-6 rounded-2xl border-2 border-rose-200 bg-rose-50/90 p-4 sm:p-5 shadow-xs"
+        >
+          <div className="flex items-start gap-3.5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-600 text-white">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-sm sm:text-base font-bold text-rose-950">
+                  Pesan dari Administrator — Akun Anda Dinonaktifkan
+                </h2>
+                {deactivationNotice?.updatedAt && (
+                  <span className="text-[11px] font-medium text-rose-700">
+                    {formatDateTimeID(deactivationNotice.updatedAt)}
+                  </span>
+                )}
+              </div>
+              <div className="rounded-xl border border-rose-200/80 bg-white/90 p-3 text-xs sm:text-sm font-medium text-rose-900 leading-relaxed">
+                &ldquo;
+                {deactivationNotice?.reason ||
+                  "Akun Anda saat ini dinonaktifkan sementara oleh Administrator."}
+                &rdquo;
+              </div>
+              <p className="text-xs text-rose-800">
+                Anda tidak dapat memulai sesi ujian baru selama akun berstatus
+                nonaktif, namun seluruh riwayat hasil ujian lama tetap tersimpan.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notifikasi Keanggotaan Kelompok */}
+      {userGroups.length > 0 && (
+        <div className="mb-6 rounded-2xl border border-[#0b49d0]/25 bg-[#eef4ff]/80 p-4 shadow-xs">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#0b49d0] text-white">
+                <UsersRound className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-bold text-[#0b49d0]">
+                  Anda Tergabung dalam Kelompok:{" "}
+                  {userGroups.map((g) => g.name).join(", ")}
+                </p>
+                <p className="mt-0.5 text-xs text-neutral-700">
+                  Akun Anda memiliki akses penuh ke jadwal sesi ujian khusus
+                  untuk anggota kelompok ini.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/profil"
+              className="shrink-0 text-xs font-bold text-[#0b49d0] hover:underline"
+            >
+              Lihat Profil &rarr;
+            </Link>
+          </div>
+        </div>
+      )}
 
       {errorMsg && (
         <div className="mb-6">

@@ -10,6 +10,8 @@ import {
   UsersRound,
   ShieldCheck,
   LogOut,
+  AlertTriangle,
+  BellRing,
 } from "lucide-react";
 import {
   AppShell,
@@ -24,8 +26,13 @@ import {
   getCurrentUserClient,
   setCurrentUserClient,
   updateProfileClient,
+  syncProfilesFromSupabase,
 } from "@/lib/auth";
-import { getGroups, getGroupMembers } from "@/lib/admin-store";
+import {
+  getUserEnrolledGroups,
+  getUserDeactivationNotice,
+  syncAdminStoreFromSupabase,
+} from "@/lib/admin-store";
 import { EMPTY_USER_FALLBACK } from "@/lib/mock-store";
 import { GroupRow, ProfileRow } from "@/types/database";
 import { formatDateTimeID } from "@/lib/utils";
@@ -38,6 +45,10 @@ export default function ProfilPage() {
   const [institution, setInstitution] = useState("");
   const [targetSelection, setTargetSelection] = useState("CPNS");
   const [userGroups, setUserGroups] = useState<GroupRow[]>([]);
+  const [deactivationNotice, setDeactivationNotice] = useState<{
+    reason: string;
+    updatedAt: string;
+  } | null>(null);
   const [toast, setToast] = useState<{
     type: "success" | "error";
     title: string;
@@ -56,11 +67,39 @@ export default function ProfilPage() {
     setInstitution(active.institution || "");
     setTargetSelection(active.target_selection || "CPNS");
 
-    const allGroups = getGroups();
-    const myGroupIds = getGroupMembers()
-      .filter((gm) => gm.user_id === active.id)
-      .map((gm) => gm.group_id);
-    setUserGroups(allGroups.filter((g) => myGroupIds.includes(g.id)));
+    const refreshUserAndGroups = (current: ProfileRow) => {
+      setUser(current);
+      setUserGroups(getUserEnrolledGroups(current));
+      setDeactivationNotice(getUserDeactivationNotice(current));
+    };
+
+    refreshUserAndGroups(active);
+
+    let isMounted = true;
+    const syncRemote = async () => {
+      await Promise.all([
+        syncAdminStoreFromSupabase(),
+        syncProfilesFromSupabase(),
+      ]);
+      if (!isMounted) return;
+      const latest = getCurrentUserClient();
+      if (!latest) {
+        router.replace("/login");
+        return;
+      }
+      refreshUserAndGroups(latest);
+    };
+
+    void syncRemote();
+    const interval = window.setInterval(syncRemote, 8000);
+    const onFocus = () => void syncRemote();
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
   }, [router]);
 
   function handleSave(e: React.FormEvent) {
@@ -124,6 +163,65 @@ export default function ProfilPage() {
           </Button>
         }
       />
+
+      {/* Pesan dari Admin ketika Akun Peserta Dinonaktifkan */}
+      {!user.is_active && (
+        <div
+          role="alert"
+          className="mb-6 rounded-2xl border-2 border-rose-200 bg-rose-50/90 p-4 sm:p-5 shadow-xs"
+        >
+          <div className="flex items-start gap-3.5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-600 text-white">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-sm sm:text-base font-bold text-rose-950">
+                  Pesan dari Administrator — Akun Anda Dinonaktifkan
+                </h2>
+                {deactivationNotice?.updatedAt && (
+                  <span className="text-[11px] font-medium text-rose-700">
+                    {formatDateTimeID(deactivationNotice.updatedAt)}
+                  </span>
+                )}
+              </div>
+              <div className="rounded-xl border border-rose-200/80 bg-white/90 p-3 text-xs sm:text-sm font-medium text-rose-900 leading-relaxed">
+                &ldquo;
+                {deactivationNotice?.reason ||
+                  "Akun Anda saat ini dinonaktifkan sementara oleh Administrator."}
+                &rdquo;
+              </div>
+              <p className="text-xs text-rose-800">
+                Seluruh riwayat hasil ujian Anda tetap tersimpan dengan aman.
+                Silakan hubungi Administrator Prima Catania untuk informasi
+                pengaktifan kembali akun Anda.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notifikasi Keanggotaan Kelompok dari Admin */}
+      {userGroups.length > 0 && (
+        <div className="mb-6 rounded-2xl border border-[#0b49d0]/25 bg-[#eef4ff]/80 p-4 shadow-xs">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#0b49d0] text-white">
+              <BellRing className="h-4 w-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-bold text-[#0b49d0]">
+                Notifikasi Kelompok Belajar
+              </p>
+              <p className="mt-0.5 text-xs text-neutral-700 leading-relaxed">
+                Administrator telah menambahkan akun Anda ke dalam kelompok:{" "}
+                <strong>{userGroups.map((g) => g.name).join(", ")}</strong>. Anda
+                memiliki hak akses untuk mengikuti jadwal sesi ujian khusus
+                kelompok tersebut.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && (
         <div className="mb-6">
@@ -189,11 +287,20 @@ export default function ProfilPage() {
 
           {/* Group Membership Card */}
           <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-3">
-            <div className="flex items-center gap-2">
-              <UsersRound className="h-4 w-4 text-[#0b49d0]" />
-              <h3 className="text-sm font-bold text-[#151515]">
-                Keanggotaan Kelompok / Kelas
-              </h3>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <UsersRound className="h-4 w-4 text-[#0b49d0]" />
+                <h3 className="text-sm font-bold text-[#151515]">
+                  Keanggotaan Kelompok / Kelas
+                </h3>
+              </div>
+              {userGroups.length > 0 && (
+                <StatusBadge
+                  variant="active"
+                  label={`${userGroups.length} Kelompok`}
+                  size="sm"
+                />
+              )}
             </div>
             {userGroups.length === 0 ? (
               <p className="text-xs text-neutral-500 leading-relaxed">
@@ -205,13 +312,18 @@ export default function ProfilPage() {
                 {userGroups.map((g) => (
                   <li
                     key={g.id}
-                    className="rounded-xl border border-neutral-200 bg-[#fcfbf7] p-3"
+                    className="rounded-xl border border-[#0b49d0]/25 bg-[#eef4ff]/60 p-3"
                   >
-                    <p className="text-xs font-bold text-[#151515]">
-                      {g.name}
-                    </p>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-bold text-[#0b49d0]">
+                        {g.name}
+                      </p>
+                      <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                        Anggota Aktif
+                      </span>
+                    </div>
                     {g.description && (
-                      <p className="mt-0.5 text-[11px] text-neutral-600">
+                      <p className="mt-1 text-[11px] text-neutral-600">
                         {g.description}
                       </p>
                     )}

@@ -37,7 +37,8 @@ export async function GET() {
           !String(row.email || "")
             .toLowerCase()
             .endsWith("@internal.primarib.id") &&
-          row.full_name !== "__SYSTEM_STORE__"
+          row.full_name !== "__SYSTEM_STORE__" &&
+          row.full_name !== "__DELETED_USER__"
       )
       .map((row: Record<string, unknown>) => ({
         id: String(row.id),
@@ -155,4 +156,44 @@ export async function POST(request: Request) {
   }
 }
 
+export async function DELETE(request: Request) {
+  if (!isSupabaseConfigured()) {
+    return NextResponse.json({ ok: false });
+  }
 
+  try {
+    const body = (await request.json()) as { id?: string; email?: string };
+    if (!body.id && !body.email) {
+      return NextResponse.json({ ok: false }, { status: 400 });
+    }
+
+    const hasServiceKey = Boolean(
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY
+    );
+    const supabase = hasServiceKey
+      ? createServiceRoleClient()
+      : await createServerSupabaseClient();
+
+    if (body.id) {
+      await supabase.from("profiles").delete().eq("id", body.id);
+    }
+    if (body.email) {
+      await supabase
+        .from("profiles")
+        .delete()
+        .eq("email", String(body.email).toLowerCase());
+    }
+
+    if (hasServiceKey && body.id) {
+      try {
+        await supabase.auth.admin.deleteUser(body.id);
+      } catch {
+        // ignore if user was not in auth.users
+      }
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ ok: false }, { status: 500 });
+  }
+}

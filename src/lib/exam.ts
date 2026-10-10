@@ -19,11 +19,12 @@ import {
   getExams,
   getExamSections,
   getExamSessions,
-  getGroupMembers,
   getQuestions,
   getRunAssignments,
   saveExamSessions,
   appendAuditLog,
+  getUserEnrolledGroups,
+  getUserDeactivationNotice,
 } from "./admin-store";
 import { SKD_CPNS_2024_PRESET } from "./mock-store";
 import { broadcastLiveScoreEvent } from "./live-score";
@@ -120,12 +121,14 @@ export function evaluateUserExamEligibility(
   }
 
   if (!user.is_active) {
+    const notice = getUserDeactivationNotice(user);
     return {
       canStart: false,
       canResume: false,
       displayStatus: "access_denied",
       statusLabel: "Akun Nonaktif",
       reasonIfBlocked:
+        notice?.reason ||
         "Akun Anda sedang dinonaktifkan oleh Administrator.",
     };
   }
@@ -177,9 +180,7 @@ export function evaluateUserExamEligibility(
 
   // Cek Hak Akses (Open vs Restricted)
   if (exam.access_mode === "restricted") {
-    const userGroupIds = getGroupMembers()
-      .filter((gm) => gm.user_id === user.id)
-      .map((gm) => gm.group_id);
+    const userGroupIds = getUserEnrolledGroups(user).map((g) => g.id);
 
     const grants = getAccessGrants().filter((g) => g.exam_id === exam.id);
     const runAsgs = getRunAssignments().filter(
