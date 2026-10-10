@@ -95,16 +95,18 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center">
             <div className="lg:col-span-7 space-y-6">
               {(config.hero.badgeText || config.hero.badgeSubtext) && (
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#0b49d0]/20 bg-white px-3.5 py-1.5 shadow-2xs">
+                <div className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-2xl sm:rounded-full border border-[#0b49d0]/20 bg-white px-3 py-1.5 shadow-2xs">
                   {config.hero.badgeText && (
-                    <StatusBadge
-                      variant="featured"
-                      label={config.hero.badgeText}
-                      size="sm"
-                    />
+                    <span className=" shrink-0">
+                      <StatusBadge
+                        variant="featured"
+                        label={config.hero.badgeText}
+                        size="sm"
+                      />
+                    </span>
                   )}
                   {config.hero.badgeSubtext && (
-                    <span className="text-xs font-semibold text-[#0b49d0]">
+                    <span className="text-[11px] sm:text-xs font-semibold text-[#0b49d0] leading-tight">
                       {config.hero.badgeSubtext}
                     </span>
                   )}
@@ -123,14 +125,16 @@ export default function LandingPage() {
                 {config.hero.description}
               </p>
 
-              <div className="flex flex-wrap items-center gap-3 pt-1">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 pt-1">
                 {activeUser ? (
                   <Link
                     href={activeUser.role === "admin" ? "/admin" : "/dashboard"}
+                    className="w-full sm:w-auto"
                   >
                     <Button
                       variant="primary"
                       size="lg"
+                      className="w-full justify-center"
                       rightIcon={<ArrowRight className="h-4 w-4" />}
                     >
                       Masuk ke Portal Ujian
@@ -138,20 +142,22 @@ export default function LandingPage() {
                   </Link>
                 ) : (
                   <>
-                    <Link href="/login">
+                    <Link href="/login" className="w-full sm:w-auto">
                       <Button
                         variant="primary"
                         size="lg"
+                        className="w-full justify-center"
                         leftIcon={<LogIn className="h-4 w-4" />}
                       >
                         {config.hero.primaryCtaLabel}
                       </Button>
                     </Link>
                     {config.header.showRegisterButton && (
-                      <Link href="/register">
+                      <Link href="/register" className="w-full sm:w-auto">
                         <Button
                           variant="accent"
                           size="lg"
+                          className="w-full justify-center"
                           leftIcon={<UserPlus className="h-4 w-4" />}
                         >
                           {config.hero.secondaryCtaLabel}
@@ -163,13 +169,15 @@ export default function LandingPage() {
               </div>
 
               {config.hero.stats.length > 0 && (
-                <div className="grid grid-cols-3 gap-4 pt-4 border-t border-neutral-200/80 max-w-lg text-xs">
+                <div className="grid grid-cols-3 gap-3 sm:gap-4 pt-4 border-t border-neutral-200/80 max-w-lg text-xs">
                   {config.hero.stats.map((st, i) => (
-                    <div key={i}>
-                      <p className="font-extrabold text-base sm:text-lg text-[#0b49d0] tabular-nums">
+                    <div key={i} className="min-w-0">
+                      <p className="font-extrabold text-sm sm:text-lg text-[#0b49d0] tabular-nums truncate">
                         {st.value}
                       </p>
-                      <p className="text-neutral-600">{st.label}</p>
+                      <p className="text-[11px] sm:text-xs text-neutral-600 leading-snug">
+                        {st.label}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -525,30 +533,30 @@ export default function LandingPage() {
 
       {/* Top Navbar */}
       <header className="sticky top-0 z-30 border-b border-[#093db0] bg-[#0b49d0] text-white shadow-xs">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3.5 py-3 sm:px-6 sm:py-3.5">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 shrink-0">
             <img
               src={config.header.logoUrl || "/logo1.png"}
               alt={config.header.brandName}
-              className="h-10 w-10 rounded-xl object-contain"
+              className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-xl object-contain"
             />
-            <div>
-              <span className="block text-sm sm:text-base font-extrabold tracking-tight text-white">
+            <div className="min-w-0">
+              <span className="block text-sm sm:text-base font-extrabold tracking-tight text-white whitespace-nowrap leading-tight">
                 {config.header.brandName}
               </span>
-              <span className="block text-[11px] font-medium text-white/80">
+              <span className="block text-[10px] sm:text-[11px] font-medium text-white/80 whitespace-nowrap leading-tight">
                 {config.header.brandSubtitle}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            <Link href="/live-score">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            <Link href="/live-score" className="shrink-0">
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-white/15 text-white border-white/30 hover:bg-white/25 font-bold"
-                leftIcon={<Activity className="h-4 w-4 text-[#ffc63d]" />}
+                className="bg-white/15 text-white border-white/30 hover:bg-white/25 font-bold whitespace-nowrap px-2.5 sm:px-3.5 text-xs"
+                leftIcon={<Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#ffc63d]" />}
               >
                 Live Score
               </Button>
@@ -557,11 +565,11 @@ export default function LandingPage() {
             {activeUser ? (
               <>
                 {activeUser.role === "admin" && (
-                  <Link href="/admin/homepage" className="hidden sm:inline-flex">
+                  <Link href="/admin/homepage" className="hidden md:inline-flex shrink-0">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="bg-white/15 text-white border-white/30 hover:bg-white/25 font-semibold"
+                      className="bg-white/15 text-white border-white/30 hover:bg-white/25 font-semibold whitespace-nowrap"
                       leftIcon={<SlidersHorizontal className="h-4 w-4" />}
                     >
                       Kelola Homepage
@@ -570,20 +578,22 @@ export default function LandingPage() {
                 )}
                 <Link
                   href={activeUser.role === "admin" ? "/admin" : "/dashboard"}
+                  className="shrink-0"
                 >
                   <Button
                     variant="accent"
                     size="sm"
-                    rightIcon={<ArrowRight className="h-4 w-4" />}
+                    className="whitespace-nowrap px-2.5 sm:px-3.5 text-xs"
+                    rightIcon={<ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
                   >
-                    Buka Dashboard ({activeUser.full_name.split(" ")[0]})
+                    Dashboard
                   </Button>
                 </Link>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleLogout}
-                  className="bg-white text-[#0b49d0] border-white hover:bg-neutral-100 font-bold"
+                  className="hidden sm:inline-flex bg-white text-[#0b49d0] border-white hover:bg-neutral-100 font-bold whitespace-nowrap"
                   leftIcon={<LogOut className="h-4 w-4" />}
                 >
                   Keluar
@@ -591,21 +601,22 @@ export default function LandingPage() {
               </>
             ) : (
               <>
-                <Link href="/login">
+                <Link href="/login" className="shrink-0">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="bg-white text-[#0b49d0] border-white hover:bg-neutral-100 font-bold"
-                    leftIcon={<LogIn className="h-4 w-4" />}
+                    className="bg-white text-[#0b49d0] border-white hover:bg-neutral-100 font-bold whitespace-nowrap px-3 sm:px-3.5 text-xs"
+                    leftIcon={<LogIn className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
                   >
                     {config.header.loginButtonLabel}
                   </Button>
                 </Link>
                 {config.header.showRegisterButton && (
-                  <Link href="/register">
+                  <Link href="/register" className="hidden md:inline-flex shrink-0">
                     <Button
                       variant="accent"
                       size="sm"
+                      className="whitespace-nowrap"
                       leftIcon={<UserPlus className="h-4 w-4" />}
                     >
                       {config.header.registerButtonLabel}
