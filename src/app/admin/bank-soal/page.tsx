@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   Plus,
   Upload,
+  FileSpreadsheet,
   Eye,
   Edit3,
   CheckCircle2,
@@ -155,6 +156,47 @@ export default function BankSoalPage() {
     });
   }
 
+  function handleActivateAllPendingQuestions() {
+    const pendingCount = questions.filter(
+      (q) => q.status === "ready_for_review" || q.status === "draft"
+    ).length;
+    if (pendingCount === 0) return;
+
+    const now = new Date().toISOString();
+    const updated: QuestionRow[] = questions.map((q) =>
+      q.status === "ready_for_review" || q.status === "draft"
+        ? {
+            ...q,
+            status: "active",
+            reviewed_by: "usr-admin-01",
+            reviewed_at: now,
+            updated_at: now,
+          }
+        : q
+    );
+
+    saveQuestions(updated);
+    setQuestions(updated);
+
+    appendAuditLog({
+      action: "BULK_ACTIVATE_QUESTIONS",
+      entity_type: "questions",
+      entity_id: "bulk-activate",
+      reason: `Mengaktifkan sekaligus ${pendingCount} soal di Bank Soal`,
+      details: { activated_count: pendingCount },
+    });
+
+    setToast({
+      type: "success",
+      title: `${pendingCount} Soal Berhasil Diaktifkan`,
+      desc: "Seluruh soal yang sebelumnya berstatus Draft / Siap Ditinjau kini telah Aktif dan siap digunakan dalam ujian.",
+    });
+  }
+
+  const pendingReviewCount = questions.filter(
+    (q) => q.status === "ready_for_review" || q.status === "draft"
+  ).length;
+
   const activeFilterCount =
     (categoryFilter !== "ALL" ? 1 : 0) +
     (subtestFilter !== "ALL" ? 1 : 0) +
@@ -169,7 +211,7 @@ export default function BankSoalPage() {
     >
       <PageHeader
         title="Manajemen Bank Soal"
-        description="Kelola bank soal CPNS, Sekolah Kedinasan (Sekdin), dan Polri. Soal baru hasil input maupun impor wajib melalui peninjauan Admin sebelum berstatus Aktif."
+        description="Kelola bank soal CPNS, Sekolah Kedinasan (Sekdin), dan Polri melalui input manual maupun Import Tabel Excel (.xlsx / .csv) yang terhubung ke Supabase."
         badge={
           <StatusBadge
             variant="featured"
@@ -178,12 +220,21 @@ export default function BankSoalPage() {
         }
         actions={
           <div className="flex flex-wrap gap-2.5">
-            <Link href="/admin/bank-soal/import">
+            {pendingReviewCount > 0 && (
               <Button
                 variant="outline"
-                leftIcon={<Upload className="h-4 w-4" />}
+                onClick={handleActivateAllPendingQuestions}
+                leftIcon={<CheckCircle2 className="h-4 w-4 text-emerald-600" />}
               >
-                Impor Massal (Excel/ZIP)
+                Aktifkan Semua ({pendingReviewCount})
+              </Button>
+            )}
+            <Link href="/admin/bank-soal/import">
+              <Button
+                variant="accent"
+                leftIcon={<FileSpreadsheet className="h-4 w-4" />}
+              >
+                Import Soal Excel (.xlsx / .csv)
               </Button>
             </Link>
             <Link href="/admin/bank-soal/tambah">
