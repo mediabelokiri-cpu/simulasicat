@@ -24,7 +24,7 @@ import {
   EmptyState,
 } from "@/components/ui";
 import { ExamCard } from "@/components/dashboard/ExamCard";
-import { getCurrentUserClient } from "@/lib/auth";
+import { getCurrentUserClient, syncProfilesFromSupabase } from "@/lib/auth";
 import {
   getExams,
   getExamRuns,
@@ -67,6 +67,7 @@ export default function UserDashboardPage() {
     setRuns(getExamRuns());
     setSections(getExamSections());
     setResults(getResults());
+    void syncProfilesFromSupabase();
   }, [router]);
 
   const enrichedRuns = runs

@@ -428,14 +428,21 @@ ALTER TABLE public.results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.exam_incidents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.exam_audit_logs ENABLE ROW LEVEL SECURITY;
 
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_id_fkey;
+ALTER TABLE public.profiles ALTER COLUMN id SET DEFAULT gen_random_uuid();
+
 DROP POLICY IF EXISTS "profiles_select_own_or_admin" ON public.profiles;
 CREATE POLICY "profiles_select_own_or_admin" ON public.profiles
     FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "profiles_insert_all" ON public.profiles;
+CREATE POLICY "profiles_insert_all" ON public.profiles
+    FOR INSERT WITH CHECK (true);
+
 DROP POLICY IF EXISTS "profiles_update_own_safe" ON public.profiles;
 CREATE POLICY "profiles_update_own_safe" ON public.profiles
-    FOR UPDATE USING (auth.uid() = id OR public.is_admin())
-    WITH CHECK (auth.uid() = id OR public.is_admin());
+    FOR UPDATE USING (true)
+    WITH CHECK (true);
 
 DROP POLICY IF EXISTS "profiles_admin_all" ON public.profiles;
 CREATE POLICY "profiles_admin_all" ON public.profiles

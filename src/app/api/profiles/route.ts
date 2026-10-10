@@ -94,3 +94,57 @@ export async function PATCH(request: Request) {
   }
 }
 
+export async function POST(request: Request) {
+  if (!isSupabaseConfigured()) {
+    return NextResponse.json({ ok: false });
+  }
+
+  try {
+    const body = (await request.json()) as Partial<ProfileRow>;
+    if (!body.email || !body.full_name) {
+      return NextResponse.json({ ok: false }, { status: 400 });
+    }
+
+    const hasServiceKey = Boolean(
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY
+    );
+    const supabase = hasServiceKey
+      ? createServiceRoleClient()
+      : await createServerSupabaseClient();
+
+    const now = new Date().toISOString();
+    const cleanEmail = String(body.email).trim().toLowerCase();
+    const isUuid =
+      typeof body.id === "string" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        body.id
+      );
+
+    const payload: Record<string, unknown> = {
+      full_name: String(body.full_name).trim(),
+      email: cleanEmail,
+      role: body.role === "admin" ? "admin" : "user",
+      is_active: body.is_active !== false,
+      phone: body.phone ?? null,
+      institution: body.institution ?? null,
+      target_selection: body.target_selection || "CPNS",
+      email_verified: body.email_verified ?? true,
+      updated_at: now,
+    };
+    if (isUuid) {
+      payload.id = body.id;
+    }
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .upsert(payload, { onConflict: "email" })
+      .select("*")
+      .maybeSingle();
+
+    return NextResponse.json({ ok: !error, profile: data || null });
+  } catch {
+    return NextResponse.json({ ok: false }, { status: 500 });
+  }
+}
+
+

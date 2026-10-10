@@ -78,9 +78,19 @@ export default function ManajemenPesertaPage() {
     setResults(getResults());
     setRuns(getExamRuns());
 
-    void syncProfilesFromSupabase().then((synced) => {
-      setProfiles(synced);
-    });
+    const refreshProfiles = () => {
+      void syncProfilesFromSupabase().then((synced) => {
+        setProfiles(synced);
+      });
+    };
+
+    refreshProfiles();
+    const intervalId = window.setInterval(refreshProfiles, 8000);
+    window.addEventListener("focus", refreshProfiles);
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", refreshProfiles);
+    };
   }, []);
 
   async function handleManualSync() {

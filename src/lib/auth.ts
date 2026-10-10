@@ -60,10 +60,30 @@ export function saveStoredProfiles(profiles: ProfileRow[]): void {
   window.localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(profiles));
 }
 
+function generateUuid(): string {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+function isValidUuid(val: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    val
+  );
+}
+
 /**
  * Mengambil seluruh profil pengguna dari tabel Supabase `public.profiles`
- * dan menggabungkannya dengan cache lokal agar akun yang mendaftar di HP / perangkat lain
- * langsung tampil di Panel Admin (Manajemen Peserta, Kelompok, Dashboard).
+ * dan menggabungkannya dengan cache lokal, sekaligus mendorong (push) akun lokal
+ * yang belum masuk ke Supabase (mis. saat terkena limit email Supabase Auth 429).
  */
 export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
   const localProfiles = getStoredProfiles();
@@ -74,7 +94,7 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
   const fetchedRows: ProfileRow[] = [];
   const now = new Date().toISOString();
 
-  // 1. Query langsung melalui browser Supabase client (menggunakan sesi Admin yang sedang login)
+  // 1. Query langsung melalui browser Supabase client
   try {
     const supabase = createSupabaseBrowserClient();
     const { data, error } = await supabase
@@ -120,11 +140,57 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
     }
   }
 
+  // 3. Push akun peserta lokal (role === 'user') yang belum tercatat di Supabase public.profiles
+  const remoteEmails = new Set(fetchedRows.map((r) => r.email.toLowerCase()));
+  const unsyncedLocalUsers = localProfiles.filter(
+    (lp) => lp.role === "user" && !remoteEmails.has(lp.email.toLowerCase())
+  );
+
+  if (unsyncedLocalUsers.length > 0) {
+    try {
+      const supabase = createSupabaseBrowserClient();
+      for (const localUser of unsyncedLocalUsers) {
+        const validId = isValidUuid(localUser.id)
+          ? localUser.id
+          : generateUuid();
+        const payload = {
+          id: validId,
+          full_name: localUser.full_name,
+          email: localUser.email.toLowerCase(),
+          role: "user" as UserRole,
+          is_active: localUser.is_active !== false,
+          phone: localUser.phone ?? null,
+          institution: localUser.institution ?? null,
+          target_selection: localUser.target_selection || "CPNS",
+          email_verified: true,
+          created_at: localUser.created_at || now,
+          updated_at: now,
+        };
+        const { data: upserted, error: upsertErr } = await supabase
+          .from("profiles")
+          .upsert(payload, { onConflict: "email" })
+          .select("*")
+          .maybeSingle();
+
+        if (!upsertErr && upserted) {
+          fetchedRows.push({
+            ...payload,
+            id: String(upserted.id || validId),
+          });
+        } else {
+          fetchedRows.push(payload);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   if (fetchedRows.length === 0) {
     return localProfiles;
   }
 
-  // Gabungkan fetchedRows (dari Supabase) dengan localProfiles berdasarkan email / id
+  // Gabungkan fetchedRows (dari Supabase) dengan localProfiles berdasarkan email
   const mergedByEmail = new Map<string, ProfileRow>();
   for (const lp of localProfiles) {
     mergedByEmail.set(lp.email.toLowerCase(), lp);
@@ -233,7 +299,7 @@ export function authenticateUser(email: string, password: string): AuthResult {
 /**
  * Validasi Login Asinkron (Utama untuk Supabase Auth + Tabel public.profiles)
  * Memungkinkan akun yang dibuat di Supabase Dashboard (termasuk Admin) maupun
- * akun peserta lintas perangkat masuk menggunakan kredensial Supabase Auth.
+ * akun peserta lintas perangkat masuk menggunakan kredensial Supabase Auth atau public.profiles.
  */
 export async function authenticateUserAsync(
   email: string,
@@ -257,10 +323,12 @@ export async function authenticateUserAsync(
   if (isSupabaseConfigured()) {
     try {
       const supabase = createSupabaseBrowserClient();
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password,
       });
+
+      const now = new Date().toISOString();
 
       if (data?.user) {
         const { data: dbProfile } = await supabase
@@ -269,7 +337,6 @@ export async function authenticateUserAsync(
           .eq("id", data.user.id)
           .maybeSingle();
 
-        const now = new Date().toISOString();
         const resolvedProfile: ProfileRow = dbProfile
           ? {
               id: dbProfile.id,
@@ -337,19 +404,64 @@ export async function authenticateUserAsync(
         };
       }
 
-      if (error && error.message.toLowerCase().includes("invalid login")) {
-        // Fallback ke profil bootstrap lokal jika admin@primarib.id belum didaftarkan ke Supabase Auth
-        const localProfiles = getStoredProfiles();
-        const localMatch = localProfiles.find(
-          (p) => p.email.toLowerCase() === cleanEmail
-        );
-        if (!localMatch) {
+      // Fallback cek langsung ke tabel public.profiles di Supabase (untuk akun lintas browser/HP)
+      const { data: remoteByEmail } = await supabase
+        .from("profiles")
+        .select("*")
+        .ilike("email", cleanEmail)
+        .maybeSingle();
+
+      if (remoteByEmail) {
+        const resolvedRemote: ProfileRow = {
+          id: String(remoteByEmail.id),
+          full_name: String(remoteByEmail.full_name || "Peserta"),
+          email: String(remoteByEmail.email || cleanEmail).toLowerCase(),
+          role: isDefaultAdminEmail
+            ? ("admin" as UserRole)
+            : ((remoteByEmail.role as UserRole) || "user"),
+          is_active: remoteByEmail.is_active !== false,
+          phone: remoteByEmail.phone ? String(remoteByEmail.phone) : null,
+          institution: remoteByEmail.institution
+            ? String(remoteByEmail.institution)
+            : null,
+          target_selection: remoteByEmail.target_selection
+            ? String(remoteByEmail.target_selection)
+            : "CPNS",
+          email_verified: Boolean(remoteByEmail.email_verified ?? true),
+          created_at: remoteByEmail.created_at
+            ? String(remoteByEmail.created_at)
+            : now,
+          updated_at: remoteByEmail.updated_at
+            ? String(remoteByEmail.updated_at)
+            : now,
+        };
+
+        if (!resolvedRemote.is_active) {
           return {
             ok: false,
             error:
-              "Email atau kata sandi tidak sesuai, atau akun belum terdaftar.",
+              "Akun Anda saat ini dinonaktifkan oleh Administrator. Riwayat ujian Anda tetap tersimpan, silakan hubungi Admin Prima RIB.",
           };
         }
+
+        const stored = getStoredProfiles();
+        const existingIdx = stored.findIndex(
+          (p) => p.email.toLowerCase() === cleanEmail
+        );
+        if (existingIdx >= 0) {
+          stored[existingIdx] = resolvedRemote;
+        } else {
+          stored.push(resolvedRemote);
+        }
+        saveStoredProfiles(stored);
+        setCurrentUserClient(resolvedRemote);
+
+        return {
+          ok: true,
+          user: resolvedRemote,
+          redirectTo:
+            resolvedRemote.role === "admin" ? "/admin" : "/dashboard",
+        };
       }
     } catch {
       // Lanjutkan ke fallback lokal bila terjadi kendala jaringan sementara
@@ -361,8 +473,8 @@ export async function authenticateUserAsync(
 
 /**
  * Registrasi Mandiri Peserta (Asinkron — Menunggu penyimpanan ke Supabase Auth & public.profiles)
- * PENTING: Memastikan akun yang didaftarkan dari HP langsung masuk ke Supabase
- * sehingga otomatis muncul di tab Peserta pada Panel Admin di perangkat lain.
+ * PENTING: Memastikan akun yang didaftarkan dari HP atau browser mana pun langsung masuk ke
+ * tabel `public.profiles` di Supabase (bahkan jika terkena limit email Supabase Auth 429).
  */
 export async function registerPublicUserAsync(input: {
   fullName: string;
@@ -395,11 +507,28 @@ export async function registerPublicUserAsync(input: {
   }
 
   const now = new Date().toISOString();
-  let supabaseUserId: string | null = null;
+  let profileId = generateUuid();
 
   if (isSupabaseConfigured()) {
     try {
       const supabase = createSupabaseBrowserClient();
+
+      // 1. Cek apakah email sudah ada di public.profiles
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("id, email")
+        .ilike("email", email)
+        .maybeSingle();
+
+      if (existingProfile) {
+        return {
+          ok: false,
+          error:
+            "Alamat email ini sudah terdaftar. Silakan masuk melalui halaman Login.",
+        };
+      }
+
+      // 2. Daftarkan ke Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password: input.password,
@@ -421,17 +550,41 @@ export async function registerPublicUserAsync(input: {
       }
 
       if (data?.user?.id) {
-        supabaseUserId = data.user.id;
-        // Perbarui kolom institution & target_selection pada baris public.profiles yang dibuat oleh trigger on_auth_user_created
-        await supabase
-          .from("profiles")
-          .update({
-            full_name: fullName,
-            institution: input.institution?.trim() || null,
-            target_selection: input.targetSelection || "CPNS",
-            updated_at: now,
-          })
-          .eq("id", supabaseUserId);
+        profileId = data.user.id;
+      }
+
+      // 3. SELALU upsert langsung ke public.profiles (agar meskipun Supabase Auth terkena limit email 429,
+      //    data peserta tetap langsung tercatat di database Supabase dan muncul di Panel Admin)
+      const profilePayload = {
+        id: profileId,
+        full_name: fullName,
+        email,
+        role: "user" as UserRole,
+        is_active: true,
+        phone: null,
+        institution: input.institution?.trim() || null,
+        target_selection: input.targetSelection || "CPNS",
+        email_verified: true,
+        created_at: now,
+        updated_at: now,
+      };
+
+      const { data: upsertedRow } = await supabase
+        .from("profiles")
+        .upsert(profilePayload, { onConflict: "email" })
+        .select("id")
+        .maybeSingle();
+
+      if (upsertedRow?.id) {
+        profileId = String(upsertedRow.id);
+      }
+
+      if (typeof window !== "undefined") {
+        void fetch("/api/profiles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...profilePayload, id: profileId }),
+        }).catch(() => {});
       }
     } catch {
       // Lanjutkan ke penyimpanan lokal jika terjadi gangguan jaringan sementara
@@ -439,15 +592,8 @@ export async function registerPublicUserAsync(input: {
   }
 
   const profiles = getStoredProfiles();
-  if (!supabaseUserId && profiles.some((p) => p.email.toLowerCase() === email)) {
-    return {
-      ok: false,
-      error: "Alamat email ini sudah terdaftar. Silakan masuk melalui halaman Login.",
-    };
-  }
-
   const newUser: ProfileRow = {
-    id: supabaseUserId || `usr-${Date.now()}`,
+    id: profileId,
     full_name: fullName,
     email,
     role: "user" as UserRole,
