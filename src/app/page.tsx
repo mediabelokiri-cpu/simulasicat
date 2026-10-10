@@ -162,41 +162,54 @@ export default function LandingPage() {
               )}
             </div>
 
-            {/* Right Feature Preview Card */}
-            <div className="lg:col-span-5">
-              <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-md space-y-5">
-                <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0b49d0] text-white">
-                      <ShieldCheck className="h-6 w-6" />
+            {/* Right Hero Visual (Gambar Hero atau Kartu Keamanan) */}
+            <div className="lg:col-span-5 flex justify-center lg:justify-end">
+              {config.hero.rightDisplayMode === "card" ? (
+                <div className="w-full rounded-2xl border border-neutral-200 bg-white p-6 shadow-md space-y-5">
+                  <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0b49d0] text-white">
+                        <ShieldCheck className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h2 className="text-base font-extrabold text-[#151515]">
+                          {config.hero.securityCardTitle}
+                        </h2>
+                        <p className="text-xs text-neutral-500">
+                          {config.hero.securityCardSubtitle}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-base font-extrabold text-[#151515]">
-                        {config.hero.securityCardTitle}
-                      </h2>
-                      <p className="text-xs text-neutral-500">
-                        {config.hero.securityCardSubtitle}
-                      </p>
-                    </div>
-                  </div>
-                  {config.hero.securityCardBadge && (
-                    <span className="rounded-lg bg-[#ffc63d] px-2.5 py-1 text-xs font-extrabold text-[#151515]">
-                      {config.hero.securityCardBadge}
-                    </span>
-                  )}
-                </div>
-
-                <ul className="space-y-3 text-xs sm:text-sm text-neutral-700">
-                  {config.hero.securityFeatures.map((feat) => (
-                    <li key={feat.id} className="flex items-start gap-2.5">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>
-                        <strong>{feat.title}</strong> {feat.description}
+                    {config.hero.securityCardBadge && (
+                      <span className="rounded-lg bg-[#ffc63d] px-2.5 py-1 text-xs font-extrabold text-[#151515]">
+                        {config.hero.securityCardBadge}
                       </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                    )}
+                  </div>
+
+                  <ul className="space-y-3 text-xs sm:text-sm text-neutral-700">
+                    {config.hero.securityFeatures.map((feat) => (
+                      <li key={feat.id} className="flex items-start gap-2.5">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>
+                          <strong>{feat.title}</strong> {feat.description}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div className="w-full max-w-[440px] overflow-hidden rounded-[2.5rem] bg-white shadow-sm">
+                  <img
+                    src={config.hero.heroImageUrl || "/hero-prima-rib.png"}
+                    alt={
+                      config.hero.heroImageAlt ||
+                      "Peserta Simulasi CAT Prima RIB"
+                    }
+                    className="h-auto w-full object-cover"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

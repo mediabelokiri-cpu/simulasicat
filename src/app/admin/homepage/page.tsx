@@ -952,131 +952,250 @@ export default function AdminHomepagePage() {
               </div>
             </div>
 
-            {/* Kolom Kanan: Kartu Standar Keamanan & Integritas (5/12) */}
+            {/* Kolom Kanan: Visual Kanan Hero (Gambar Hero atau Kartu Keamanan) */}
             <div className="lg:col-span-5 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+              <div className="border-b border-neutral-100 pb-3 space-y-2">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5 text-[#0b49d0]" />
                   <h2 className="text-base font-extrabold text-[#151515]">
-                    Kartu Keamanan & Integritas
+                    Visual Sisi Kanan Hero Section
                   </h2>
                 </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={addSecurityFeature}
-                  leftIcon={<Plus className="h-3.5 w-3.5" />}
+                <FormField
+                  id="hero-right-mode"
+                  label="Pilih Tampilan Sisi Kanan Hero"
                 >
-                  Tambah Poin
-                </Button>
-              </div>
-
-              <FormField id="sec-title" label="Judul Kartu Kanan">
-                <input
-                  id="sec-title"
-                  type="text"
-                  value={config.hero.securityCardTitle}
-                  onChange={(e) =>
-                    setConfig((prev) => ({
-                      ...prev,
-                      hero: {
-                        ...prev.hero,
-                        securityCardTitle: e.target.value,
-                      },
-                    }))
-                  }
-                  className={inputBaseClasses}
-                />
-              </FormField>
-
-              <div className="grid grid-cols-2 gap-3">
-                <FormField id="sec-sub" label="Subjudul Kartu">
-                  <input
-                    id="sec-sub"
-                    type="text"
-                    value={config.hero.securityCardSubtitle}
+                  <select
+                    id="hero-right-mode"
+                    value={config.hero.rightDisplayMode || "image"}
                     onChange={(e) =>
                       setConfig((prev) => ({
                         ...prev,
                         hero: {
                           ...prev.hero,
-                          securityCardSubtitle: e.target.value,
+                          rightDisplayMode: e.target.value as "image" | "card",
                         },
                       }))
                     }
-                    className={inputBaseClasses}
-                  />
-                </FormField>
-
-                <FormField id="sec-badge" label="Label Badge Status">
-                  <input
-                    id="sec-badge"
-                    type="text"
-                    value={config.hero.securityCardBadge}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        hero: {
-                          ...prev.hero,
-                          securityCardBadge: e.target.value,
-                        },
-                      }))
-                    }
-                    className={inputBaseClasses}
-                  />
-                </FormField>
-              </div>
-
-              <div className="space-y-3 pt-2">
-                <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">
-                  Daftar Poin Keunggulan ({config.hero.securityFeatures.length})
-                </p>
-                {config.hero.securityFeatures.map((feat, i) => (
-                  <div
-                    key={feat.id}
-                    className="rounded-xl border border-neutral-200 bg-[#fcfbf7] p-3.5 space-y-2"
+                    className={selectBaseClasses}
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-bold text-[#0b49d0]">
-                        Poin #{i + 1}
-                      </span>
-                      {config.hero.securityFeatures.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeSecurityFeature(feat.id)}
-                          className="text-xs font-semibold text-red-600 hover:underline inline-flex items-center gap-1 cursor-pointer"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Hapus
-                        </button>
-                      )}
-                    </div>
-                    <input
-                      type="text"
-                      value={feat.title}
-                      onChange={(e) =>
-                        updateSecurityFeature(feat.id, {
-                          title: e.target.value,
-                        })
-                      }
-                      placeholder="Judul poin (tebal)"
-                      className={inputBaseClasses}
-                    />
-                    <textarea
-                      rows={2}
-                      value={feat.description}
-                      onChange={(e) =>
-                        updateSecurityFeature(feat.id, {
-                          description: e.target.value,
-                        })
-                      }
-                      placeholder="Penjelasan poin"
-                      className={textareaBaseClasses}
+                    <option value="image">
+                      Gambar / Foto Hero Section (Sesuai Desain Utama)
+                    </option>
+                    <option value="card">
+                      Kartu Poin Standar Keamanan & Integritas
+                    </option>
+                  </select>
+                </FormField>
+              </div>
+
+              {config.hero.rightDisplayMode !== "card" ? (
+                <div className="space-y-4">
+                  <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-[#fcfbf7] p-3 flex justify-center">
+                    <img
+                      src={config.hero.heroImageUrl || "/hero-prima-rib.png"}
+                      alt={config.hero.heroImageAlt || "Preview Gambar Hero"}
+                      className="max-h-64 w-auto rounded-2xl object-contain"
                     />
                   </div>
-                ))}
-              </div>
+
+                  <FormField
+                    id="hero-img-url"
+                    label="Path / URL Gambar Hero"
+                    hint="Default: /hero-prima-rib.png"
+                  >
+                    <input
+                      id="hero-img-url"
+                      type="text"
+                      value={config.hero.heroImageUrl || "/hero-prima-rib.png"}
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          hero: {
+                            ...prev.hero,
+                            heroImageUrl: e.target.value,
+                          },
+                        }))
+                      }
+                      className={inputBaseClasses}
+                    />
+                  </FormField>
+
+                  <FormField
+                    id="hero-img-upload"
+                    label="Atau Unggah Gambar Hero Baru dari Komputer"
+                  >
+                    <input
+                      id="hero-img-upload"
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          if (typeof reader.result === "string") {
+                            setConfig((prev) => ({
+                              ...prev,
+                              hero: {
+                                ...prev.hero,
+                                heroImageUrl: reader.result as string,
+                              },
+                            }));
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                      className="block w-full text-xs text-neutral-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#0b49d0] file:px-3 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-[#093db0] cursor-pointer"
+                    />
+                  </FormField>
+
+                  <FormField id="hero-img-alt" label="Teks Alt Gambar Hero">
+                    <input
+                      id="hero-img-alt"
+                      type="text"
+                      value={
+                        config.hero.heroImageAlt ||
+                        "Peserta Simulasi CAT Prima RIB"
+                      }
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          hero: {
+                            ...prev.hero,
+                            heroImageAlt: e.target.value,
+                          },
+                        }))
+                      }
+                      className={inputBaseClasses}
+                    />
+                  </FormField>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-neutral-500">
+                      Pengaturan Kartu Keamanan
+                    </span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={addSecurityFeature}
+                      leftIcon={<Plus className="h-3.5 w-3.5" />}
+                    >
+                      Tambah Poin
+                    </Button>
+                  </div>
+
+                  <FormField id="sec-title" label="Judul Kartu Kanan">
+                    <input
+                      id="sec-title"
+                      type="text"
+                      value={config.hero.securityCardTitle}
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          hero: {
+                            ...prev.hero,
+                            securityCardTitle: e.target.value,
+                          },
+                        }))
+                      }
+                      className={inputBaseClasses}
+                    />
+                  </FormField>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField id="sec-sub" label="Subjudul Kartu">
+                      <input
+                        id="sec-sub"
+                        type="text"
+                        value={config.hero.securityCardSubtitle}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            hero: {
+                              ...prev.hero,
+                              securityCardSubtitle: e.target.value,
+                            },
+                          }))
+                        }
+                        className={inputBaseClasses}
+                      />
+                    </FormField>
+
+                    <FormField id="sec-badge" label="Label Badge Status">
+                      <input
+                        id="sec-badge"
+                        type="text"
+                        value={config.hero.securityCardBadge}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            hero: {
+                              ...prev.hero,
+                              securityCardBadge: e.target.value,
+                            },
+                          }))
+                        }
+                        className={inputBaseClasses}
+                      />
+                    </FormField>
+                  </div>
+
+                  <div className="space-y-3 pt-2">
+                    <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+                      Daftar Poin Keunggulan (
+                      {config.hero.securityFeatures.length})
+                    </p>
+                    {config.hero.securityFeatures.map((feat, i) => (
+                      <div
+                        key={feat.id}
+                        className="rounded-xl border border-neutral-200 bg-[#fcfbf7] p-3.5 space-y-2"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-bold text-[#0b49d0]">
+                            Poin #{i + 1}
+                          </span>
+                          {config.hero.securityFeatures.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeSecurityFeature(feat.id)}
+                              className="text-xs font-semibold text-red-600 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Hapus
+                            </button>
+                          )}
+                        </div>
+                        <input
+                          type="text"
+                          value={feat.title}
+                          onChange={(e) =>
+                            updateSecurityFeature(feat.id, {
+                              title: e.target.value,
+                            })
+                          }
+                          placeholder="Judul poin (tebal)"
+                          className={inputBaseClasses}
+                        />
+                        <textarea
+                          rows={2}
+                          value={feat.description}
+                          onChange={(e) =>
+                            updateSecurityFeature(feat.id, {
+                              description: e.target.value,
+                            })
+                          }
+                          placeholder="Penjelasan poin"
+                          className={textareaBaseClasses}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

@@ -52,6 +52,9 @@ export interface HomepageConfig {
     primaryCtaLabel: string;
     secondaryCtaLabel: string;
     stats: HomepageStatItem[];
+    rightDisplayMode: "image" | "card";
+    heroImageUrl: string;
+    heroImageAlt: string;
     securityCardTitle: string;
     securityCardSubtitle: string;
     securityCardBadge: string;
@@ -117,6 +120,9 @@ export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
       { value: "Autosave", label: "Sinkronisasi Jawaban" },
       { value: "Realtime", label: "Analitik & Ranking" },
     ],
+    rightDisplayMode: "image",
+    heroImageUrl: "/hero-prima-rib.png",
+    heroImageAlt: "Peserta Simulasi CAT Prima RIB",
     securityCardTitle: "Standar Keamanan & Integritas",
     securityCardSubtitle: "Arsitektur CAT Terproteksi",
     securityCardBadge: "Aktif",
