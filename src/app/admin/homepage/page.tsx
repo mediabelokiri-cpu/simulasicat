@@ -71,6 +71,7 @@ const SECTION_LABELS: Record<
 
 export default function AdminHomepagePage() {
   const [config, setConfig] = useState<HomepageConfig>(DEFAULT_HOMEPAGE_CONFIG);
+  const [hydrated, setHydrated] = useState(false);
   const [activeTab, setActiveTab] = useState<EditorTab>("layout");
   const [runs, setRuns] = useState<ExamRunRow[]>([]);
   const [exams, setExams] = useState<ExamRow[]>([]);
@@ -89,18 +90,18 @@ export default function AdminHomepagePage() {
       leaderboard: {
         ...loaded.leaderboard,
         enabled: lsSettings.homepageEnabled,
-        sectionTitle:
-          lsSettings.sectionTitle || loaded.leaderboard.sectionTitle,
-        sectionSubtitle:
-          lsSettings.sectionSubtitle || loaded.leaderboard.sectionSubtitle,
-        maxRows: lsSettings.maxRows || loaded.leaderboard.maxRows,
-        defaultRunId:
-          lsSettings.publishedRunId || loaded.leaderboard.defaultRunId,
       },
     });
     setRuns(getExamRuns());
     setExams(getExams());
+    setHydrated(true);
   }, []);
+
+  // Auto-save setiap perubahan konfigurasi Homepage setelah hydrasi agar tidak kembali semula saat di-refresh
+  useEffect(() => {
+    if (!hydrated) return;
+    saveHomepageConfig(config);
+  }, [hydrated, config]);
 
   function handleSaveAll(e?: React.FormEvent) {
     if (e) e.preventDefault();
@@ -156,6 +157,13 @@ export default function AdminHomepagePage() {
   function handleResetDefault() {
     const def = resetHomepageConfig();
     setConfig(def);
+    saveLiveScoreSettings(
+      {
+        homepageEnabled: false,
+      },
+      "usr-admin-01",
+      "Reset pengaturan Homepage ke default"
+    );
     setResetModalOpen(false);
     setToast({
       type: "warning",
@@ -175,13 +183,25 @@ export default function AdminHomepagePage() {
   }
 
   function toggleSectionEnabled(key: HomepageSectionKey) {
-    setConfig((prev) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        enabled: !prev[key].enabled,
-      },
-    }));
+    setConfig((prev) => {
+      const nextEnabled = !prev[key].enabled;
+      if (key === "leaderboard") {
+        saveLiveScoreSettings(
+          { homepageEnabled: nextEnabled },
+          "usr-admin-01",
+          nextEnabled
+            ? "Mengaktifkan Live Score Homepage dari Kelola Homepage"
+            : "Menonaktifkan Live Score Homepage dari Kelola Homepage"
+        );
+      }
+      return {
+        ...prev,
+        [key]: {
+          ...prev[key],
+          enabled: nextEnabled,
+        },
+      };
+    });
   }
 
   // Helpers untuk Hero Security Features

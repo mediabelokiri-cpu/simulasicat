@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Database,
   RotateCcw,
@@ -25,13 +25,41 @@ import { appendAuditLog } from "@/lib/admin-store";
 import { ERD_TABLES_SUMMARY } from "@/lib/mock-store";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 
+const SYSTEM_SETTINGS_KEY = "prima_cat_system_settings_v2_prod";
+
+interface SystemSettingsData {
+  orgName: string;
+  appTitle: string;
+  supportEmail: string;
+  timezone: string;
+  defaultGraceMins: string;
+  signedUrlTtl: string;
+  updatedAt?: string;
+}
+
+const DEFAULT_SYSTEM_SETTINGS: SystemSettingsData = {
+  orgName: "Prima RIB",
+  appTitle: "Simulasi CAT Prima RIB",
+  supportEmail: "support@primarib.id",
+  timezone: "Asia/Makassar (WITA - UTC+8)",
+  defaultGraceMins: "15",
+  signedUrlTtl: "60",
+};
+
 export default function AdminPengaturanPage() {
-  const [orgName, setOrgName] = useState("Prima RIB");
-  const [appTitle, setAppTitle] = useState("Simulasi CAT Prima RIB");
-  const [supportEmail, setSupportEmail] = useState("support@primarib.id");
-  const [timezone, setTimezone] = useState("Asia/Makassar (WITA - UTC+8)");
-  const [defaultGraceMins, setDefaultGraceMins] = useState("15");
-  const [signedUrlTtl, setSignedUrlTtl] = useState("60");
+  const [orgName, setOrgName] = useState(DEFAULT_SYSTEM_SETTINGS.orgName);
+  const [appTitle, setAppTitle] = useState(DEFAULT_SYSTEM_SETTINGS.appTitle);
+  const [supportEmail, setSupportEmail] = useState(
+    DEFAULT_SYSTEM_SETTINGS.supportEmail
+  );
+  const [timezone, setTimezone] = useState(DEFAULT_SYSTEM_SETTINGS.timezone);
+  const [defaultGraceMins, setDefaultGraceMins] = useState(
+    DEFAULT_SYSTEM_SETTINGS.defaultGraceMins
+  );
+  const [signedUrlTtl, setSignedUrlTtl] = useState(
+    DEFAULT_SYSTEM_SETTINGS.signedUrlTtl
+  );
+  const [hydrated, setHydrated] = useState(false);
 
   const [resetModalOpen, setResetModalOpen] = useState(false);
   const [toast, setToast] = useState<{
@@ -42,8 +70,67 @@ export default function AdminPengaturanPage() {
 
   const supabaseConnected = isSupabaseConfigured();
 
+  // Muat pengaturan tersimpan saat halaman dibuka / di-refresh
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(SYSTEM_SETTINGS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<SystemSettingsData>;
+        if (parsed.orgName !== undefined) setOrgName(parsed.orgName);
+        if (parsed.appTitle !== undefined) setAppTitle(parsed.appTitle);
+        if (parsed.supportEmail !== undefined)
+          setSupportEmail(parsed.supportEmail);
+        if (parsed.timezone !== undefined) setTimezone(parsed.timezone);
+        if (parsed.defaultGraceMins !== undefined)
+          setDefaultGraceMins(String(parsed.defaultGraceMins));
+        if (parsed.signedUrlTtl !== undefined)
+          setSignedUrlTtl(String(parsed.signedUrlTtl));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setHydrated(true);
+    }
+  }, []);
+
+  // Auto-save setiap kali nilai berubah setelah hydrasi agar tidak hilang saat refresh
+  useEffect(() => {
+    if (!hydrated || typeof window === "undefined") return;
+    const payload: SystemSettingsData = {
+      orgName,
+      appTitle,
+      supportEmail,
+      timezone,
+      defaultGraceMins,
+      signedUrlTtl,
+      updatedAt: new Date().toISOString(),
+    };
+    window.localStorage.setItem(SYSTEM_SETTINGS_KEY, JSON.stringify(payload));
+  }, [
+    hydrated,
+    orgName,
+    appTitle,
+    supportEmail,
+    timezone,
+    defaultGraceMins,
+    signedUrlTtl,
+  ]);
+
   function handleSaveSettings(e: React.FormEvent) {
     e.preventDefault();
+    const payload: SystemSettingsData = {
+      orgName,
+      appTitle,
+      supportEmail,
+      timezone,
+      defaultGraceMins,
+      signedUrlTtl,
+      updatedAt: new Date().toISOString(),
+    };
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SYSTEM_SETTINGS_KEY, JSON.stringify(payload));
+    }
+
     appendAuditLog({
       action: "UPDATE_SYSTEM_SETTINGS",
       entity_type: "system_settings",
@@ -52,24 +139,34 @@ export default function AdminPengaturanPage() {
       details: {
         orgName,
         appTitle,
+        supportEmail,
         timezone,
         defaultGraceMins: Number(defaultGraceMins),
+        signedUrlTtl: Number(signedUrlTtl),
       },
     });
 
     setToast({
       type: "success",
       title: "Pengaturan Sistem Disimpan",
-      desc: "Konfigurasi instansi, zona waktu, dan kebijakan keamanan default berhasil diperbarui.",
+      desc: "Konfigurasi instansi, zona waktu, dan kebijakan keamanan default berhasil disimpan secara permanen.",
     });
   }
 
   function handleClearLocalCache() {
     if (typeof window !== "undefined") {
+      // Hanya bersihkan cache sesi ujian sementara, JANGAN hapus pengaturan sistem/homepage/akun admin
+      const preservedKeys = new Set([
+        SYSTEM_SETTINGS_KEY,
+        "prima_cat_homepage_config_v2_prod",
+        "prima_cat_live_score_settings_v2_prod",
+        "prima_cat_active_user_v2_prod",
+        "prima_cat_profiles_v2_prod",
+      ]);
       const keysToRemove: string[] = [];
       for (let i = 0; i < window.localStorage.length; i++) {
         const k = window.localStorage.key(i);
-        if (k && k.startsWith("prima_cat_")) {
+        if (k && k.startsWith("prima_cat_") && !preservedKeys.has(k)) {
           keysToRemove.push(k);
         }
       }
@@ -78,8 +175,8 @@ export default function AdminPengaturanPage() {
     setResetModalOpen(false);
     setToast({
       type: "warning",
-      title: "Cache Penyimpanan Lokal Dibersihkan",
-      desc: "Seluruh cache sesi dan data lokal di browser ini telah dibersihkan.",
+      title: "Cache SesiSementara Dibersihkan",
+      desc: "Cache sesi sementara telah dibersihkan tanpa menghapus Pengaturan Sistem dan Konfigurasi Homepage Anda.",
     });
   }
 

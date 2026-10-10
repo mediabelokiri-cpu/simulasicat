@@ -35,9 +35,17 @@ export default function LandingPage() {
   const [activeUser, setActiveUser] = useState<ProfileRow | null>(null);
 
   useEffect(() => {
-    const loadedCfg = getHomepageConfig();
-    setConfig(loadedCfg);
-    setActiveUser(getCurrentUserClient());
+    const syncHomepage = () => {
+      setConfig(getHomepageConfig());
+      setActiveUser(getCurrentUserClient());
+    };
+    syncHomepage();
+    window.addEventListener("storage", syncHomepage);
+    window.addEventListener("focus", syncHomepage);
+    return () => {
+      window.removeEventListener("storage", syncHomepage);
+      window.removeEventListener("focus", syncHomepage);
+    };
   }, []);
 
   function handleLogout() {
