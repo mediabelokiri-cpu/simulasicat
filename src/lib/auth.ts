@@ -130,6 +130,130 @@ export function authenticateUser(email: string, password: string): AuthResult {
 }
 
 /**
+ * Validasi Login Asinkron (Utama untuk Supabase Auth + Tabel public.profiles)
+ * Memungkinkan akun yang dibuat di Supabase Dashboard (termasuk Admin) maupun
+ * akun peserta lintas perangkat masuk menggunakan kredensial Supabase Auth.
+ */
+export async function authenticateUserAsync(
+  email: string,
+  password: string
+): Promise<AuthResult> {
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanEmail) {
+    return { ok: false, error: "Alamat email wajib diisi." };
+  }
+  if (!password || password.length < 6) {
+    return {
+      ok: false,
+      error: "Kata sandi wajib diisi (minimal 6 karakter).",
+    };
+  }
+
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
+
+      if (data?.user) {
+        const { data: dbProfile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", data.user.id)
+          .maybeSingle();
+
+        const now = new Date().toISOString();
+        const resolvedProfile: ProfileRow = dbProfile
+          ? {
+              id: dbProfile.id,
+              full_name: dbProfile.full_name,
+              email: dbProfile.email,
+              role: (dbProfile.role as UserRole) || "user",
+              is_active: dbProfile.is_active ?? true,
+              phone: dbProfile.phone ?? null,
+              institution: dbProfile.institution ?? null,
+              target_selection: dbProfile.target_selection ?? "CPNS",
+              email_verified: dbProfile.email_verified ?? true,
+              created_at: dbProfile.created_at ?? now,
+              updated_at: dbProfile.updated_at ?? now,
+            }
+          : {
+              id: data.user.id,
+              full_name:
+                (data.user.user_metadata?.full_name as string) ||
+                cleanEmail.split("@")[0],
+              email: cleanEmail,
+              role:
+                cleanEmail === "admin@primarib.id"
+                  ? ("admin" as UserRole)
+                  : ("user" as UserRole),
+              is_active: true,
+              phone: null,
+              institution:
+                (data.user.user_metadata?.institution as string) || null,
+              target_selection:
+                (data.user.user_metadata?.target_selection as string) || "CPNS",
+              email_verified: true,
+              created_at: data.user.created_at || now,
+              updated_at: now,
+            };
+
+        if (!resolvedProfile.is_active) {
+          await supabase.auth.signOut();
+          return {
+            ok: false,
+            error:
+              "Akun Anda saat ini dinonaktifkan oleh Administrator. Riwayat ujian Anda tetap tersimpan, silakan hubungi Admin Prima RIB.",
+          };
+        }
+
+        const stored = getStoredProfiles();
+        const existingIdx = stored.findIndex(
+          (p) =>
+            p.id === resolvedProfile.id ||
+            p.email.toLowerCase() === cleanEmail
+        );
+        if (existingIdx >= 0) {
+          stored[existingIdx] = resolvedProfile;
+        } else {
+          stored.push(resolvedProfile);
+        }
+        saveStoredProfiles(stored);
+        setCurrentUserClient(resolvedProfile);
+
+        return {
+          ok: true,
+          user: resolvedProfile,
+          redirectTo:
+            resolvedProfile.role === "admin" ? "/admin" : "/dashboard",
+        };
+      }
+
+      if (error && error.message.toLowerCase().includes("invalid login")) {
+        // Fallback ke profil bootstrap lokal jika admin@primarib.id belum didaftarkan ke Supabase Auth
+        const localProfiles = getStoredProfiles();
+        const localMatch = localProfiles.find(
+          (p) => p.email.toLowerCase() === cleanEmail
+        );
+        if (!localMatch) {
+          return {
+            ok: false,
+            error:
+              "Email atau kata sandi tidak sesuai, atau akun belum terdaftar.",
+          };
+        }
+      }
+    } catch {
+      // Lanjutkan ke fallback lokal bila terjadi kendala jaringan sementara
+    }
+  }
+
+  return authenticateUser(email, password);
+}
+
+/**
  * Registrasi Mandiri Peserta
  * PENTING (Bab 3.3 & 13 PRD): Registrasi publik SELALU menghasilkan role 'user'.
  */

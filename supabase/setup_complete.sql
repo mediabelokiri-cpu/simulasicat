@@ -342,7 +342,7 @@ BEGIN
         NEW.id,
         COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
         NEW.email,
-        'user',
+        CASE WHEN lower(NEW.email) = 'admin@primarib.id' THEN 'admin' ELSE 'user' END,
         true,
         NEW.email_confirmed_at IS NOT NULL
     )

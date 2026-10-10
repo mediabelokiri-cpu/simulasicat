@@ -11,7 +11,7 @@ import {
   inputBaseClasses,
   ToastNotification,
 } from "@/components/ui";
-import { authenticateUser } from "@/lib/auth";
+import { authenticateUserAsync } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,12 +21,12 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
 
-    const res = authenticateUser(email, password);
+    const res = await authenticateUserAsync(email, password);
     setIsSubmitting(false);
 
     if (!res.ok) {
