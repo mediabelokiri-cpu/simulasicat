@@ -29,6 +29,7 @@ import {
   getExamSessions,
   getIncidents,
   getAuditLogs,
+  syncAdminStoreFromSupabase,
 } from "@/lib/admin-store";
 import { formatDateTimeID } from "@/lib/utils";
 import {
@@ -49,14 +50,21 @@ export default function AdminDashboardPage() {
   const [auditLogs, setAuditLogs] = useState<ExamAuditLogRow[]>([]);
 
   useEffect(() => {
-    setProfiles(getStoredProfiles());
-    setExams(getExams());
-    setRuns(getExamRuns());
-    setSessions(getExamSessions());
-    setIncidents(getIncidents());
-    setAuditLogs(getAuditLogs());
+    const refreshFromLocal = () => {
+      setProfiles(getStoredProfiles());
+      setExams(getExams());
+      setRuns(getExamRuns());
+      setSessions(getExamSessions());
+      setIncidents(getIncidents());
+      setAuditLogs(getAuditLogs());
+    };
+    refreshFromLocal();
 
-    void syncProfilesFromSupabase().then((synced) => {
+    void Promise.all([
+      syncAdminStoreFromSupabase(),
+      syncProfilesFromSupabase(),
+    ]).then(([, synced]) => {
+      refreshFromLocal();
       setProfiles(synced);
     });
   }, []);

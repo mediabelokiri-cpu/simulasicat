@@ -31,6 +31,7 @@ import {
   getQuestions,
   saveQuestions,
   appendAuditLog,
+  syncAdminStoreFromSupabase,
 } from "@/lib/admin-store";
 import { INITIAL_CATEGORIES } from "@/lib/mock-store";
 import {
@@ -61,6 +62,9 @@ export default function BankSoalPage() {
 
   useEffect(() => {
     setQuestions(getQuestions());
+    void syncAdminStoreFromSupabase().then(() => {
+      setQuestions(getQuestions());
+    });
   }, []);
 
   const subtests = Array.from(

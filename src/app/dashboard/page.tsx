@@ -30,6 +30,7 @@ import {
   getExamRuns,
   getExamSections,
   getResults,
+  syncAdminStoreFromSupabase,
 } from "@/lib/admin-store";
 import {
   evaluateUserExamEligibility,
@@ -63,11 +64,38 @@ export default function UserDashboardPage() {
       return;
     }
     setUser(active);
-    setExams(getExams());
-    setRuns(getExamRuns());
-    setSections(getExamSections());
-    setResults(getResults());
-    void syncProfilesFromSupabase();
+
+    const refreshFromLocal = () => {
+      setExams(getExams());
+      setRuns(getExamRuns());
+      setSections(getExamSections());
+      setResults(getResults());
+    };
+
+    refreshFromLocal();
+
+    let isMounted = true;
+    const syncRemote = async () => {
+      await Promise.all([
+        syncAdminStoreFromSupabase(),
+        syncProfilesFromSupabase(),
+      ]);
+      if (!isMounted) return;
+      const latestUser = getCurrentUserClient();
+      if (latestUser) setUser(latestUser);
+      refreshFromLocal();
+    };
+
+    void syncRemote();
+    const interval = window.setInterval(syncRemote, 8000);
+    const onFocus = () => void syncRemote();
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
   }, [router]);
 
   const enrichedRuns = runs

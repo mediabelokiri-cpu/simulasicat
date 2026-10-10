@@ -31,21 +31,29 @@ export async function GET() {
     }
 
     const now = new Date().toISOString();
-    const profiles: ProfileRow[] = data.map((row: Record<string, unknown>) => ({
-      id: String(row.id),
-      full_name: String(row.full_name || "Peserta"),
-      email: String(row.email || "").toLowerCase(),
-      role: (row.role === "admin" ? "admin" : "user") as UserRole,
-      is_active: row.is_active !== false,
-      phone: row.phone ? String(row.phone) : null,
-      institution: row.institution ? String(row.institution) : null,
-      target_selection: row.target_selection
-        ? String(row.target_selection)
-        : "CPNS",
-      email_verified: Boolean(row.email_verified ?? true),
-      created_at: row.created_at ? String(row.created_at) : now,
-      updated_at: row.updated_at ? String(row.updated_at) : now,
-    }));
+    const profiles: ProfileRow[] = data
+      .filter(
+        (row: Record<string, unknown>) =>
+          !String(row.email || "")
+            .toLowerCase()
+            .endsWith("@internal.primarib.id") &&
+          row.full_name !== "__SYSTEM_STORE__"
+      )
+      .map((row: Record<string, unknown>) => ({
+        id: String(row.id),
+        full_name: String(row.full_name || "Peserta"),
+        email: String(row.email || "").toLowerCase(),
+        role: (row.role === "admin" ? "admin" : "user") as UserRole,
+        is_active: row.is_active !== false,
+        phone: row.phone ? String(row.phone) : null,
+        institution: row.institution ? String(row.institution) : null,
+        target_selection: row.target_selection
+          ? String(row.target_selection)
+          : "CPNS",
+        email_verified: Boolean(row.email_verified ?? true),
+        created_at: row.created_at ? String(row.created_at) : now,
+        updated_at: row.updated_at ? String(row.updated_at) : now,
+      }));
 
     return NextResponse.json({ profiles });
   } catch {

@@ -13,6 +13,7 @@ import {
   Globe,
   X,
   Edit3,
+  Trash2,
 } from "lucide-react";
 import {
   AppShell,
@@ -26,6 +27,7 @@ import {
   DataTable,
   MobileRecordCard,
   ToastNotification,
+  ConfirmDialog,
 } from "@/components/ui";
 import {
   getExams,
@@ -36,9 +38,12 @@ import {
   saveScoringSnapshots,
   getAccessGrants,
   saveAccessGrants,
+  getExamRuns,
+  saveExamRuns,
   getGroups,
   getQuestions,
   appendAuditLog,
+  syncAdminStoreFromSupabase,
 } from "@/lib/admin-store";
 import { INITIAL_CATEGORIES, SKD_CPNS_2024_PRESET } from "@/lib/mock-store";
 import {
@@ -68,6 +73,7 @@ export default function ManajemenUjianPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingExam, setEditingExam] = useState<ExamRow | null>(null);
+  const [examToDelete, setExamToDelete] = useState<ExamRow | null>(null);
 
   // Form States
   const [title, setTitle] = useState("");
@@ -77,7 +83,7 @@ export default function ManajemenUjianPage() {
   const [durationMinutes, setDurationMinutes] = useState(100);
   const [accessMode, setAccessMode] = useState<ExamAccessMode>("open");
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
-  const [status, setStatus] = useState<ExamStatus>("draft");
+  const [status, setStatus] = useState<ExamStatus>("active");
   const [latePolicy, setLatePolicy] = useState<
     "allow_full_time" | "deduct_time" | "require_admin_approval"
   >("require_admin_approval");
@@ -102,12 +108,16 @@ export default function ManajemenUjianPage() {
   } | null>(null);
 
   useEffect(() => {
-    setExams(getExams());
-    setSections(getExamSections());
-    setSnapshots(getScoringSnapshots());
-    setGrants(getAccessGrants());
-    setGroups(getGroups());
-    setQuestions(getQuestions());
+    const refreshFromLocal = () => {
+      setExams(getExams());
+      setSections(getExamSections());
+      setSnapshots(getScoringSnapshots());
+      setGrants(getAccessGrants());
+      setGroups(getGroups());
+      setQuestions(getQuestions());
+    };
+    refreshFromLocal();
+    void syncAdminStoreFromSupabase().then(refreshFromLocal);
   }, []);
 
   const activeQuestionsCount = questions.filter(
@@ -133,7 +143,7 @@ export default function ManajemenUjianPage() {
     setDurationMinutes(100);
     setAccessMode("open");
     setSelectedGroupIds([]);
-    setStatus("draft");
+    setStatus("active");
     setLatePolicy("require_admin_approval");
     setShufflePerSection(true);
     setShuffleOptions(false);
@@ -378,6 +388,40 @@ export default function ManajemenUjianPage() {
     });
   }
 
+  function handleDeleteExam(exam: ExamRow) {
+    const nextExams = exams.filter((e) => e.id !== exam.id);
+    const nextSections = sections.filter((s) => s.exam_id !== exam.id);
+    const nextSnapshots = snapshots.filter((s) => s.exam_id !== exam.id);
+    const nextGrants = grants.filter((g) => g.exam_id !== exam.id);
+    const nextRuns = getExamRuns().filter((r) => r.exam_id !== exam.id);
+
+    saveExams(nextExams);
+    saveExamSections(nextSections);
+    saveScoringSnapshots(nextSnapshots);
+    saveAccessGrants(nextGrants);
+    saveExamRuns(nextRuns);
+
+    setExams(nextExams);
+    setSections(nextSections);
+    setSnapshots(nextSnapshots);
+    setGrants(nextGrants);
+    setExamToDelete(null);
+
+    appendAuditLog({
+      action: "DELETE_EXAM",
+      entity_type: "exams",
+      entity_id: exam.id,
+      reason: `Menghapus definisi ujian "${exam.title}" beserta sesi terkait`,
+      details: { title: exam.title },
+    });
+
+    setToast({
+      type: "success",
+      title: "Definisi Ujian Dihapus",
+      desc: `Ujian "${exam.title}" beserta jadwal sesi terkait telah dihapus.`,
+    });
+  }
+
   function renderExamStatus(st: ExamStatus) {
     switch (st) {
       case "active":
@@ -601,7 +645,7 @@ export default function ManajemenUjianPage() {
             header: "Aksi",
             className: "text-right",
             render: (row) => (
-              <div className="flex items-center justify-end gap-2">
+              <div className="flex items-center justify-end gap-1.5">
                 <Button
                   variant="outline"
                   size="sm"
@@ -610,6 +654,15 @@ export default function ManajemenUjianPage() {
                 >
                   Konfigurasi
                 </Button>
+                <button
+                  type="button"
+                  onClick={() => setExamToDelete(row)}
+                  title="Hapus ujian ini"
+                  aria-label="Hapus ujian ini"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-200 bg-rose-50/70 text-rose-600 transition-colors hover:bg-rose-600 hover:text-white"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             ),
           },
@@ -647,17 +700,44 @@ export default function ManajemenUjianPage() {
               },
             ]}
             actions={
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => openEditExamModal(row)}
-                leftIcon={<Edit3 className="h-3.5 w-3.5" />}
-              >
-                Konfigurasi Ujian &amp; Penilaian
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openEditExamModal(row)}
+                  leftIcon={<Edit3 className="h-3.5 w-3.5" />}
+                >
+                  Konfigurasi Ujian &amp; Penilaian
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => setExamToDelete(row)}
+                  leftIcon={<Trash2 className="h-3.5 w-3.5" />}
+                >
+                  Hapus Ujian
+                </Button>
+              </div>
             }
           />
         )}
+      />
+
+      <ConfirmDialog
+        open={examToDelete !== null}
+        title="Hapus Definisi Ujian?"
+        description={
+          examToDelete
+            ? `Apakah Anda yakin ingin menghapus ujian "${examToDelete.title}" beserta jadwal sesi terkait?`
+            : ""
+        }
+        confirmLabel="Ya, Hapus Ujian"
+        cancelLabel="Batal"
+        variant="danger"
+        onConfirm={() => {
+          if (examToDelete) handleDeleteExam(examToDelete);
+        }}
+        onClose={() => setExamToDelete(null)}
       />
 
       {/* Modal Pembuatan / Konfigurasi Ujian & Penilaian */}

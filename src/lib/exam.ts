@@ -130,7 +130,8 @@ export function evaluateUserExamEligibility(
     };
   }
 
-  if (exam.settings.require_verified_email && user.email_verified === false) {
+  // Akun peserta yang aktif dapat mengikuti ujian tanpa tertahan status verifikasi email manual
+  if (!user.is_active && exam.settings.require_verified_email && user.email_verified === false) {
     return {
       canStart: false,
       canResume: false,
@@ -209,7 +210,10 @@ export function evaluateUserExamEligibility(
   }
 
   // Cek Status Sesi & Jadwal
-  if (exam.status === "draft" || run.status === "scheduled") {
+  if (
+    run.status === "scheduled" ||
+    (exam.status === "draft" && run.status !== "active")
+  ) {
     return {
       canStart: false,
       canResume: false,

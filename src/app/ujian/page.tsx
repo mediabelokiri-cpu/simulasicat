@@ -18,11 +18,12 @@ import {
   EmptyState,
 } from "@/components/ui";
 import { ExamCard } from "@/components/dashboard/ExamCard";
-import { getCurrentUserClient } from "@/lib/auth";
+import { getCurrentUserClient, syncProfilesFromSupabase } from "@/lib/auth";
 import {
   getExams,
   getExamRuns,
   getExamSections,
+  syncAdminStoreFromSupabase,
 } from "@/lib/admin-store";
 import {
   evaluateUserExamEligibility,
@@ -60,19 +61,47 @@ function DaftarUjianInner() {
       return;
     }
     setUser(active);
-    const exs = getExams();
-    const rns = getExamRuns();
-    setExams(exs);
-    setRuns(rns);
-    setSections(getExamSections());
 
-    if (initialRunId) {
-      const foundRun = rns.find((r) => r.id === initialRunId);
-      const foundExam = exs.find((e) => e.id === foundRun?.exam_id);
-      if (foundRun && foundExam) {
-        setDetailPair({ exam: foundExam, run: foundRun });
+    const refreshFromLocal = () => {
+      const exs = getExams();
+      const rns = getExamRuns();
+      setExams(exs);
+      setRuns(rns);
+      setSections(getExamSections());
+
+      if (initialRunId) {
+        const foundRun = rns.find((r) => r.id === initialRunId);
+        const foundExam = exs.find((e) => e.id === foundRun?.exam_id);
+        if (foundRun && foundExam) {
+          setDetailPair({ exam: foundExam, run: foundRun });
+        }
       }
-    }
+    };
+
+    refreshFromLocal();
+
+    let isMounted = true;
+    const syncRemote = async () => {
+      await Promise.all([
+        syncAdminStoreFromSupabase(),
+        syncProfilesFromSupabase(),
+      ]);
+      if (!isMounted) return;
+      const latestUser = getCurrentUserClient();
+      if (latestUser) setUser(latestUser);
+      refreshFromLocal();
+    };
+
+    void syncRemote();
+    const interval = window.setInterval(syncRemote, 8000);
+    const onFocus = () => void syncRemote();
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
   }, [initialRunId, router]);
 
   const items = runs

@@ -4,12 +4,13 @@ import React, { useEffect, useState } from "react";
 import {
   Plus,
   PlayCircle,
-  PauseCircle,
   CheckCircle2,
   UsersRound,
   Clock,
   ShieldCheck,
   X,
+  Trash2,
+  RotateCcw,
 } from "lucide-react";
 import {
   AppShell,
@@ -20,11 +21,13 @@ import {
   inputBaseClasses,
   DataTable,
   MobileRecordCard,
+  ConfirmDialog,
   ToastNotification,
 } from "@/components/ui";
-import { getStoredProfiles } from "@/lib/auth";
+import { getStoredProfiles, syncProfilesFromSupabase } from "@/lib/auth";
 import {
   getExams,
+  saveExams,
   getExamRuns,
   saveExamRuns,
   getRunAssignments,
@@ -32,6 +35,7 @@ import {
   getGroups,
   getScoringSnapshots,
   appendAuditLog,
+  syncAdminStoreFromSupabase,
 } from "@/lib/admin-store";
 import {
   ExamRow,
@@ -62,6 +66,11 @@ export default function JadwalSesiPage() {
   const [assignModalRun, setAssignModalRun] = useState<ExamRunRow | null>(null);
   const [latePermitUserId, setLatePermitUserId] = useState("");
   const [lateReason, setLateReason] = useState("");
+  const [deleteTargetRun, setDeleteTargetRun] = useState<ExamRunRow | null>(
+    null
+  );
+  const [showDeleteAllRunsConfirm, setShowDeleteAllRunsConfirm] =
+    useState(false);
 
   const [toast, setToast] = useState<{
     type: "success" | "warning" | "error";
@@ -70,14 +79,24 @@ export default function JadwalSesiPage() {
   } | null>(null);
 
   useEffect(() => {
-    const exList = getExams();
-    setExams(exList);
-    if (exList.length > 0) setSelectedExamId(exList[0].id);
-    setRuns(getExamRuns());
-    setAssignments(getRunAssignments());
-    setGroups(getGroups());
-    setProfiles(getStoredProfiles().filter((p) => p.role === "user"));
-    setSnapshots(getScoringSnapshots());
+    const loadAll = () => {
+      const exList = getExams();
+      setExams(exList);
+      setSelectedExamId((prev) => prev || exList[0]?.id || "");
+      setRuns(getExamRuns());
+      setAssignments(getRunAssignments());
+      setGroups(getGroups());
+      setProfiles(getStoredProfiles().filter((p) => p.role === "user"));
+      setSnapshots(getScoringSnapshots());
+    };
+
+    loadAll();
+    void syncAdminStoreFromSupabase().then(() => {
+      loadAll();
+    });
+    void syncProfilesFromSupabase().then((synced) => {
+      setProfiles(synced.filter((p) => p.role === "user"));
+    });
   }, []);
 
   function handleCreateRun(e: React.FormEvent) {
@@ -140,7 +159,7 @@ export default function JadwalSesiPage() {
     setToast({
       type: "success",
       title: "Sesi Pelaksanaan Berhasil Dijadwalkan",
-      desc: `Sesi "${newRun.name}" telah dibuat dan siap diaktifkan sesuai jadwal.`,
+      desc: `Sesi "${newRun.name}" telah dibuat, disinkronkan ke server, dan siap diaktifkan sesuai jadwal.`,
     });
   }
 
@@ -160,6 +179,20 @@ export default function JadwalSesiPage() {
     saveExamRuns(updated);
     setRuns(updated);
 
+    // Jika mengaktifkan sesi, pastikan ujian induknya juga berstatus active agar langsung bisa dikerjakan peserta
+    if (newStatus === "active") {
+      const parentExam = exams.find((ex) => ex.id === run.exam_id);
+      if (parentExam && parentExam.status === "draft") {
+        const updatedExams = exams.map((ex) =>
+          ex.id === run.exam_id
+            ? { ...ex, status: "active" as const, updated_at: now }
+            : ex
+        );
+        saveExams(updatedExams);
+        setExams(updatedExams);
+      }
+    }
+
     appendAuditLog({
       action: `CHANGE_EXAM_RUN_STATUS_${newStatus.toUpperCase()}`,
       entity_type: "exam_runs",
@@ -170,7 +203,55 @@ export default function JadwalSesiPage() {
     setToast({
       type: "success",
       title: `Status Sesi: ${newStatus.toUpperCase()}`,
-      desc: `Sesi "${run.name}" kini berstatus ${newStatus}.`,
+      desc: `Sesi "${run.name}" kini berstatus ${newStatus} dan telah disinkronkan ke seluruh perangkat peserta.`,
+    });
+  }
+
+  function handleConfirmDeleteRun() {
+    if (!deleteTargetRun) return;
+    const target = deleteTargetRun;
+    const nextRuns = runs.filter((r) => r.id !== target.id);
+    saveExamRuns(nextRuns);
+    setRuns(nextRuns);
+
+    const nextAsg = assignments.filter((a) => a.exam_run_id !== target.id);
+    saveRunAssignments(nextAsg);
+    setAssignments(nextAsg);
+    setDeleteTargetRun(null);
+
+    appendAuditLog({
+      action: "DELETE_EXAM_RUN",
+      entity_type: "exam_runs",
+      entity_id: target.id,
+      reason: `Menghapus sesi pelaksanaan "${target.name}"`,
+    });
+
+    setToast({
+      type: "warning",
+      title: "Sesi Pelaksanaan Dihapus",
+      desc: `Sesi "${target.name}" beserta penugasannya telah dihapus.`,
+    });
+  }
+
+  function handleConfirmDeleteAllRuns() {
+    const count = runs.length;
+    saveExamRuns([]);
+    setRuns([]);
+    saveRunAssignments([]);
+    setAssignments([]);
+    setShowDeleteAllRunsConfirm(false);
+
+    appendAuditLog({
+      action: "DELETE_ALL_EXAM_RUNS",
+      entity_type: "exam_runs",
+      entity_id: "bulk-delete-runs",
+      reason: `Menghapus keseluruhan ${count} sesi pelaksanaan ujian`,
+    });
+
+    setToast({
+      type: "warning",
+      title: "Seluruh Sesi Pelaksanaan Dihapus",
+      desc: `Seluruh ${count} sesi pelaksanaan ujian telah dikosongkan.`,
     });
   }
 
@@ -253,13 +334,24 @@ export default function JadwalSesiPage() {
           <StatusBadge variant="ongoing" label={`${runs.length} Sesi Terdaftar`} />
         }
         actions={
-          <Button
-            variant="primary"
-            onClick={() => setCreateModalOpen(true)}
-            leftIcon={<Plus className="h-4 w-4" />}
-          >
-            Buat Sesi Pelaksanaan Baru
-          </Button>
+          <div className="flex flex-wrap gap-2.5">
+            {runs.length > 0 && (
+              <Button
+                variant="danger"
+                onClick={() => setShowDeleteAllRunsConfirm(true)}
+                leftIcon={<Trash2 className="h-4 w-4" />}
+              >
+                Hapus Semua Sesi ({runs.length})
+              </Button>
+            )}
+            <Button
+              variant="primary"
+              onClick={() => setCreateModalOpen(true)}
+              leftIcon={<Plus className="h-4 w-4" />}
+            >
+              Buat Sesi Pelaksanaan Baru
+            </Button>
+          </div>
         }
       />
 
@@ -372,6 +464,16 @@ export default function JadwalSesiPage() {
                     Selesaikan
                   </Button>
                 )}
+                {row.status === "completed" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleChangeRunStatus(row, "active")}
+                    leftIcon={<RotateCcw className="h-3.5 w-3.5" />}
+                  >
+                    Buka Kembali
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
@@ -380,6 +482,15 @@ export default function JadwalSesiPage() {
                 >
                   Penugasan &amp; Izin Terlambat
                 </Button>
+                <button
+                  type="button"
+                  onClick={() => setDeleteTargetRun(row)}
+                  title={`Hapus sesi ${row.name}`}
+                  aria-label={`Hapus sesi ${row.name}`}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition-colors hover:bg-red-600 hover:text-white"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             ),
           },
@@ -412,12 +523,38 @@ export default function JadwalSesiPage() {
                       Aktifkan Sesi
                     </Button>
                   )}
+                  {row.status === "active" && (
+                    <Button
+                      variant="accent"
+                      size="sm"
+                      onClick={() => handleChangeRunStatus(row, "completed")}
+                    >
+                      Selesaikan
+                    </Button>
+                  )}
+                  {row.status === "completed" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleChangeRunStatus(row, "active")}
+                    >
+                      Buka Kembali
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setAssignModalRun(row)}
                   >
                     Penugasan &amp; Izin Terlambat
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => setDeleteTargetRun(row)}
+                    leftIcon={<Trash2 className="h-3.5 w-3.5" />}
+                  >
+                    Hapus Sesi
                   </Button>
                 </>
               }
@@ -616,6 +753,32 @@ export default function JadwalSesiPage() {
           </div>
         </div>
       )}
+
+      {/* Dialog Konfirmasi Hapus 1 Sesi Pelaksanaan */}
+      <ConfirmDialog
+        open={Boolean(deleteTargetRun)}
+        onClose={() => setDeleteTargetRun(null)}
+        onConfirm={handleConfirmDeleteRun}
+        variant="danger"
+        title="Hapus Sesi Pelaksanaan Ini?"
+        description={
+          deleteTargetRun
+            ? `Apakah Anda yakin ingin menghapus sesi pelaksanaan "${deleteTargetRun.name}"? Tindakan ini akan menghapus jadwal sesi tersebut secara permanen.`
+            : ""
+        }
+        confirmLabel="Ya, Hapus Sesi"
+      />
+
+      {/* Dialog Konfirmasi Hapus Semua Sesi */}
+      <ConfirmDialog
+        open={showDeleteAllRunsConfirm}
+        onClose={() => setShowDeleteAllRunsConfirm(false)}
+        onConfirm={handleConfirmDeleteAllRuns}
+        variant="danger"
+        title="Hapus Semua Sesi Pelaksanaan?"
+        description={`Apakah Anda yakin ingin menghapus seluruh ${runs.length} sesi pelaksanaan ujian?`}
+        confirmLabel={`Ya, Hapus Semua (${runs.length} Sesi)`}
+      />
     </AppShell>
   );
 }

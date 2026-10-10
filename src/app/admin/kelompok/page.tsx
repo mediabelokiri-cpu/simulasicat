@@ -30,6 +30,7 @@ import {
   getExams,
   getExamRuns,
   appendAuditLog,
+  syncAdminStoreFromSupabase,
 } from "@/lib/admin-store";
 import {
   GroupRow,
@@ -66,15 +67,22 @@ export default function ManajemenKelompokPage() {
   } | null>(null);
 
   useEffect(() => {
-    setGroups(getGroups());
-    setMembers(getGroupMembers());
-    setProfiles(getStoredProfiles().filter((p) => p.role === "user"));
-    setGrants(getAccessGrants());
-    setAssignments(getRunAssignments());
-    setExams(getExams());
-    setRuns(getExamRuns());
+    const refreshFromLocal = () => {
+      setGroups(getGroups());
+      setMembers(getGroupMembers());
+      setProfiles(getStoredProfiles().filter((p) => p.role === "user"));
+      setGrants(getAccessGrants());
+      setAssignments(getRunAssignments());
+      setExams(getExams());
+      setRuns(getExamRuns());
+    };
+    refreshFromLocal();
 
-    void syncProfilesFromSupabase().then((synced) => {
+    void Promise.all([
+      syncAdminStoreFromSupabase(),
+      syncProfilesFromSupabase(),
+    ]).then(([, synced]) => {
+      refreshFromLocal();
       setProfiles(synced.filter((p) => p.role === "user"));
     });
   }, []);

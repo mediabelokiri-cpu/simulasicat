@@ -34,7 +34,13 @@ export function getStoredProfiles(): ProfileRow[] {
       );
       return INITIAL_PROFILES;
     }
-    const parsed = JSON.parse(raw) as ProfileRow[];
+    const parsed = (JSON.parse(raw) as ProfileRow[]).filter(
+      (p) =>
+        !String(p.email || "")
+          .toLowerCase()
+          .endsWith("@internal.primarib.id") &&
+        p.full_name !== "__SYSTEM_STORE__"
+    );
     let modified = false;
     for (const initProfile of INITIAL_PROFILES) {
       if (
@@ -104,10 +110,17 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
 
     if (!error && Array.isArray(data)) {
       for (const row of data) {
+        const emailStr = String(row.email || "").toLowerCase();
+        if (
+          emailStr.endsWith("@internal.primarib.id") ||
+          row.full_name === "__SYSTEM_STORE__"
+        ) {
+          continue;
+        }
         fetchedRows.push({
           id: String(row.id),
           full_name: String(row.full_name || "Peserta"),
-          email: String(row.email || "").toLowerCase(),
+          email: emailStr,
           role: (row.role === "admin" ? "admin" : "user") as UserRole,
           is_active: row.is_active !== false,
           phone: row.phone ? String(row.phone) : null,
