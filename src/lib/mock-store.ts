@@ -109,12 +109,25 @@ export const EMPTY_USER_FALLBACK: ProfileRow = {
   updated_at: new Date().toISOString(),
 };
 
-// 2. PROFILES (Hanya Akun Bootstrap Administrator Utama; 0 Peserta Dummy)
+// 2. PROFILES (Akun Bootstrap Administrator Utama; 0 Peserta Dummy)
 export const INITIAL_PROFILES: ProfileRow[] = [
   {
     id: "usr-admin-01",
     full_name: "Administrator Utama Prima RIB",
     email: "admin@primarib.id",
+    role: "admin",
+    is_active: true,
+    phone: null,
+    institution: "Prima RIB",
+    target_selection: "Administrator",
+    email_verified: true,
+    created_at: "2026-10-01T08:00:00Z",
+    updated_at: "2026-10-01T08:00:00Z",
+  },
+  {
+    id: "usr-admin-02",
+    full_name: "Administrator Simulasi CAT",
+    email: "admin@simulasicat.id",
     role: "admin",
     is_active: true,
     phone: null,

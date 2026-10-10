@@ -34,7 +34,22 @@ export function getStoredProfiles(): ProfileRow[] {
       );
       return INITIAL_PROFILES;
     }
-    return JSON.parse(raw) as ProfileRow[];
+    const parsed = JSON.parse(raw) as ProfileRow[];
+    let modified = false;
+    for (const initProfile of INITIAL_PROFILES) {
+      if (
+        !parsed.some(
+          (p) => p.email.toLowerCase() === initProfile.email.toLowerCase()
+        )
+      ) {
+        parsed.push(initProfile);
+        modified = true;
+      }
+    }
+    if (modified) {
+      window.localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(parsed));
+    }
+    return parsed;
   } catch {
     return INITIAL_PROFILES;
   }
@@ -149,6 +164,10 @@ export async function authenticateUserAsync(
     };
   }
 
+  const isDefaultAdminEmail =
+    cleanEmail === "admin@primarib.id" ||
+    cleanEmail === "admin@simulasicat.id";
+
   if (isSupabaseConfigured()) {
     try {
       const supabase = createSupabaseBrowserClient();
@@ -170,7 +189,9 @@ export async function authenticateUserAsync(
               id: dbProfile.id,
               full_name: dbProfile.full_name,
               email: dbProfile.email,
-              role: (dbProfile.role as UserRole) || "user",
+              role: isDefaultAdminEmail
+                ? ("admin" as UserRole)
+                : ((dbProfile.role as UserRole) || "user"),
               is_active: dbProfile.is_active ?? true,
               phone: dbProfile.phone ?? null,
               institution: dbProfile.institution ?? null,
@@ -185,10 +206,9 @@ export async function authenticateUserAsync(
                 (data.user.user_metadata?.full_name as string) ||
                 cleanEmail.split("@")[0],
               email: cleanEmail,
-              role:
-                cleanEmail === "admin@primarib.id"
-                  ? ("admin" as UserRole)
-                  : ("user" as UserRole),
+              role: isDefaultAdminEmail
+                ? ("admin" as UserRole)
+                : ("user" as UserRole),
               is_active: true,
               phone: null,
               institution:
