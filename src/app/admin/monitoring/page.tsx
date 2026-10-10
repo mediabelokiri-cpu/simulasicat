@@ -28,12 +28,13 @@ import {
   ConfirmDialog,
   ToastNotification,
 } from "@/components/ui";
-import { getStoredProfiles } from "@/lib/auth";
+import { getStoredProfiles, syncProfilesFromSupabase } from "@/lib/auth";
 import {
   appendAuditLog,
   getExamRuns,
   getExamSessions,
   saveExamSessions,
+  syncAdminStoreFromSupabase,
 } from "@/lib/admin-store";
 import {
   computeProvisionalSessionScore,
@@ -81,8 +82,40 @@ export default function AdminRealtimeMonitoringPage() {
     setSessions(getExamSessions());
   };
 
+  const syncMonitoringFromRemote = async () => {
+    await Promise.all([
+      syncAdminStoreFromSupabase(),
+      syncProfilesFromSupabase(),
+    ]);
+    loadMonitoringData();
+  };
+
   useEffect(() => {
     loadMonitoringData();
+    void syncMonitoringFromRemote();
+
+    const interval = window.setInterval(() => {
+      void syncMonitoringFromRemote();
+    }, 4000);
+
+    const handleFocus = () => {
+      void syncMonitoringFromRemote();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("storage", loadMonitoringData);
+    window.addEventListener("prima-store-synced", loadMonitoringData);
+    window.addEventListener("prima-profiles-synced", loadMonitoringData);
+    window.addEventListener("prima-live-score-event", loadMonitoringData);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("storage", loadMonitoringData);
+      window.removeEventListener("prima-store-synced", loadMonitoringData);
+      window.removeEventListener("prima-profiles-synced", loadMonitoringData);
+      window.removeEventListener("prima-live-score-event", loadMonitoringData);
+    };
   }, []);
 
   const filteredSessions = sessions.filter((s) => {
@@ -246,7 +279,7 @@ export default function AdminRealtimeMonitoringPage() {
           <div className="flex flex-wrap gap-2.5">
             <Button
               variant="outline"
-              onClick={loadMonitoringData}
+              onClick={() => void syncMonitoringFromRemote()}
               leftIcon={<RefreshCw className="h-4 w-4" />}
             >
               Segarkan Data

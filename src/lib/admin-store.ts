@@ -40,7 +40,7 @@ import {
   isSupabaseConfigured,
 } from "./supabase/client";
 
-const KEYS = {
+export const KEYS = {
   groups: "prima_cat_groups_v2_prod",
   groupMembers: "prima_cat_group_members_v2_prod",
   auditLogs: "prima_cat_audit_logs_v2_prod",
@@ -54,6 +54,9 @@ const KEYS = {
   runAssignments: "prima_cat_run_assignments_v2_prod",
   sessions: "prima_cat_sessions_v2_prod",
   results: "prima_cat_results_v2_prod",
+  sessionQuestions: "prima_cat_session_questions_v2_prod",
+  sessionAnswers: "prima_cat_session_answers_v2_prod",
+  liveScoreSettings: "prima_cat_live_score_settings_v2_prod",
 };
 
 const STORE_KEY_UUIDS: Record<string, string> = {
@@ -70,10 +73,67 @@ const STORE_KEY_UUIDS: Record<string, string> = {
   [KEYS.results]: "00000000-0000-4000-8000-000000000111",
   [KEYS.incidents]: "00000000-0000-4000-8000-000000000112",
   [KEYS.auditLogs]: "00000000-0000-4000-8000-000000000113",
+  [KEYS.sessionQuestions]: "00000000-0000-4000-8000-000000000114",
+  [KEYS.sessionAnswers]: "00000000-0000-4000-8000-000000000115",
+  [KEYS.liveScoreSettings]: "00000000-0000-4000-8000-000000000116",
 };
 
 function getStoreEmail(storageKey: string): string {
   return `store:${storageKey}@internal.primarib.id`;
+}
+
+function getRecordTimestampMs(item: Record<string, unknown>): number {
+  const candidates = [
+    item.submitted_at,
+    item.updated_at,
+    item.saved_at,
+    item.last_seen_at,
+    item.score_published_at,
+    item.updatedAt,
+    item.created_at,
+  ];
+  let maxMs = 0;
+  for (const c of candidates) {
+    if (typeof c === "string" && c) {
+      const parsed = new Date(c).getTime();
+      if (!Number.isNaN(parsed) && parsed > maxMs) {
+        maxMs = parsed;
+      }
+    }
+  }
+  return maxMs;
+}
+
+function pickNewerRecord(
+  localItem: Record<string, unknown>,
+  remoteItem: Record<string, unknown>
+): Record<string, unknown> {
+  const finishedStatuses = new Set(["submitted", "timed_out"]);
+  const localFinished =
+    typeof localItem.status === "string" &&
+    finishedStatuses.has(localItem.status);
+  const remoteFinished =
+    typeof remoteItem.status === "string" &&
+    finishedStatuses.has(remoteItem.status);
+
+  if (localFinished && !remoteFinished) return localItem;
+  if (remoteFinished && !localFinished) return remoteItem;
+
+  if (
+    typeof localItem.revision === "number" &&
+    typeof remoteItem.revision === "number" &&
+    localItem.revision !== remoteItem.revision
+  ) {
+    return localItem.revision > remoteItem.revision ? localItem : remoteItem;
+  }
+
+  const localTs = getRecordTimestampMs(localItem);
+  const remoteTs = getRecordTimestampMs(remoteItem);
+  if (localTs > 0 && remoteTs > 0 && localTs !== remoteTs) {
+    return localTs > remoteTs ? localItem : remoteItem;
+  }
+
+  return remoteItem;
 }
 
 export async function pushStoreKeyToSupabase(
@@ -109,8 +169,8 @@ export async function pushStoreKeyToSupabase(
 
 /**
  * Sinkronisasi dua arah seluruh tabel operasional (Ujian, Jadwal Sesi, Soal, Kelompok,
- * Sesi Pengerjaan, dan Hasil) melalui Supabase agar seluruh perangkat & browser berbeda
- * langsung menampilkan sesi ujian dan hasil yang sama.
+ * Sesi Pengerjaan, Jawaban, dan Hasil) melalui Supabase agar seluruh perangkat & browser berbeda
+ * langsung menampilkan sesi ujian, monitoring realtime, dan hasil yang sama.
  */
 export async function syncAdminStoreFromSupabase(): Promise<boolean> {
   if (typeof window === "undefined" || !isSupabaseConfigured()) {
@@ -143,11 +203,66 @@ export async function syncAdminStoreFromSupabase(): Promise<boolean> {
 
     let anyUpdated = false;
     const allStorageKeys = Object.values(KEYS);
+    const mergeByIdKeys = new Set<string>([
+      KEYS.sessions,
+      KEYS.results,
+      KEYS.sessionQuestions,
+      KEYS.sessionAnswers,
+      KEYS.incidents,
+      KEYS.auditLogs,
+    ]);
 
     for (const key of allStorageKeys) {
       const storeEmail = getStoreEmail(key).toLowerCase();
       const remoteRow = remoteMap.get(storeEmail);
       const localRaw = window.localStorage.getItem(key);
+
+      // Penanganan khusus untuk objek konfigurasi tunggal (liveScoreSettings)
+      if (key === KEYS.liveScoreSettings) {
+        let localObj: Record<string, unknown> | null = null;
+        try {
+          if (localRaw) {
+            const parsed = JSON.parse(localRaw);
+            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+              localObj = parsed as Record<string, unknown>;
+            }
+          }
+        } catch {
+          localObj = null;
+        }
+
+        if (remoteRow && remoteRow.institution) {
+          try {
+            const remoteParsed = JSON.parse(remoteRow.institution);
+            if (
+              remoteParsed &&
+              typeof remoteParsed === "object" &&
+              !Array.isArray(remoteParsed)
+            ) {
+              const winner = localObj
+                ? pickNewerRecord(
+                    localObj,
+                    remoteParsed as Record<string, unknown>
+                  )
+                : (remoteParsed as Record<string, unknown>);
+              const nextJson = JSON.stringify(winner);
+              if (nextJson !== localRaw) {
+                window.localStorage.setItem(key, nextJson);
+                anyUpdated = true;
+              }
+              if (nextJson !== remoteRow.institution) {
+                void pushStoreKeyToSupabase(key, winner, true);
+              }
+            }
+          } catch {
+            // ignore malformed JSON
+          }
+        } else if (localObj) {
+          void pushStoreKeyToSupabase(key, localObj, true);
+        }
+        continue;
+      }
+
       let localArr: unknown[] = [];
       try {
         if (localRaw) {
@@ -162,29 +277,21 @@ export async function syncAdminStoreFromSupabase(): Promise<boolean> {
         try {
           const remoteParsed = JSON.parse(remoteRow.institution);
           if (Array.isArray(remoteParsed)) {
-            // Untuk sessions & results (yang diisi oleh peserta dari banyak perangkat), gabungkan berdasarkan id
-            if (key === KEYS.sessions || key === KEYS.results) {
+            if (mergeByIdKeys.has(key)) {
               const mergedMap = new Map<string, Record<string, unknown>>();
               for (const item of localArr as Record<string, unknown>[]) {
                 if (item && typeof item.id === "string") {
                   mergedMap.set(item.id, item);
                 }
               }
-              let needsPushBack = false;
-              const remoteIds = new Set<string>();
               for (const item of remoteParsed as Record<string, unknown>[]) {
                 if (item && typeof item.id === "string") {
-                  remoteIds.add(item.id);
-                  mergedMap.set(item.id, item);
-                }
-              }
-              for (const item of localArr as Record<string, unknown>[]) {
-                if (
-                  item &&
-                  typeof item.id === "string" &&
-                  !remoteIds.has(item.id)
-                ) {
-                  needsPushBack = true;
+                  const existing = mergedMap.get(item.id);
+                  if (existing) {
+                    mergedMap.set(item.id, pickNewerRecord(existing, item));
+                  } else {
+                    mergedMap.set(item.id, item);
+                  }
                 }
               }
               const mergedArr = Array.from(mergedMap.values());
@@ -193,7 +300,7 @@ export async function syncAdminStoreFromSupabase(): Promise<boolean> {
                 window.localStorage.setItem(key, nextJson);
                 anyUpdated = true;
               }
-              if (needsPushBack) {
+              if (nextJson !== remoteRow.institution) {
                 void pushStoreKeyToSupabase(key, mergedArr, true);
               }
             } else {
@@ -217,7 +324,7 @@ export async function syncAdminStoreFromSupabase(): Promise<boolean> {
           // ignore malformed JSON
         }
       } else if (localArr.length > 0) {
-        // Belum ada di Supabase tapi browser ini punya data lokal (mis. Admin yang baru membuat sesi) -> push ke Supabase
+        // Belum ada di Supabase tapi browser ini punya data lokal -> push ke Supabase
         void pushStoreKeyToSupabase(key, localArr, true);
       }
     }

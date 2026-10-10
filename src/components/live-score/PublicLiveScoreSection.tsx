@@ -21,6 +21,8 @@ import {
   PublicLiveScoreRow,
   syncLiveScoreSnapshotToServer,
 } from "@/lib/live-score";
+import { syncAdminStoreFromSupabase } from "@/lib/admin-store";
+import { syncProfilesFromSupabase } from "@/lib/auth";
 import {
   createSupabaseBrowserClient,
   isSupabaseConfigured,
@@ -42,6 +44,10 @@ export function PublicLiveScoreSection({
   >("connected");
 
   const loadPublicLiveScore = useCallback(async () => {
+    await Promise.all([
+      syncAdminStoreFromSupabase(),
+      syncProfilesFromSupabase(),
+    ]);
     // Sinkronkan dan evaluasi izin dari sumber otoritatif
     syncLiveScoreSnapshotToServer();
     const localEvaluated = getSanitizedPublicLiveScoreBoard({
@@ -84,6 +90,10 @@ export function PublicLiveScoreSection({
 
   useEffect(() => {
     void loadPublicLiveScore();
+    const interval = window.setInterval(() => {
+      void loadPublicLiveScore();
+    }, 6000);
+    return () => window.clearInterval(interval);
   }, [loadPublicLiveScore]);
 
   // Langganan Realtime (otomatis menghentikan/menyembunyikan jika Admin mematikan publikasi)

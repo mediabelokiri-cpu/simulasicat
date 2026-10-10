@@ -34,8 +34,12 @@ import {
   ErrorState,
   ConfirmDialog,
 } from "@/components/ui";
-import { getExamRuns, getExams } from "@/lib/admin-store";
-import { getCurrentUserClient } from "@/lib/auth";
+import {
+  getExamRuns,
+  getExams,
+  syncAdminStoreFromSupabase,
+} from "@/lib/admin-store";
+import { getCurrentUserClient, syncProfilesFromSupabase } from "@/lib/auth";
 import {
   AdminLiveScoreRow,
   broadcastLiveScoreEvent,
@@ -179,11 +183,25 @@ export default function AdminLiveScorePage() {
     [selectedExamId, selectedRunId]
   );
 
+  const syncAndRefreshLiveScore = useCallback(async () => {
+    await Promise.all([
+      syncAdminStoreFromSupabase(),
+      syncProfilesFromSupabase(),
+    ]);
+    refreshLiveScoreData();
+  }, [refreshLiveScoreData]);
+
   useEffect(() => {
     const initialSettings = getLiveScoreSettings();
     setPubSettings(initialSettings);
     setDraftPub(initialSettings);
     refreshLiveScoreData();
+    void syncAndRefreshLiveScore();
+
+    const interval = window.setInterval(() => {
+      void syncAndRefreshLiveScore();
+    }, 5000);
+    return () => window.clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -198,6 +216,10 @@ export default function AdminLiveScorePage() {
   // Langganan Realtime (Supabase Broadcast + BroadcastChannel + CustomEvent + Online/Offline Resync)
   useEffect(() => {
     const handleRealtimeSignal = () => {
+      void syncAndRefreshLiveScore();
+    };
+
+    const handleLocalSync = () => {
       refreshLiveScoreData();
     };
 
@@ -210,7 +232,7 @@ export default function AdminLiveScorePage() {
     const handleOnline = () => {
       setConnStatus("reconnecting");
       setTimeout(() => {
-        refreshLiveScoreData();
+        void syncAndRefreshLiveScore();
         setConnStatus("connected");
       }, 350);
     };
@@ -220,6 +242,9 @@ export default function AdminLiveScorePage() {
     };
 
     window.addEventListener("prima-live-score-event", handleRealtimeSignal);
+    window.addEventListener("prima-store-synced", handleLocalSync);
+    window.addEventListener("prima-profiles-synced", handleLocalSync);
+    window.addEventListener("focus", handleRealtimeSignal);
     window.addEventListener("storage", handleStorage);
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
@@ -229,7 +254,7 @@ export default function AdminLiveScorePage() {
       try {
         bc = new BroadcastChannel("prima_cat_live_score_bc");
         bc.onmessage = () => {
-          refreshLiveScoreData();
+          void syncAndRefreshLiveScore();
         };
       } catch {
         // ignore
@@ -244,7 +269,7 @@ export default function AdminLiveScorePage() {
           const channel = supabase
             .channel(LIVE_SCORE_ADMIN_CHANNEL)
             .on("broadcast", { event: "live_score_update" }, () => {
-              refreshLiveScoreData();
+              void syncAndRefreshLiveScore();
             })
             .subscribe((status) => {
               if (status === "SUBSCRIBED") {
@@ -271,17 +296,20 @@ export default function AdminLiveScorePage() {
         "prima-live-score-event",
         handleRealtimeSignal
       );
+      window.removeEventListener("prima-store-synced", handleLocalSync);
+      window.removeEventListener("prima-profiles-synced", handleLocalSync);
+      window.removeEventListener("focus", handleRealtimeSignal);
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
       if (bc) bc.close();
       if (cleanupSupabase) cleanupSupabase();
     };
-  }, [refreshLiveScoreData]);
+  }, [refreshLiveScoreData, syncAndRefreshLiveScore]);
 
   const handleManualResync = () => {
     setConnStatus("reconnecting");
-    refreshLiveScoreData();
+    void syncAndRefreshLiveScore();
     broadcastLiveScoreEvent({
       type: "MANUAL_RESYNC",
       runId: selectedRunId || null,

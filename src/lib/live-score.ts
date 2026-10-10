@@ -36,6 +36,7 @@ import {
   getResults,
   getRunAssignments,
   getScoringSnapshots,
+  pushStoreKeyToSupabase,
 } from "./admin-store";
 import { getStoredProfiles } from "./auth";
 import { getSessionAnswers, getSessionQuestions } from "./exam";
@@ -342,6 +343,7 @@ export function saveLiveScoreSettings(
       LIVE_SCORE_SETTINGS_KEY,
       JSON.stringify(merged)
     );
+    void pushStoreKeyToSupabase(LIVE_SCORE_SETTINGS_KEY, merged, true);
   }
 
   setServerCachedLiveScoreSettings(merged);

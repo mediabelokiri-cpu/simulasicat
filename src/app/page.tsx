@@ -23,8 +23,14 @@ import {
   getCurrentUserClient,
   getStoredProfiles,
   setCurrentUserClient,
+  syncProfilesFromSupabase,
 } from "@/lib/auth";
-import { getExamRuns, getExams, getResults } from "@/lib/admin-store";
+import {
+  getExamRuns,
+  getExams,
+  getResults,
+  syncAdminStoreFromSupabase,
+} from "@/lib/admin-store";
 import {
   DEFAULT_HOMEPAGE_CONFIG,
   HomepageConfig,
@@ -47,24 +53,57 @@ export default function LandingPage() {
   useEffect(() => {
     const syncHomepage = () => {
       const loadedCfg = getHomepageConfig();
+      const loadedRuns = getExamRuns();
       setConfig(loadedCfg);
-      setSelectedRunId((prev) =>
-        prev === "all" ? loadedCfg.leaderboard.defaultRunId || "all" : prev
-      );
+      setSelectedRunId((prev) => {
+        const candidate =
+          prev === "all" ? loadedCfg.leaderboard.defaultRunId || "all" : prev;
+        if (
+          candidate !== "all" &&
+          !loadedRuns.some((r) => r.id === candidate)
+        ) {
+          return "all";
+        }
+        return candidate;
+      });
       setActiveUser(getCurrentUserClient());
       setResults(getResults());
-      setRuns(getExamRuns());
+      setRuns(loadedRuns);
       setExams(getExams());
       setProfiles(getStoredProfiles());
     };
+
+    const syncFromRemote = async () => {
+      await Promise.all([
+        syncAdminStoreFromSupabase(),
+        syncProfilesFromSupabase(),
+      ]);
+      syncHomepage();
+    };
+
     syncHomepage();
+    void syncFromRemote();
+
+    const interval = window.setInterval(() => {
+      void syncFromRemote();
+    }, 6000);
+
+    const handleFocus = () => {
+      void syncFromRemote();
+    };
+
     window.addEventListener("storage", syncHomepage);
-    window.addEventListener("focus", syncHomepage);
+    window.addEventListener("focus", handleFocus);
     window.addEventListener("prima-live-score-event", syncHomepage);
+    window.addEventListener("prima-store-synced", syncHomepage);
+    window.addEventListener("prima-profiles-synced", syncHomepage);
     return () => {
+      window.clearInterval(interval);
       window.removeEventListener("storage", syncHomepage);
-      window.removeEventListener("focus", syncHomepage);
+      window.removeEventListener("focus", handleFocus);
       window.removeEventListener("prima-live-score-event", syncHomepage);
+      window.removeEventListener("prima-store-synced", syncHomepage);
+      window.removeEventListener("prima-profiles-synced", syncHomepage);
     };
   }, []);
 
@@ -75,10 +114,14 @@ export default function LandingPage() {
 
   // Hasil akhir ujian dari sesi simulasi CAT yang sudah selesai
   const publishedResults = results.filter((r) => Boolean(r.score_published_at));
+  const activeRunFilter =
+    selectedRunId !== "all" && runs.some((r) => r.id === selectedRunId)
+      ? selectedRunId
+      : "all";
   const filteredResults =
-    selectedRunId === "all"
+    activeRunFilter === "all"
       ? publishedResults
-      : publishedResults.filter((r) => r.exam_run_id === selectedRunId);
+      : publishedResults.filter((r) => r.exam_run_id === activeRunFilter);
   const leaderboardRows = sortOfficialLeaderboard(filteredResults).slice(
     0,
     Math.max(1, config.leaderboard.maxRows || 15)

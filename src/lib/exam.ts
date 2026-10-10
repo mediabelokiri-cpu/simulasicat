@@ -25,6 +25,7 @@ import {
   appendAuditLog,
   getUserEnrolledGroups,
   getUserDeactivationNotice,
+  pushStoreKeyToSupabase,
 } from "./admin-store";
 import { SKD_CPNS_2024_PRESET } from "./mock-store";
 import { broadcastLiveScoreEvent } from "./live-score";
@@ -57,6 +58,7 @@ export function saveAllSessionQuestions(
 ): void {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(SESSION_QUESTIONS_KEY, JSON.stringify(rows));
+  void pushStoreKeyToSupabase(SESSION_QUESTIONS_KEY, rows, true);
 }
 
 export function getSessionAnswers(sessionId?: string): AnswerRow[] {
@@ -78,6 +80,7 @@ export function getSessionAnswers(sessionId?: string): AnswerRow[] {
 export function saveAllSessionAnswers(rows: AnswerRow[]): void {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(SESSION_ANSWERS_KEY, JSON.stringify(rows));
+  void pushStoreKeyToSupabase(SESSION_ANSWERS_KEY, rows, true);
 }
 
 export type UserExamDisplayStatus =

@@ -26,16 +26,21 @@ import {
   ToastNotification,
 } from "@/components/ui";
 import { ScoreBreakdown } from "@/components/hasil/ScoreBreakdown";
-import { getStoredProfiles } from "@/lib/auth";
+import { getStoredProfiles, syncProfilesFromSupabase } from "@/lib/auth";
 import {
   appendAuditLog,
   getExamRuns,
+  getExamSessions,
   getExams,
   getResults,
   saveExams,
   saveResults,
+  syncAdminStoreFromSupabase,
 } from "@/lib/admin-store";
-import { sortOfficialLeaderboard } from "@/lib/scoring";
+import {
+  finalizeAndScoreExamSession,
+  sortOfficialLeaderboard,
+} from "@/lib/scoring";
 import {
   ExamRow,
   ExamRunRow,
@@ -60,11 +65,63 @@ export default function AdminHasilAnalitikPage() {
     desc: string;
   } | null>(null);
 
-  useEffect(() => {
+  const loadAnalyticsData = () => {
+    // Pastikan semua sesi selesai (submitted/timed_out) sudah terhitung skornya di results
+    const allSessions = getExamSessions();
+    const currentResults = getResults();
+    const scoredSessionIds = new Set(currentResults.map((r) => r.exam_session_id));
+    for (const s of allSessions) {
+      if (
+        (s.status === "submitted" || s.status === "timed_out") &&
+        !scoredSessionIds.has(s.id)
+      ) {
+        finalizeAndScoreExamSession(
+          s.id,
+          s.status === "timed_out" ? "timeout_auto_submit" : "manual_submit"
+        );
+      }
+    }
+
     setExams(getExams());
     setRuns(getExamRuns());
     setProfiles(getStoredProfiles());
     setResults(getResults());
+  };
+
+  useEffect(() => {
+    const syncRemote = async () => {
+      await Promise.all([
+        syncAdminStoreFromSupabase(),
+        syncProfilesFromSupabase(),
+      ]);
+      loadAnalyticsData();
+    };
+
+    loadAnalyticsData();
+    void syncRemote();
+
+    const interval = window.setInterval(() => {
+      void syncRemote();
+    }, 5000);
+
+    const handleFocus = () => {
+      void syncRemote();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("storage", loadAnalyticsData);
+    window.addEventListener("prima-store-synced", loadAnalyticsData);
+    window.addEventListener("prima-profiles-synced", loadAnalyticsData);
+    window.addEventListener("prima-live-score-event", loadAnalyticsData);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("storage", loadAnalyticsData);
+      window.removeEventListener("prima-store-synced", loadAnalyticsData);
+      window.removeEventListener("prima-profiles-synced", loadAnalyticsData);
+      window.removeEventListener("prima-live-score-event", loadAnalyticsData);
+    };
   }, []);
 
   const filteredByRun =

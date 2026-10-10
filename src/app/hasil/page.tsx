@@ -23,12 +23,17 @@ import {
 import { ResultSummary } from "@/components/hasil/ResultSummary";
 import { ScoreBreakdown } from "@/components/hasil/ScoreBreakdown";
 import { QuestionReviewList } from "@/components/hasil/QuestionReviewList";
-import { getCurrentUserClient, getStoredProfiles } from "@/lib/auth";
+import {
+  getCurrentUserClient,
+  getStoredProfiles,
+  syncProfilesFromSupabase,
+} from "@/lib/auth";
 import {
   getExams,
   getExamRuns,
   getQuestions,
   getResults,
+  syncAdminStoreFromSupabase,
 } from "@/lib/admin-store";
 import { getSessionAnswers, getSessionQuestions } from "@/lib/exam";
 import { sortOfficialLeaderboard } from "@/lib/scoring";
@@ -63,27 +68,63 @@ function HasilPesertaInner() {
       router.replace("/login");
       return;
     }
-    setUser(activeUser);
-    setProfiles(getStoredProfiles());
-    setServerQuestions(getQuestions());
 
-    const storedResults = getResults();
-    setAllResults(storedResults);
+    const loadParticipantResults = () => {
+      const currentUser = getCurrentUserClient() || activeUser;
+      setUser(currentUser);
+      setProfiles(getStoredProfiles());
+      setServerQuestions(getQuestions());
 
-    const mine = storedResults.filter((r) => r.user_id === activeUser.id);
-    if (querySessionId) {
-      const bySession = mine.find(
-        (r) => r.exam_session_id === querySessionId
-      );
-      if (bySession) {
-        setSelectedResultId(bySession.id);
-        return;
+      const storedResults = getResults();
+      setAllResults(storedResults);
+
+      const mine = storedResults.filter((r) => r.user_id === currentUser.id);
+      if (querySessionId) {
+        const bySession = mine.find(
+          (r) => r.exam_session_id === querySessionId
+        );
+        if (bySession) {
+          setSelectedResultId((prev) => prev || bySession.id);
+          return;
+        }
       }
-    }
 
-    if (mine.length > 0) {
-      setSelectedResultId(mine[0].id);
-    }
+      if (mine.length > 0) {
+        setSelectedResultId((prev) => prev || mine[0].id);
+      }
+    };
+
+    const syncRemote = async () => {
+      await Promise.all([
+        syncAdminStoreFromSupabase(),
+        syncProfilesFromSupabase(),
+      ]);
+      loadParticipantResults();
+    };
+
+    loadParticipantResults();
+    void syncRemote();
+
+    const interval = window.setInterval(() => {
+      void syncRemote();
+    }, 6000);
+
+    const handleFocus = () => {
+      void syncRemote();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("storage", loadParticipantResults);
+    window.addEventListener("prima-store-synced", loadParticipantResults);
+    window.addEventListener("prima-profiles-synced", loadParticipantResults);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("storage", loadParticipantResults);
+      window.removeEventListener("prima-store-synced", loadParticipantResults);
+      window.removeEventListener("prima-profiles-synced", loadParticipantResults);
+    };
   }, [querySessionId, router]);
 
   const displayList = allResults.filter((r) => r.user_id === user.id);

@@ -58,15 +58,39 @@ export default function AdminDashboardPage() {
       setIncidents(getIncidents());
       setAuditLogs(getAuditLogs());
     };
-    refreshFromLocal();
 
-    void Promise.all([
-      syncAdminStoreFromSupabase(),
-      syncProfilesFromSupabase(),
-    ]).then(([, synced]) => {
+    const syncRemote = async () => {
+      const [, synced] = await Promise.all([
+        syncAdminStoreFromSupabase(),
+        syncProfilesFromSupabase(),
+      ]);
       refreshFromLocal();
       setProfiles(synced);
-    });
+    };
+
+    refreshFromLocal();
+    void syncRemote();
+
+    const interval = window.setInterval(() => {
+      void syncRemote();
+    }, 6000);
+
+    const handleFocus = () => {
+      void syncRemote();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("storage", refreshFromLocal);
+    window.addEventListener("prima-store-synced", refreshFromLocal);
+    window.addEventListener("prima-profiles-synced", refreshFromLocal);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("storage", refreshFromLocal);
+      window.removeEventListener("prima-store-synced", refreshFromLocal);
+      window.removeEventListener("prima-profiles-synced", refreshFromLocal);
+    };
   }, []);
 
   const participants = profiles.filter((p) => p.role === "user");
@@ -76,9 +100,13 @@ export default function AdminDashboardPage() {
     (r) => r.status === "active" || r.status === "paused"
   );
   const activeSessions = sessions.filter((s) => s.status === "in_progress");
+  const completedSessionsCount = sessions.filter(
+    (s) => s.status === "submitted" || s.status === "timed_out"
+  ).length;
   const completedExamsCount =
     exams.filter((e) => e.status === "completed").length +
-    runs.filter((r) => r.status === "completed").length;
+    runs.filter((r) => r.status === "completed").length +
+    completedSessionsCount;
   const openIncidents = incidents.filter((i) => i.status !== "resolved");
 
   return (
