@@ -55,6 +55,7 @@ export interface HomepageConfig {
     rightDisplayMode: "image" | "card";
     heroImageUrl: string;
     heroImageAlt: string;
+    heroImageWidth: number;
     securityCardTitle: string;
     securityCardSubtitle: string;
     securityCardBadge: string;
@@ -123,6 +124,7 @@ export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
     rightDisplayMode: "image",
     heroImageUrl: "/hero-prima-rib.png",
     heroImageAlt: "Peserta Simulasi CAT Prima RIB",
+    heroImageWidth: 380,
     securityCardTitle: "Standar Keamanan & Integritas",
     securityCardSubtitle: "Arsitektur CAT Terproteksi",
     securityCardBadge: "Aktif",

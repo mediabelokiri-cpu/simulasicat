@@ -75,10 +75,10 @@ export default function LandingPage() {
     return (
       <section
         key="hero"
-        className="relative overflow-hidden border-b border-neutral-200/80 bg-gradient-to-b from-[#eef4ff]/70 to-[#fcfbf7] py-14 sm:py-20"
+        className="relative overflow-hidden border-b border-neutral-200/80 bg-gradient-to-b from-[#eef4ff]/70 to-[#fcfbf7] py-10 sm:py-14"
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-center">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center">
             <div className="lg:col-span-7 space-y-6">
               {(config.hero.badgeText || config.hero.badgeSubtext) && (
                 <div className="inline-flex items-center gap-2 rounded-full border border-[#0b49d0]/20 bg-white px-3.5 py-1.5 shadow-2xs">
@@ -162,7 +162,7 @@ export default function LandingPage() {
               )}
             </div>
 
-            {/* Right Hero Visual (Gambar Hero atau Kartu Keamanan) */}
+            {/* Right Hero Visual (Gambar Hero PNG Transparan atau Kartu Keamanan) */}
             <div className="lg:col-span-5 flex justify-center lg:justify-end">
               {config.hero.rightDisplayMode === "card" ? (
                 <div className="w-full rounded-2xl border border-neutral-200 bg-white p-6 shadow-md space-y-5">
@@ -199,16 +199,17 @@ export default function LandingPage() {
                   </ul>
                 </div>
               ) : (
-                <div className="w-full max-w-[440px] overflow-hidden rounded-[2.5rem] bg-white shadow-sm">
-                  <img
-                    src={config.hero.heroImageUrl || "/hero-prima-rib.png"}
-                    alt={
-                      config.hero.heroImageAlt ||
-                      "Peserta Simulasi CAT Prima RIB"
-                    }
-                    className="h-auto w-full object-cover"
-                  />
-                </div>
+                <img
+                  src={config.hero.heroImageUrl || "/hero-prima-rib.png"}
+                  alt={
+                    config.hero.heroImageAlt ||
+                    "Peserta Simulasi CAT Prima RIB"
+                  }
+                  style={{
+                    maxWidth: `${config.hero.heroImageWidth || 380}px`,
+                  }}
+                  className="h-auto w-full object-contain select-none"
+                />
               )}
             </div>
           </div>

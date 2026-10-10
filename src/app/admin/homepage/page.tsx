@@ -1070,6 +1070,33 @@ export default function AdminHomepagePage() {
                       className={inputBaseClasses}
                     />
                   </FormField>
+
+                  <FormField
+                    id="hero-img-width"
+                    label={`Ukuran Lebar Gambar Hero: ${
+                      config.hero.heroImageWidth || 380
+                    }px`}
+                    hint="Geser untuk memperkecil atau memperbesar ukuran gambar PNG di Hero Section"
+                  >
+                    <input
+                      id="hero-img-width"
+                      type="range"
+                      min={260}
+                      max={500}
+                      step={10}
+                      value={config.hero.heroImageWidth || 380}
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          hero: {
+                            ...prev.hero,
+                            heroImageWidth: Number(e.target.value),
+                          },
+                        }))
+                      }
+                      className="w-full accent-[#0b49d0] cursor-pointer"
+                    />
+                  </FormField>
                 </div>
               ) : (
                 <>
