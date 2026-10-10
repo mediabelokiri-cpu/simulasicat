@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-blue: #0b49d0;
+  --color-brand-blue-hover: #093db0;
+  --color-brand-blue-light: #eef4ff;
+  --color-brand-yellow: #ffc63d;
+  --color-brand-yellow-hover: #f2b726;
+  --color-brand-yellow-light: #fff9e6;
+  --color-brand-bg: #fcfbf7;
+  --color-brand-dark: #151515;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@layer base {
+  html,
+  body {
+    background-color: #fcfbf7;
+    color: #151515;
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  *:focus-visible {
+    outline: 2px solid #0b49d0;
+    outline-offset: 2px;
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
