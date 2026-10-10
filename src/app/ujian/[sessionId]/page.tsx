@@ -28,6 +28,10 @@ import {
 } from "@/lib/exam";
 import { finalizeAndScoreExamSession } from "@/lib/scoring";
 import {
+  broadcastLiveScoreEvent,
+  setSessionSubmittingState,
+} from "@/lib/live-score";
+import {
   ExamRow,
   ExamRunRow,
   ExamSessionQuestionRow,
@@ -269,6 +273,13 @@ export default function CatExamRoomPage() {
     (trigger: "manual_submit" | "timeout_auto_submit") => {
       if (!session || isSubmitting) return;
       setIsSubmitting(true);
+      setSessionSubmittingState(session.id, true);
+      broadcastLiveScoreEvent({
+        type: "SESSION_SUBMITTING",
+        runId: session.exam_run_id,
+        examId: exam?.id || null,
+        sessionId: session.id,
+      });
 
       // Flush antrean jawaban lokal terlebih dahulu jika ada
       for (const item of pendingQueue) {
@@ -279,11 +290,12 @@ export default function CatExamRoomPage() {
       if (scored.ok) {
         router.push(`/hasil?sessionId=${session.id}`);
       } else {
+        setSessionSubmittingState(session.id, false);
         setIsSubmitting(false);
         setErrorMsg(scored.error || "Gagal menyimpan hasil akhir ujian.");
       }
     },
-    [session, isSubmitting, pendingQueue, router]
+    [session, isSubmitting, pendingQueue, router, exam?.id]
   );
 
   if (loading) {

@@ -179,16 +179,16 @@ export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
     ],
   },
   leaderboard: {
-    enabled: true,
-    sectionTitle: "Leaderboard Hasil Ujian Simulasi CAT",
+    enabled: false,
+    sectionTitle: "Live Score Real-Time Simulasi CAT",
     sectionSubtitle:
-      "Peringkat resmi peserta berdasarkan pemenuhan Passing Grade, Total Skor tertinggi, dan tie-breaker TKP → TIU → TWK.",
-    maxRows: 15,
-    showSessionFilter: true,
-    defaultRunId: "all",
+      "Pantauan skor dan peringkat peserta secara langsung dari server penilaian resmi Prima RIB.",
+    maxRows: 25,
+    showSessionFilter: false,
+    defaultRunId: "",
     emptyTitle: "Belum Ada Hasil Ujian yang Dipublikasikan",
     emptyDescription:
-      "Peringkat nilai peserta akan otomatis tampil secara realtime di tabel ini setelah peserta menyelesaikan sesi ujian simulasi CAT.",
+      "Peringkat nilai peserta akan otomatis tampil secara realtime di tabel ini setelah peserta memulai atau menyelesaikan sesi ujian simulasi CAT.",
   },
   footer: {
     enabled: true,

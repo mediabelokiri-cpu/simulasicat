@@ -26,6 +26,7 @@ import {
   appendAuditLog,
 } from "./admin-store";
 import { SKD_CPNS_2024_PRESET } from "./mock-store";
+import { broadcastLiveScoreEvent } from "./live-score";
 
 const SESSION_QUESTIONS_KEY = "prima_cat_session_questions_v2_prod";
 const SESSION_ANSWERS_KEY = "prima_cat_session_answers_v2_prod";
@@ -438,6 +439,13 @@ export function startOrResumeExamSession(
     },
   });
 
+  broadcastLiveScoreEvent({
+    type: "SESSION_STARTED",
+    runId: run.id,
+    examId: exam.id,
+    sessionId,
+  });
+
   return { ok: true, session: newSession };
 }
 
@@ -510,6 +518,13 @@ export function upsertSessionAnswer(
     updated_at: now.toISOString(),
   };
   saveExamSessions(sessions);
+
+  broadcastLiveScoreEvent({
+    type: "ANSWER_SAVED",
+    runId: session.exam_run_id,
+    examId: null,
+    sessionId,
+  });
 
   return { ok: true, answer: savedRow };
 }

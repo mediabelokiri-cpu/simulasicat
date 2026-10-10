@@ -29,6 +29,10 @@ import {
 } from "./admin-store";
 import { getSessionAnswers, getSessionQuestions } from "./exam";
 import { SKD_CPNS_2024_PRESET } from "./mock-store";
+import {
+  broadcastLiveScoreEvent,
+  setSessionSubmittingState,
+} from "./live-score";
 
 export function finalizeAndScoreExamSession(
   sessionId: string,
@@ -204,6 +208,15 @@ export function finalizeAndScoreExamSession(
       total_score: totalScore,
       thresholds_met: thresholdsMet,
     },
+  });
+
+  setSessionSubmittingState(sessionId, false);
+
+  broadcastLiveScoreEvent({
+    type: "SESSION_FINISHED",
+    runId: session.exam_run_id,
+    examId: exam?.id || null,
+    sessionId,
   });
 
   return { ok: true, result: newResult };

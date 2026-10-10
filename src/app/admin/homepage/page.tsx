@@ -42,6 +42,10 @@ import {
   saveHomepageConfig,
 } from "@/lib/homepage-store";
 import { appendAuditLog, getExamRuns, getExams } from "@/lib/admin-store";
+import {
+  getLiveScoreSettings,
+  saveLiveScoreSettings,
+} from "@/lib/live-score";
 import { ExamRow, ExamRunRow } from "@/types/database";
 import { cn } from "@/lib/utils";
 
@@ -60,8 +64,8 @@ const SECTION_LABELS: Record<
     desc: "Kartu informasi kategori seleksi (CPNS SKD, Sekolah Kedinasan, Seleksi Polri, atau kategori kustom).",
   },
   leaderboard: {
-    title: "Section Leaderboard Hasil Ujian",
-    desc: "Tabel peringkat resmi nilai peserta beserta filter sesi ujian dan status kelulusan Passing Grade.",
+    title: "Section Live Score Real-Time / Leaderboard",
+    desc: "Tabel peringkat Live Score Real-Time peserta beserta kontrol visibilitas, audiens, dan status Passing Grade.",
   },
 };
 
@@ -78,7 +82,22 @@ export default function AdminHomepagePage() {
   } | null>(null);
 
   useEffect(() => {
-    setConfig(getHomepageConfig());
+    const loaded = getHomepageConfig();
+    const lsSettings = getLiveScoreSettings();
+    setConfig({
+      ...loaded,
+      leaderboard: {
+        ...loaded.leaderboard,
+        enabled: lsSettings.homepageEnabled,
+        sectionTitle:
+          lsSettings.sectionTitle || loaded.leaderboard.sectionTitle,
+        sectionSubtitle:
+          lsSettings.sectionSubtitle || loaded.leaderboard.sectionSubtitle,
+        maxRows: lsSettings.maxRows || loaded.leaderboard.maxRows,
+        defaultRunId:
+          lsSettings.publishedRunId || loaded.leaderboard.defaultRunId,
+      },
+    });
     setRuns(getExamRuns());
     setExams(getExams());
   }, []);
@@ -87,6 +106,31 @@ export default function AdminHomepagePage() {
     if (e) e.preventDefault();
     const saved = saveHomepageConfig(config);
     setConfig(saved);
+
+    const currentLs = getLiveScoreSettings();
+    const chosenRunId =
+      saved.leaderboard.defaultRunId &&
+      saved.leaderboard.defaultRunId !== "all"
+        ? saved.leaderboard.defaultRunId
+        : currentLs.publishedRunId || runs[0]?.id || null;
+    const chosenExamId =
+      runs.find((r) => r.id === chosenRunId)?.exam_id ||
+      currentLs.publishedExamId ||
+      exams[0]?.id ||
+      null;
+
+    saveLiveScoreSettings(
+      {
+        homepageEnabled: saved.leaderboard.enabled,
+        sectionTitle: saved.leaderboard.sectionTitle,
+        sectionSubtitle: saved.leaderboard.sectionSubtitle,
+        maxRows: saved.leaderboard.maxRows,
+        publishedRunId: chosenRunId,
+        publishedExamId: chosenExamId,
+      },
+      "usr-admin-01",
+      "Menyimpan pengaturan Live Score melalui CMS Kelola Homepage"
+    );
 
     appendAuditLog({
       action: "UPDATE_HOMEPAGE_CMS",
@@ -105,7 +149,7 @@ export default function AdminHomepagePage() {
     setToast({
       type: "success",
       title: "Perubahan Homepage Disimpan",
-      desc: "Seluruh pengaturan section, urutan tampil, dan konten halaman depan telah diperbarui.",
+      desc: "Seluruh pengaturan section, urutan tampil, dan status Live Score Homepage telah diperbarui.",
     });
   }
 
