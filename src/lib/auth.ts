@@ -1,6 +1,9 @@
 import { ProfileRow, UserRole } from "@/types/database";
 import { INITIAL_PROFILES } from "./mock-store";
-import { isSupabaseConfigured } from "./supabase/client";
+import {
+  createSupabaseBrowserClient,
+  isSupabaseConfigured,
+} from "./supabase/client";
 
 export const AUTH_STORAGE_KEY = "prima_cat_active_user_v2_prod";
 export const PROFILES_STORAGE_KEY = "prima_cat_profiles_v2_prod";
@@ -64,6 +67,10 @@ export function setCurrentUserClient(user: ProfileRow | null): void {
       "prima_cat_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     document.cookie =
       "prima_cat_active=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    if (isSupabaseConfigured()) {
+      const supabase = createSupabaseBrowserClient();
+      void supabase?.auth.signOut();
+    }
     return;
   }
   window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
@@ -104,6 +111,14 @@ export function authenticateUser(email: string, password: string): AuthResult {
       error:
         "Akun Anda saat ini dinonaktifkan oleh Administrator. Riwayat ujian Anda tetap tersimpan, silakan hubungi Admin Prima RIB.",
     };
+  }
+
+  if (isSupabaseConfigured()) {
+    const supabase = createSupabaseBrowserClient();
+    void supabase?.auth.signInWithPassword({
+      email: cleanEmail,
+      password,
+    });
   }
 
   setCurrentUserClient(matched);
@@ -157,7 +172,22 @@ export function registerPublicUser(input: {
   }
 
   const now = new Date().toISOString();
-  const supabaseReady = isSupabaseConfigured();
+
+  // Sinkronkan pendaftaran ke Supabase Auth jika telah dikonfigurasi
+  if (isSupabaseConfigured()) {
+    const supabase = createSupabaseBrowserClient();
+    void supabase?.auth.signUp({
+      email,
+      password: input.password,
+      options: {
+        data: {
+          full_name: fullName,
+          institution: input.institution?.trim() || null,
+          target_selection: input.targetSelection || "CPNS",
+        },
+      },
+    });
+  }
 
   // Role dipaksa 'user' — tidak menerima input role dari form publik
   const newUser: ProfileRow = {
@@ -169,7 +199,7 @@ export function registerPublicUser(input: {
     phone: null,
     institution: input.institution?.trim() || null,
     target_selection: input.targetSelection || "CPNS",
-    email_verified: !supabaseReady,
+    email_verified: true,
     created_at: now,
     updated_at: now,
   };
@@ -181,7 +211,7 @@ export function registerPublicUser(input: {
   return {
     ok: true,
     user: newUser,
-    redirectTo: supabaseReady ? "/verifikasi-email" : "/dashboard",
+    redirectTo: "/dashboard",
   };
 }
 
