@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   ShieldCheck,
   CheckCircle2,
+  XCircle,
   ArrowRight,
   LogIn,
   LogOut,
@@ -12,39 +13,58 @@ import {
   Award,
   BookOpen,
   Building2,
+  Trophy,
   Megaphone,
   SlidersHorizontal,
 } from "lucide-react";
-import { Button, StatusBadge } from "@/components/ui";
+import { Button, StatusBadge, inputBaseClasses } from "@/components/ui";
 import {
   getCurrentUserClient,
+  getStoredProfiles,
   setCurrentUserClient,
 } from "@/lib/auth";
+import { getExamRuns, getExams, getResults } from "@/lib/admin-store";
 import {
   DEFAULT_HOMEPAGE_CONFIG,
   HomepageConfig,
   HomepageSectionKey,
   getHomepageConfig,
 } from "@/lib/homepage-store";
+import { sortOfficialLeaderboard } from "@/lib/scoring";
 import { PublicLiveScoreSection } from "@/components/live-score/PublicLiveScoreSection";
-import { ProfileRow } from "@/types/database";
-import { cn } from "@/lib/utils";
+import { ExamRow, ExamRunRow, ProfileRow, ResultRow } from "@/types/database";
+import { cn, formatDateTimeID } from "@/lib/utils";
 
 export default function LandingPage() {
   const [config, setConfig] = useState<HomepageConfig>(DEFAULT_HOMEPAGE_CONFIG);
   const [activeUser, setActiveUser] = useState<ProfileRow | null>(null);
+  const [results, setResults] = useState<ResultRow[]>([]);
+  const [runs, setRuns] = useState<ExamRunRow[]>([]);
+  const [exams, setExams] = useState<ExamRow[]>([]);
+  const [profiles, setProfiles] = useState<ProfileRow[]>([]);
+  const [selectedRunId, setSelectedRunId] = useState<string>("all");
 
   useEffect(() => {
     const syncHomepage = () => {
-      setConfig(getHomepageConfig());
+      const loadedCfg = getHomepageConfig();
+      setConfig(loadedCfg);
+      setSelectedRunId((prev) =>
+        prev === "all" ? loadedCfg.leaderboard.defaultRunId || "all" : prev
+      );
       setActiveUser(getCurrentUserClient());
+      setResults(getResults());
+      setRuns(getExamRuns());
+      setExams(getExams());
+      setProfiles(getStoredProfiles());
     };
     syncHomepage();
     window.addEventListener("storage", syncHomepage);
     window.addEventListener("focus", syncHomepage);
+    window.addEventListener("prima-live-score-event", syncHomepage);
     return () => {
       window.removeEventListener("storage", syncHomepage);
       window.removeEventListener("focus", syncHomepage);
+      window.removeEventListener("prima-live-score-event", syncHomepage);
     };
   }, []);
 
@@ -52,6 +72,17 @@ export default function LandingPage() {
     setCurrentUserClient(null);
     setActiveUser(null);
   }
+
+  // Hasil akhir ujian dari sesi simulasi CAT yang sudah selesai
+  const publishedResults = results.filter((r) => Boolean(r.score_published_at));
+  const filteredResults =
+    selectedRunId === "all"
+      ? publishedResults
+      : publishedResults.filter((r) => r.exam_run_id === selectedRunId);
+  const leaderboardRows = sortOfficialLeaderboard(filteredResults).slice(
+    0,
+    Math.max(1, config.leaderboard.maxRows || 15)
+  );
 
   function renderHeroSection() {
     if (!config.hero.enabled) return null;
@@ -254,10 +285,209 @@ export default function LandingPage() {
 
   function renderLeaderboardSection() {
     return (
-      <PublicLiveScoreSection
-        key="leaderboard"
-        isAuthenticatedUser={Boolean(activeUser)}
-      />
+      <React.Fragment key="leaderboard">
+        {/* 1. Section Live Score Real-Time (Saat Ujian Berlangsung — Dikontrol dari Menu Live Score Admin, Default OFF) */}
+        <PublicLiveScoreSection isAuthenticatedUser={Boolean(activeUser)} />
+
+        {/* 2. Section Papan Leaderboard Hasil Ujian (Terisi Setelah Sesi Simulasi CAT / Ujian Berakhir — Dikontrol dari Kelola Homepage) */}
+        {config.leaderboard.enabled && (
+          <section
+            id="leaderboard"
+            className="mx-auto max-w-6xl px-4 py-8 pb-14 sm:px-6 space-y-5"
+          >
+            <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-7 shadow-xs space-y-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-neutral-100 pb-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ffc63d] text-[#151515]">
+                      <Trophy className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-extrabold text-[#151515]">
+                        {config.leaderboard.sectionTitle}
+                      </h2>
+                      <p className="text-xs text-neutral-500">
+                        {config.leaderboard.sectionSubtitle}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {config.leaderboard.showSessionFilter && runs.length > 0 && (
+                  <div className="w-full sm:w-64">
+                    <select
+                      aria-label="Filter Sesi Ujian"
+                      value={selectedRunId}
+                      onChange={(e) => setSelectedRunId(e.target.value)}
+                      className={inputBaseClasses}
+                    >
+                      <option value="all">Semua Sesi Ujian</option>
+                      {runs.map((r) => {
+                        const ex = exams.find((e) => e.id === r.exam_id);
+                        return (
+                          <option key={r.id} value={r.id}>
+                            {ex ? `${ex.title} — ${r.name}` : r.name}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                  <thead>
+                    <tr className="border-b border-neutral-200 bg-[#0b49d0] text-white font-bold">
+                      <th className="py-3 px-3">Peringkat</th>
+                      <th className="py-3 px-3">Nama Peserta</th>
+                      <th className="py-3 px-3">Sesi Ujian</th>
+                      <th className="py-3 px-3 text-center">TWK</th>
+                      <th className="py-3 px-3 text-center">TIU</th>
+                      <th className="py-3 px-3 text-center">TKP</th>
+                      <th className="py-3 px-3 text-center">
+                        Total Skor Akhir
+                      </th>
+                      <th className="py-3 px-3">Status Passing Grade</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-200/80">
+                    {leaderboardRows.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={8}
+                          className="py-10 px-4 text-center text-neutral-500"
+                        >
+                          <div className="mx-auto max-w-md space-y-1.5">
+                            <p className="text-sm font-bold text-[#151515]">
+                              {config.leaderboard.emptyTitle}
+                            </p>
+                            <p className="text-xs text-neutral-500">
+                              {config.leaderboard.emptyDescription}
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      leaderboardRows.map((row, idx) => {
+                        const prof = profiles.find(
+                          (p) => p.id === row.user_id
+                        );
+                        const isMe = activeUser?.id === row.user_id;
+                        const runObj = runs.find(
+                          (r) => r.id === row.exam_run_id
+                        );
+                        const examObj = exams.find(
+                          (e) => e.id === runObj?.exam_id
+                        );
+                        const snapshotTitle =
+                          (row.result_snapshot?.exam_title as string) ||
+                          examObj?.title ||
+                          "Simulasi CAT Prima RIB";
+                        const snapshotRunName =
+                          (row.result_snapshot?.run_name as string) ||
+                          runObj?.name ||
+                          "Sesi Ujian";
+
+                        const twk =
+                          row.section_scores.find(
+                            (s) => s.section_key.toUpperCase() === "TWK"
+                          )?.score ?? 0;
+                        const tiu =
+                          row.section_scores.find(
+                            (s) => s.section_key.toUpperCase() === "TIU"
+                          )?.score ?? 0;
+                        const tkp =
+                          row.section_scores.find(
+                            (s) => s.section_key.toUpperCase() === "TKP"
+                          )?.score ?? 0;
+
+                        return (
+                          <tr
+                            key={row.id}
+                            className={cn(
+                              "transition-colors",
+                              row.thresholds_met
+                                ? "bg-emerald-50/85 hover:bg-emerald-100/80 border-l-4 border-l-emerald-600"
+                                : "bg-rose-50/85 hover:bg-rose-100/80 border-l-4 border-l-rose-500",
+                              isMe && "font-semibold"
+                            )}
+                          >
+                            <td className="py-3 px-3 tabular-nums font-extrabold text-[#151515]">
+                              <span
+                                className={cn(
+                                  "inline-flex h-7 w-7 items-center justify-center rounded-lg text-xs",
+                                  idx === 0
+                                    ? "bg-[#ffc63d] text-[#151515]"
+                                    : idx === 1
+                                    ? "bg-neutral-300 text-[#151515]"
+                                    : idx === 2
+                                    ? "bg-amber-700 text-white"
+                                    : "bg-white/90 text-neutral-800 border border-neutral-300"
+                                )}
+                              >
+                                #{idx + 1}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-[#151515]">
+                                  {prof?.full_name || "Peserta Simulasi"}
+                                </span>
+                                {isMe && (
+                                  <span className="rounded-md bg-[#0b49d0] px-2 py-0.5 text-[10px] font-bold text-white">
+                                    Anda
+                                  </span>
+                                )}
+                              </div>
+                              <span className="block text-[11px] text-neutral-600">
+                                Selesai: {formatDateTimeID(row.created_at)}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3">
+                              <span className="block font-semibold text-[#151515]">
+                                {snapshotTitle}
+                              </span>
+                              <span className="block text-[11px] text-neutral-600">
+                                {snapshotRunName}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3 text-center tabular-nums font-bold text-[#151515]">
+                              {twk}
+                            </td>
+                            <td className="py-3 px-3 text-center tabular-nums font-bold text-[#151515]">
+                              {tiu}
+                            </td>
+                            <td className="py-3 px-3 text-center tabular-nums font-bold text-[#151515]">
+                              {tkp}
+                            </td>
+                            <td className="py-3 px-3 text-center tabular-nums text-base font-extrabold text-[#0b49d0]">
+                              {row.total_score}
+                            </td>
+                            <td className="py-3 px-3">
+                              {row.thresholds_met ? (
+                                <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-700 px-2.5 py-1 text-xs font-bold text-white">
+                                  <CheckCircle2 className="h-3.5 w-3.5" />
+                                  Memenuhi
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 rounded-lg bg-rose-700 px-2.5 py-1 text-xs font-bold text-white">
+                                  <XCircle className="h-3.5 w-3.5" />
+                                  Belum Memenuhi
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        )}
+      </React.Fragment>
     );
   }
 

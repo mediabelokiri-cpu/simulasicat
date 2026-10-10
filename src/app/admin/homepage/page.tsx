@@ -71,6 +71,7 @@ const SECTION_LABELS: Record<
 
 export default function AdminHomepagePage() {
   const [config, setConfig] = useState<HomepageConfig>(DEFAULT_HOMEPAGE_CONFIG);
+  const [liveScoreEnabled, setLiveScoreEnabled] = useState<boolean>(false);
   const [hydrated, setHydrated] = useState(false);
   const [activeTab, setActiveTab] = useState<EditorTab>("layout");
   const [runs, setRuns] = useState<ExamRunRow[]>([]);
@@ -85,13 +86,8 @@ export default function AdminHomepagePage() {
   useEffect(() => {
     const loaded = getHomepageConfig();
     const lsSettings = getLiveScoreSettings();
-    setConfig({
-      ...loaded,
-      leaderboard: {
-        ...loaded.leaderboard,
-        enabled: lsSettings.homepageEnabled,
-      },
-    });
+    setConfig(loaded);
+    setLiveScoreEnabled(lsSettings.homepageEnabled);
     setRuns(getExamRuns());
     setExams(getExams());
     setHydrated(true);
@@ -108,31 +104,6 @@ export default function AdminHomepagePage() {
     const saved = saveHomepageConfig(config);
     setConfig(saved);
 
-    const currentLs = getLiveScoreSettings();
-    const chosenRunId =
-      saved.leaderboard.defaultRunId &&
-      saved.leaderboard.defaultRunId !== "all"
-        ? saved.leaderboard.defaultRunId
-        : currentLs.publishedRunId || runs[0]?.id || null;
-    const chosenExamId =
-      runs.find((r) => r.id === chosenRunId)?.exam_id ||
-      currentLs.publishedExamId ||
-      exams[0]?.id ||
-      null;
-
-    saveLiveScoreSettings(
-      {
-        homepageEnabled: saved.leaderboard.enabled,
-        sectionTitle: saved.leaderboard.sectionTitle,
-        sectionSubtitle: saved.leaderboard.sectionSubtitle,
-        maxRows: saved.leaderboard.maxRows,
-        publishedRunId: chosenRunId,
-        publishedExamId: chosenExamId,
-      },
-      "usr-admin-01",
-      "Menyimpan pengaturan Live Score melalui CMS Kelola Homepage"
-    );
-
     appendAuditLog({
       action: "UPDATE_HOMEPAGE_CMS",
       entity_type: "homepage_config",
@@ -143,6 +114,7 @@ export default function AdminHomepagePage() {
         heroEnabled: saved.hero.enabled,
         categoriesEnabled: saved.categories.enabled,
         leaderboardEnabled: saved.leaderboard.enabled,
+        liveScoreEnabled,
         announcementEnabled: saved.announcement.enabled,
       },
     });
@@ -150,20 +122,13 @@ export default function AdminHomepagePage() {
     setToast({
       type: "success",
       title: "Perubahan Homepage Disimpan",
-      desc: "Seluruh pengaturan section, urutan tampil, dan status Live Score Homepage telah diperbarui.",
+      desc: "Seluruh pengaturan section, urutan tampil, dan Papan Leaderboard Hasil Ujian telah diperbarui.",
     });
   }
 
   function handleResetDefault() {
     const def = resetHomepageConfig();
     setConfig(def);
-    saveLiveScoreSettings(
-      {
-        homepageEnabled: false,
-      },
-      "usr-admin-01",
-      "Reset pengaturan Homepage ke default"
-    );
     setResetModalOpen(false);
     setToast({
       type: "warning",
@@ -183,25 +148,35 @@ export default function AdminHomepagePage() {
   }
 
   function toggleSectionEnabled(key: HomepageSectionKey) {
-    setConfig((prev) => {
-      const nextEnabled = !prev[key].enabled;
-      if (key === "leaderboard") {
-        saveLiveScoreSettings(
-          { homepageEnabled: nextEnabled },
-          "usr-admin-01",
-          nextEnabled
-            ? "Mengaktifkan Live Score Homepage dari Kelola Homepage"
-            : "Menonaktifkan Live Score Homepage dari Kelola Homepage"
-        );
-      }
-      return {
-        ...prev,
-        [key]: {
-          ...prev[key],
-          enabled: nextEnabled,
-        },
-      };
-    });
+    setConfig((prev) => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        enabled: !prev[key].enabled,
+      },
+    }));
+  }
+
+  function handleToggleLiveScoreRealtime(nextState: boolean) {
+    setLiveScoreEnabled(nextState);
+    const currentLs = getLiveScoreSettings();
+    const fallbackRunId = currentLs.publishedRunId || runs[0]?.id || null;
+    const fallbackExamId =
+      currentLs.publishedExamId ||
+      runs.find((r) => r.id === fallbackRunId)?.exam_id ||
+      exams[0]?.id ||
+      null;
+    saveLiveScoreSettings(
+      {
+        homepageEnabled: nextState,
+        publishedRunId: fallbackRunId,
+        publishedExamId: fallbackExamId,
+      },
+      "usr-admin-01",
+      nextState
+        ? "Mengaktifkan Live Score Real-Time di Homepage"
+        : "Menonaktifkan Live Score Real-Time di Homepage"
+    );
   }
 
   // Helpers untuk Hero Security Features
@@ -1462,15 +1437,15 @@ export default function AdminHomepagePage() {
         {/* TAB 5: LEADERBOARD & FOOTER */}
         {activeTab === "leaderboard" && (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-            {/* Pengaturan Leaderboard Homepage (7/12) */}
+            {/* Pengaturan Papan Leaderboard Hasil Ujian (7/12) */}
             <div className="lg:col-span-7 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                 <div>
                   <h2 className="text-base font-extrabold text-[#151515]">
-                    Pengaturan Section Leaderboard Hasil Ujian
+                    1. Papan Leaderboard Hasil Ujian (Setelah Ujian Berakhir)
                   </h2>
                   <p className="text-xs text-neutral-500">
-                    Kelola tampilan tabel peringkat peserta di halaman utama.
+                    Tabel peringkat nilai akhir yang otomatis terisi setelah peserta menyelesaikan sesi simulasi CAT atau ujian berakhir.
                   </p>
                 </div>
                 <label className="inline-flex items-center gap-2 text-xs font-bold cursor-pointer">
@@ -1488,8 +1463,41 @@ export default function AdminHomepagePage() {
                     }
                     className="h-4 w-4 rounded border-neutral-300 text-[#0b49d0]"
                   />
-                  <span>Tampilkan Leaderboard</span>
+                  <span>Tampilkan di Homepage</span>
                 </label>
+              </div>
+
+              {/* Kotak Kontrol Cepat Live Score Real-Time (Saat Ujian Berlangsung) */}
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#0b49d0]/20 bg-[#eef4ff]/70 p-3.5">
+                <div>
+                  <p className="text-xs font-extrabold text-[#0b49d0]">
+                    2. Live Score Real-Time (Saat Sesi Ujian Sedang Berlangsung)
+                  </p>
+                  <p className="text-[11px] text-neutral-600">
+                    Menampilkan skor sementara secara langsung saat peserta menjawab soal. Pengaturan detail sesi & penyamaran nama tersedia di menu Live Score.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <label className="inline-flex items-center gap-2 rounded-lg bg-white border border-neutral-200 px-3 py-1.5 text-xs font-bold cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={liveScoreEnabled}
+                      onChange={(e) =>
+                        handleToggleLiveScoreRealtime(e.target.checked)
+                      }
+                      className="h-4 w-4 rounded border-neutral-300 text-[#0b49d0]"
+                    />
+                    <span>
+                      {liveScoreEnabled ? "Live Score: ON" : "Live Score: OFF"}
+                    </span>
+                  </label>
+                  <Link
+                    href="/admin/live-score"
+                    className="rounded-lg bg-[#0b49d0] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#093bb0]"
+                  >
+                    Buka Menu Live Score →
+                  </Link>
+                </div>
               </div>
 
               <FormField id="lb-title" label="Judul Section Leaderboard">
