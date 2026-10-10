@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Plus,
-  Upload,
   FileSpreadsheet,
   Eye,
   Edit3,
@@ -12,6 +11,7 @@ import {
   Archive,
   X,
   Image as ImageIcon,
+  Trash2,
 } from "lucide-react";
 import {
   AppShell,
@@ -24,6 +24,7 @@ import {
   inputBaseClasses,
   DataTable,
   MobileRecordCard,
+  ConfirmDialog,
   ToastNotification,
 } from "@/components/ui";
 import {
@@ -32,6 +33,10 @@ import {
   appendAuditLog,
 } from "@/lib/admin-store";
 import { INITIAL_CATEGORIES } from "@/lib/mock-store";
+import {
+  createSupabaseBrowserClient,
+  isSupabaseConfigured,
+} from "@/lib/supabase/client";
 import { QuestionRow, QuestionStatus } from "@/types/database";
 import { formatDateTimeID } from "@/lib/utils";
 
@@ -46,6 +51,8 @@ export default function BankSoalPage() {
   const [previewQuestion, setPreviewQuestion] = useState<QuestionRow | null>(
     null
   );
+  const [deleteTarget, setDeleteTarget] = useState<QuestionRow | null>(null);
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   const [toast, setToast] = useState<{
     type: "success" | "warning" | "info";
     title: string;
@@ -193,6 +200,85 @@ export default function BankSoalPage() {
     });
   }
 
+  async function handleConfirmDeleteSingle() {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    const updated = questions.filter((q) => q.id !== target.id);
+    saveQuestions(updated);
+    setQuestions(updated);
+
+    if (previewQuestion?.id === target.id) {
+      setPreviewQuestion(null);
+    }
+    setDeleteTarget(null);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createSupabaseBrowserClient();
+        if (target.question_code) {
+          await supabase
+            .from("questions")
+            .delete()
+            .eq("question_code", target.question_code);
+        }
+        await supabase.from("questions").delete().eq("id", target.id);
+      } catch {
+        // ignore
+      }
+    }
+
+    appendAuditLog({
+      action: "DELETE_QUESTION",
+      entity_type: "questions",
+      entity_id: target.id,
+      reason: `Menghapus butir soal ${target.question_code || target.id}`,
+      details: {
+        question_code: target.question_code,
+        subtest_key: target.subtest_key,
+      },
+    });
+
+    setToast({
+      type: "warning",
+      title: "Soal Berhasil Dihapus",
+      desc: `Butir soal ${target.question_code || target.id} telah dihapus dari Bank Soal.`,
+    });
+  }
+
+  async function handleConfirmDeleteAll() {
+    const totalDeleted = questions.length;
+    saveQuestions([]);
+    setQuestions([]);
+    setPreviewQuestion(null);
+    setShowDeleteAllConfirm(false);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createSupabaseBrowserClient();
+        await supabase
+          .from("questions")
+          .delete()
+          .neq("id", "00000000-0000-0000-0000-000000000000");
+      } catch {
+        // ignore
+      }
+    }
+
+    appendAuditLog({
+      action: "DELETE_ALL_QUESTIONS",
+      entity_type: "questions",
+      entity_id: "bulk-delete-all",
+      reason: `Menghapus keseluruhan ${totalDeleted} butir soal di Bank Soal`,
+      details: { deleted_count: totalDeleted },
+    });
+
+    setToast({
+      type: "warning",
+      title: "Keseluruhan Soal Berhasil Dihapus",
+      desc: `Seluruh ${totalDeleted} butir soal telah dikosongkan dari Bank Soal.`,
+    });
+  }
+
   const pendingReviewCount = questions.filter(
     (q) => q.status === "ready_for_review" || q.status === "draft"
   ).length;
@@ -220,6 +306,15 @@ export default function BankSoalPage() {
         }
         actions={
           <div className="flex flex-wrap gap-2.5">
+            {questions.length > 0 && (
+              <Button
+                variant="danger"
+                onClick={() => setShowDeleteAllConfirm(true)}
+                leftIcon={<Trash2 className="h-4 w-4" />}
+              >
+                Hapus Keseluruhan Soal ({questions.length})
+              </Button>
+            )}
             {pendingReviewCount > 0 && (
               <Button
                 variant="outline"
@@ -445,6 +540,15 @@ export default function BankSoalPage() {
                     Edit
                   </Button>
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(row)}
+                  title={`Hapus soal ${row.question_code || row.id}`}
+                  aria-label={`Hapus soal ${row.question_code || row.id}`}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition-colors hover:bg-red-600 hover:text-white"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             ),
           },
@@ -491,6 +595,14 @@ export default function BankSoalPage() {
                     Edit
                   </Button>
                 </Link>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => setDeleteTarget(row)}
+                  leftIcon={<Trash2 className="h-3.5 w-3.5" />}
+                >
+                  Hapus
+                </Button>
               </>
             }
           />
@@ -640,6 +752,14 @@ export default function BankSoalPage() {
                     Arsipkan
                   </Button>
                 )}
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => setDeleteTarget(previewQuestion)}
+                  leftIcon={<Trash2 className="h-4 w-4" />}
+                >
+                  Hapus Soal
+                </Button>
               </div>
               <Button
                 variant="outline"
@@ -652,6 +772,32 @@ export default function BankSoalPage() {
           </div>
         </div>
       )}
+
+      {/* Dialog Konfirmasi Hapus 1 Soal */}
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDeleteSingle}
+        variant="danger"
+        title="Hapus Butir Soal Ini?"
+        description={
+          deleteTarget
+            ? `Apakah Anda yakin ingin menghapus soal "${deleteTarget.question_code || deleteTarget.id}" (${deleteTarget.subtest_key})? Tindakan ini akan menghapus soal secara permanen dari Bank Soal.`
+            : ""
+        }
+        confirmLabel="Ya, Hapus Soal"
+      />
+
+      {/* Dialog Konfirmasi Hapus Keseluruhan Soal */}
+      <ConfirmDialog
+        open={showDeleteAllConfirm}
+        onClose={() => setShowDeleteAllConfirm(false)}
+        onConfirm={handleConfirmDeleteAll}
+        variant="danger"
+        title="Hapus Keseluruhan Soal di Bank Soal?"
+        description={`Apakah Anda yakin ingin menghapus seluruh ${questions.length} butir soal yang ada di Bank Soal? Seluruh soal akan dikosongkan secara permanen dan dicatat di Audit Log.`}
+        confirmLabel={`Ya, Hapus Semua (${questions.length} Soal)`}
+      />
     </AppShell>
   );
 }
