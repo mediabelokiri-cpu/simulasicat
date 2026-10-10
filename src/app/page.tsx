@@ -9,13 +9,14 @@ import {
   CheckCircle2,
   ArrowRight,
   LogIn,
+  LogOut,
   UserPlus,
   Award,
   BookOpen,
   Building2,
 } from "lucide-react";
 import { Button, StatusBadge } from "@/components/ui";
-import { getCurrentUserClient } from "@/lib/auth";
+import { getCurrentUserClient, setCurrentUserClient } from "@/lib/auth";
 import { ProfileRow } from "@/types/database";
 
 export default function LandingPage() {
@@ -24,6 +25,11 @@ export default function LandingPage() {
   useEffect(() => {
     setActiveUser(getCurrentUserClient());
   }, []);
+
+  function handleLogout() {
+    setCurrentUserClient(null);
+    setActiveUser(null);
+  }
 
   return (
     <div className="min-h-screen bg-[#fcfbf7] text-[#151515] flex flex-col">
@@ -48,17 +54,27 @@ export default function LandingPage() {
 
           <div className="flex items-center gap-2.5">
             {activeUser ? (
-              <Link
-                href={activeUser.role === "admin" ? "/admin" : "/dashboard"}
-              >
-                <Button
-                  variant="primary"
-                  size="sm"
-                  rightIcon={<ArrowRight className="h-4 w-4" />}
+              <>
+                <Link
+                  href={activeUser.role === "admin" ? "/admin" : "/dashboard"}
                 >
-                  Buka Dashboard ({activeUser.full_name.split(" ")[0]})
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    rightIcon={<ArrowRight className="h-4 w-4" />}
+                  >
+                    Buka Dashboard ({activeUser.full_name.split(" ")[0]})
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogout}
+                  leftIcon={<LogOut className="h-4 w-4" />}
+                >
+                  Keluar
                 </Button>
-              </Link>
+              </>
             ) : (
               <>
                 <Link href="/login">

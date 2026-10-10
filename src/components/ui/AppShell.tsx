@@ -22,6 +22,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { setCurrentUserClient } from "@/lib/auth";
 
 export interface NavItem {
   label: string;
@@ -56,6 +57,11 @@ interface AdminSidebarProps {
 }
 
 export function AdminSidebar({ pathname, onNavigate }: AdminSidebarProps) {
+  function handleLogout() {
+    setCurrentUserClient(null);
+    onNavigate?.();
+  }
+
   return (
     <aside className="flex h-full w-64 flex-col bg-[#0b49d0] text-white">
       {/* Brand Header */}
@@ -120,7 +126,7 @@ export function AdminSidebar({ pathname, onNavigate }: AdminSidebarProps) {
       <div className="border-t border-white/15 p-3">
         <Link
           href="/login"
-          onClick={onNavigate}
+          onClick={handleLogout}
           className="flex min-h-[44px] items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-white/90 hover:bg-white/10"
         >
           <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -377,7 +383,10 @@ export function MobileNavigation({
         <div className="border-t border-white/15 p-3">
           <Link
             href="/login"
-            onClick={onClose}
+            onClick={() => {
+              setCurrentUserClient(null);
+              onClose();
+            }}
             className="flex min-h-[46px] items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-white/90 hover:bg-white/10"
           >
             <LogOut className="h-4 w-4" />
