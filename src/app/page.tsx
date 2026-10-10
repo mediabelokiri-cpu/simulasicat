@@ -16,6 +16,7 @@ import {
   Trophy,
   Megaphone,
   SlidersHorizontal,
+  Activity,
 } from "lucide-react";
 import { Button, StatusBadge, inputBaseClasses } from "@/components/ui";
 import {
@@ -31,7 +32,6 @@ import {
   getHomepageConfig,
 } from "@/lib/homepage-store";
 import { sortOfficialLeaderboard } from "@/lib/scoring";
-import { PublicLiveScoreSection } from "@/components/live-score/PublicLiveScoreSection";
 import { ExamRow, ExamRunRow, ProfileRow, ResultRow } from "@/types/database";
 import { cn, formatDateTimeID } from "@/lib/utils";
 
@@ -284,13 +284,11 @@ export default function LandingPage() {
   }
 
   function renderLeaderboardSection() {
+    if (!config.leaderboard.enabled) return null;
     return (
       <React.Fragment key="leaderboard">
-        {/* 1. Section Live Score Real-Time (Saat Ujian Berlangsung — Dikontrol dari Menu Live Score Admin, Default OFF) */}
-        <PublicLiveScoreSection isAuthenticatedUser={Boolean(activeUser)} />
-
-        {/* 2. Section Papan Leaderboard Hasil Ujian (Terisi Setelah Sesi Simulasi CAT / Ujian Berakhir — Dikontrol dari Kelola Homepage) */}
-        {config.leaderboard.enabled && (
+        {/* Section Papan Leaderboard Hasil Ujian (Terisi Setelah Sesi Simulasi CAT / Ujian Berakhir — Dikontrol dari Kelola Homepage) */}
+        {(
           <section
             id="leaderboard"
             className="mx-auto max-w-6xl px-4 py-8 pb-14 sm:px-6 space-y-5"
@@ -545,6 +543,17 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center gap-2.5">
+            <Link href="/live-score">
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white/15 text-white border-white/30 hover:bg-white/25 font-bold"
+                leftIcon={<Activity className="h-4 w-4 text-[#ffc63d]" />}
+              >
+                Live Score
+              </Button>
+            </Link>
+
             {activeUser ? (
               <>
                 {activeUser.role === "admin" && (

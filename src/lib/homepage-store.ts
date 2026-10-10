@@ -198,6 +198,29 @@ export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
   updatedAt: "2026-10-10T00:00:00Z",
 };
 
+const ALL_SECTION_KEYS: HomepageSectionKey[] = [
+  "hero",
+  "categories",
+  "leaderboard",
+];
+
+function normalizeSectionOrder(
+  savedOrder?: HomepageSectionKey[]
+): HomepageSectionKey[] {
+  if (!Array.isArray(savedOrder) || savedOrder.length === 0) {
+    return [...DEFAULT_HOMEPAGE_CONFIG.sectionOrder];
+  }
+  const valid = savedOrder.filter((k): k is HomepageSectionKey =>
+    ALL_SECTION_KEYS.includes(k)
+  );
+  for (const key of ALL_SECTION_KEYS) {
+    if (!valid.includes(key)) {
+      valid.push(key);
+    }
+  }
+  return valid;
+}
+
 export function getHomepageConfig(): HomepageConfig {
   if (typeof window === "undefined") return DEFAULT_HOMEPAGE_CONFIG;
   try {
@@ -209,10 +232,7 @@ export function getHomepageConfig(): HomepageConfig {
     return {
       ...DEFAULT_HOMEPAGE_CONFIG,
       ...parsed,
-      sectionOrder:
-        parsed.sectionOrder && parsed.sectionOrder.length === 3
-          ? parsed.sectionOrder
-          : DEFAULT_HOMEPAGE_CONFIG.sectionOrder,
+      sectionOrder: normalizeSectionOrder(parsed.sectionOrder),
       header: {
         ...DEFAULT_HOMEPAGE_CONFIG.header,
         ...(parsed.header || {}),

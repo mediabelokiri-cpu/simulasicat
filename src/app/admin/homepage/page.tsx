@@ -42,10 +42,6 @@ import {
   saveHomepageConfig,
 } from "@/lib/homepage-store";
 import { appendAuditLog, getExamRuns, getExams } from "@/lib/admin-store";
-import {
-  getLiveScoreSettings,
-  saveLiveScoreSettings,
-} from "@/lib/live-score";
 import { ExamRow, ExamRunRow } from "@/types/database";
 import { cn } from "@/lib/utils";
 
@@ -64,14 +60,13 @@ const SECTION_LABELS: Record<
     desc: "Kartu informasi kategori seleksi (CPNS SKD, Sekolah Kedinasan, Seleksi Polri, atau kategori kustom).",
   },
   leaderboard: {
-    title: "Section Live Score Real-Time / Leaderboard",
-    desc: "Tabel peringkat Live Score Real-Time peserta beserta kontrol visibilitas, audiens, dan status Passing Grade.",
+    title: "Section Papan Leaderboard Hasil Ujian",
+    desc: "Papan peringkat nilai akhir resmi peserta yang otomatis terisi setelah sesi simulasi CAT atau ujian berakhir.",
   },
 };
 
 export default function AdminHomepagePage() {
   const [config, setConfig] = useState<HomepageConfig>(DEFAULT_HOMEPAGE_CONFIG);
-  const [liveScoreEnabled, setLiveScoreEnabled] = useState<boolean>(false);
   const [hydrated, setHydrated] = useState(false);
   const [activeTab, setActiveTab] = useState<EditorTab>("layout");
   const [runs, setRuns] = useState<ExamRunRow[]>([]);
@@ -85,9 +80,7 @@ export default function AdminHomepagePage() {
 
   useEffect(() => {
     const loaded = getHomepageConfig();
-    const lsSettings = getLiveScoreSettings();
     setConfig(loaded);
-    setLiveScoreEnabled(lsSettings.homepageEnabled);
     setRuns(getExamRuns());
     setExams(getExams());
     setHydrated(true);
@@ -114,7 +107,6 @@ export default function AdminHomepagePage() {
         heroEnabled: saved.hero.enabled,
         categoriesEnabled: saved.categories.enabled,
         leaderboardEnabled: saved.leaderboard.enabled,
-        liveScoreEnabled,
         announcementEnabled: saved.announcement.enabled,
       },
     });
@@ -155,28 +147,6 @@ export default function AdminHomepagePage() {
         enabled: !prev[key].enabled,
       },
     }));
-  }
-
-  function handleToggleLiveScoreRealtime(nextState: boolean) {
-    setLiveScoreEnabled(nextState);
-    const currentLs = getLiveScoreSettings();
-    const fallbackRunId = currentLs.publishedRunId || runs[0]?.id || null;
-    const fallbackExamId =
-      currentLs.publishedExamId ||
-      runs.find((r) => r.id === fallbackRunId)?.exam_id ||
-      exams[0]?.id ||
-      null;
-    saveLiveScoreSettings(
-      {
-        homepageEnabled: nextState,
-        publishedRunId: fallbackRunId,
-        publishedExamId: fallbackExamId,
-      },
-      "usr-admin-01",
-      nextState
-        ? "Mengaktifkan Live Score Real-Time di Homepage"
-        : "Menonaktifkan Live Score Real-Time di Homepage"
-    );
   }
 
   // Helpers untuk Hero Security Features
@@ -1442,7 +1412,7 @@ export default function AdminHomepagePage() {
               <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                 <div>
                   <h2 className="text-base font-extrabold text-[#151515]">
-                    1. Papan Leaderboard Hasil Ujian (Setelah Ujian Berakhir)
+                    Pengaturan Papan Leaderboard Hasil Ujian
                   </h2>
                   <p className="text-xs text-neutral-500">
                     Tabel peringkat nilai akhir yang otomatis terisi setelah peserta menyelesaikan sesi simulasi CAT atau ujian berakhir.
@@ -1467,35 +1437,29 @@ export default function AdminHomepagePage() {
                 </label>
               </div>
 
-              {/* Kotak Kontrol Cepat Live Score Real-Time (Saat Ujian Berlangsung) */}
+              {/* Informasi Halaman Tersendiri untuk Papan Live Score Real-Time */}
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#0b49d0]/20 bg-[#eef4ff]/70 p-3.5">
                 <div>
                   <p className="text-xs font-extrabold text-[#0b49d0]">
-                    2. Live Score Real-Time (Saat Sesi Ujian Sedang Berlangsung)
+                    Papan Live Score Real-Time Memiliki Halaman Tersendiri (/live-score)
                   </p>
                   <p className="text-[11px] text-neutral-600">
-                    Menampilkan skor sementara secara langsung saat peserta menjawab soal. Pengaturan detail sesi & penyamaran nama tersedia di menu Live Score.
+                    Pantauan skor sementara saat ujian sedang berlangsung kini tampil di halaman khusus <strong>/live-score</strong> dan dapat dikelola melalui menu Live Score Admin.
                   </p>
                 </div>
-                <div className="flex items-center gap-2.5">
-                  <label className="inline-flex items-center gap-2 rounded-lg bg-white border border-neutral-200 px-3 py-1.5 text-xs font-bold cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={liveScoreEnabled}
-                      onChange={(e) =>
-                        handleToggleLiveScoreRealtime(e.target.checked)
-                      }
-                      className="h-4 w-4 rounded border-neutral-300 text-[#0b49d0]"
-                    />
-                    <span>
-                      {liveScoreEnabled ? "Live Score: ON" : "Live Score: OFF"}
-                    </span>
-                  </label>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href="/live-score"
+                    target="_blank"
+                    className="rounded-lg bg-white border border-neutral-200 px-3 py-1.5 text-xs font-bold text-[#151515] hover:bg-neutral-50"
+                  >
+                    Lihat Halaman /live-score ↗
+                  </Link>
                   <Link
                     href="/admin/live-score"
                     className="rounded-lg bg-[#0b49d0] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#093bb0]"
                   >
-                    Buka Menu Live Score →
+                    Kelola Live Score →
                   </Link>
                 </div>
               </div>

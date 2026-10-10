@@ -28,10 +28,12 @@ import {
 
 interface PublicLiveScoreSectionProps {
   isAuthenticatedUser: boolean;
+  standalonePage?: boolean;
 }
 
 export function PublicLiveScoreSection({
   isAuthenticatedUser,
+  standalonePage = false,
 }: PublicLiveScoreSectionProps) {
   const [payload, setPayload] = useState<PublicLiveScoreResponse | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -175,9 +177,49 @@ export function PublicLiveScoreSection({
     );
   }, [payload?.rows, searchQuery]);
 
-  // Jika Admin menonaktifkan Live Score Homepage (Default: OFF), jangan tampilkan section sama sekali
-  if (!payload || !payload.enabled) {
+  if (!payload) {
     return null;
+  }
+
+  // Jika publikasi Live Score dinonaktifkan oleh Admin (Default: OFF)
+  if (!payload.enabled) {
+    if (!standalonePage) {
+      return null;
+    }
+    return (
+      <section className="py-12 sm:py-16">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 sm:p-10 text-center shadow-xs space-y-4">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0b49d0]/10 text-[#0b49d0]">
+              <Radio className="h-7 w-7" />
+            </div>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-[#151515]">
+              Publikasi Live Score Saat Ini Sedang Dinonaktifkan
+            </h2>
+            <p className="mx-auto max-w-lg text-sm text-slate-600 leading-relaxed">
+              Pantauan skor sementara secara langsung (Real-Time) sedang tidak
+              dipublikasikan untuk umum. Anda tetap dapat melihat hasil akhir
+              resmi ujian melalui <strong>Papan Leaderboard Hasil Ujian</strong>{" "}
+              di halaman utama setelah sesi ujian berakhir.
+            </p>
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/#leaderboard"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-[#0b49d0] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#093bb0] transition-colors"
+              >
+                Lihat Papan Leaderboard Hasil Ujian
+              </Link>
+              <Link
+                href="/"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-[#151515] hover:bg-slate-50 transition-colors"
+              >
+                Kembali ke Beranda
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   const cols = payload.settings?.publishedColumns || {
@@ -190,8 +232,8 @@ export function PublicLiveScoreSection({
 
   return (
     <section
-      id="live-score-homepage"
-      className="border-t border-slate-200/80 bg-[#fcfbf7] py-14 sm:py-16"
+      id="live-score-page"
+      className="bg-[#fcfbf7] py-8 sm:py-12"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
