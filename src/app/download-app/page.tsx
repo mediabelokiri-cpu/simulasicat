@@ -10,7 +10,7 @@ import {
   PlayCircle,
   CalendarClock,
   Award,
-  Radio,
+  Trophy,
   PenTool,
   BookOpen,
   LayoutGrid,
@@ -546,10 +546,10 @@ export default function DownloadAppPage() {
                       href: "/hasil",
                     },
                     {
-                      label: "Live",
-                      icon: Radio,
-                      bg: "bg-emerald-100 text-emerald-500",
-                      href: "/live-score",
+                      label: "Leaderboard",
+                      icon: Trophy,
+                      bg: "bg-emerald-100 text-emerald-600",
+                      href: "/hasil?tab=leaderboard",
                     },
                     {
                       label: "Cat PA",

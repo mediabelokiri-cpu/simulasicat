@@ -17,7 +17,7 @@ import {
   BookOpen,
   Smartphone,
   LayoutGrid,
-  Radio,
+  Trophy,
   PenTool,
   X,
   GraduationCap,
@@ -473,10 +473,10 @@ export default function UserDashboardPage() {
                 iconBg: "bg-amber-100 text-amber-500",
               },
               {
-                label: "Live Score",
-                href: "/live-score",
-                icon: Radio,
-                iconBg: "bg-emerald-100 text-emerald-500",
+                label: "Leaderboard",
+                href: "/hasil?tab=leaderboard",
+                icon: Trophy,
+                iconBg: "bg-emerald-100 text-emerald-600",
               },
               {
                 label: "Cat PA",

@@ -57,6 +57,7 @@ function HasilPesertaInner() {
   const searchParams = useSearchParams();
   const querySessionId =
     searchParams.get("sessionId") || searchParams.get("session");
+  const queryTab = searchParams.get("tab");
 
   const [user, setUser] = useState<ProfileRow>(EMPTY_USER_FALLBACK);
   const [allResults, setAllResults] = useState<ResultRow[]>([]);
@@ -65,7 +66,23 @@ function HasilPesertaInner() {
   const [selectedResultId, setSelectedResultId] = useState<string>("");
   const [activeTab, setActiveTab] = useState<
     "breakdown" | "review" | "leaderboard"
-  >("breakdown");
+  >(
+    queryTab === "leaderboard"
+      ? "leaderboard"
+      : queryTab === "review"
+      ? "review"
+      : "breakdown"
+  );
+
+  useEffect(() => {
+    if (queryTab === "leaderboard") {
+      setActiveTab("leaderboard");
+    } else if (queryTab === "review") {
+      setActiveTab("review");
+    } else if (queryTab === "breakdown") {
+      setActiveTab("breakdown");
+    }
+  }, [queryTab]);
 
   useEffect(() => {
     const activeUser = getCurrentUserClient();
@@ -229,6 +246,8 @@ function HasilPesertaInner() {
   }
 
   if (!activeResult) {
+    const globalLeaderboard = sortOfficialLeaderboard(allResults);
+
     return (
       <AppShell
         role="user"
@@ -306,6 +325,120 @@ function HasilPesertaInner() {
             }}
           />
         </div>
+
+        {/* Peringkat Resmi Sesi Ujian (Leaderboard) tetap tampil saat diakses dari menu Leaderboard */}
+        {(activeTab === "leaderboard" || globalLeaderboard.length > 0) && (
+          <section className="mx-auto mt-6 max-w-md lg:max-w-none rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+            <div>
+              <h3 className="text-base sm:text-lg font-extrabold text-[#151515] flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-amber-600" />
+                <span>Peringkat Resmi Simulasi CAT (Leaderboard)</span>
+              </h3>
+              <p className="text-xs text-neutral-500">
+                Diurutkan berdasarkan kelulusan ambang batas (Passing Grade),
+                Skor Total tertinggi, lalu tie-breaker TKP → TIU → TWK.
+              </p>
+            </div>
+
+            {globalLeaderboard.length === 0 ? (
+              <p className="py-6 text-center text-xs text-neutral-500">
+                Belum ada peserta yang menyelesaikan sesi ujian pada leaderboard
+                saat ini.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                  <thead>
+                    <tr className="border-b border-neutral-200 bg-[#fcfbf7] text-neutral-600 font-bold">
+                      <th className="py-3 px-3">Peringkat</th>
+                      <th className="py-3 px-3">Nama Peserta</th>
+                      <th className="py-3 px-3 text-center">TWK</th>
+                      <th className="py-3 px-3 text-center">TIU</th>
+                      <th className="py-3 px-3 text-center">TKP</th>
+                      <th className="py-3 px-3 text-center">Total Skor</th>
+                      <th className="py-3 px-3">Status Ambang Batas</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-100">
+                    {globalLeaderboard.map((row, idx) => {
+                      const prof = profiles.find((p) => p.id === row.user_id);
+                      const snap = (row.result_snapshot || {}) as {
+                        full_name?: string;
+                      };
+                      const twk =
+                        row.section_scores.find((s) => s.section_key === "TWK")
+                          ?.score ?? 0;
+                      const tiu =
+                        row.section_scores.find((s) => s.section_key === "TIU")
+                          ?.score ?? 0;
+                      const tkp =
+                        row.section_scores.find((s) => s.section_key === "TKP")
+                          ?.score ?? 0;
+
+                      return (
+                        <tr
+                          key={row.id}
+                          className="transition-colors hover:bg-neutral-50"
+                        >
+                          <td className="py-3 px-3 tabular-nums font-extrabold text-[#151515]">
+                            <span
+                              className={cn(
+                                "inline-flex h-7 w-7 items-center justify-center rounded-lg text-xs",
+                                idx === 0
+                                  ? "bg-[#ffc63d] text-[#151515]"
+                                  : idx === 1
+                                  ? "bg-neutral-200 text-[#151515]"
+                                  : idx === 2
+                                  ? "bg-amber-100 text-amber-900"
+                                  : "bg-neutral-100 text-neutral-700"
+                              )}
+                            >
+                              #{idx + 1}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3">
+                            <span className="font-bold text-[#151515]">
+                              {prof?.full_name ||
+                                snap.full_name ||
+                                "Peserta Simulasi"}
+                            </span>
+                            <span className="block text-[11px] text-neutral-500">
+                              Submit: {formatDateTimeID(row.created_at)}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 text-center tabular-nums font-bold">
+                            {twk}
+                          </td>
+                          <td className="py-3 px-3 text-center tabular-nums font-bold">
+                            {tiu}
+                          </td>
+                          <td className="py-3 px-3 text-center tabular-nums font-bold">
+                            {tkp}
+                          </td>
+                          <td className="py-3 px-3 text-center tabular-nums text-base font-extrabold text-[#0b49d0]">
+                            {row.total_score}
+                          </td>
+                          <td className="py-3 px-3">
+                            {row.thresholds_met ? (
+                              <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-xs font-bold text-emerald-800">
+                                <CheckCircle2 className="h-3.5 w-3.5" />✓ Lulus
+                                PG
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 rounded-lg bg-red-50 border border-red-200 px-2.5 py-1 text-xs font-bold text-red-700">
+                                <XCircle className="h-3.5 w-3.5" />✕ Belum Lulus
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        )}
       </AppShell>
     );
   }
