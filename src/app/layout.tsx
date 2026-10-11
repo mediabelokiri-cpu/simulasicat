@@ -20,7 +20,29 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: "/logo1.png",
+    shortcut: "/logo1.png",
     apple: "/logo1.png",
+  },
+  openGraph: {
+    title: "Simulasi CAT Prima RIB — CPNS, Sekdin & Polri",
+    description:
+      "Platform ujian simulasi berbasis Computer Assisted Test (CAT) resmi untuk peserta bimbingan belajar Prima RIB dan institusi mitra.",
+    type: "website",
+    images: [
+      {
+        url: "/logo1.png",
+        width: 512,
+        height: 512,
+        alt: "Simulasi CAT Prima RIB",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Simulasi CAT Prima RIB — CPNS, Sekdin & Polri",
+    description:
+      "Platform ujian simulasi berbasis Computer Assisted Test (CAT) resmi untuk peserta bimbingan belajar Prima RIB dan institusi mitra.",
+    images: ["/logo1.png"],
   },
 };
 

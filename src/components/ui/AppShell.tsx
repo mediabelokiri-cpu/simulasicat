@@ -175,20 +175,27 @@ export function Topbar({
 
   return (
     <>
-      {/* Mobile Clean App Header (Khusus Portal User di layar Mobile) */}
+      {/* Mobile Clean App Header (Khusus Portal User di layar Mobile menggunakan logo3) */}
       {role === "user" && (
         <header className="sticky top-0 z-30 bg-[#f6f7ff]/95 backdrop-blur-md px-5 pt-4 pb-2.5 lg:hidden">
           <div className="mx-auto flex max-w-md items-center justify-between">
-            <div>
-              {mobilePageHeading.greeting && (
-                <p className="text-xs font-medium text-slate-400 leading-snug">
-                  {mobilePageHeading.greeting}
-                </p>
-              )}
-              <h1 className="text-xl font-extrabold tracking-tight text-[#312e81]">
-                {mobilePageHeading.title}
-              </h1>
-            </div>
+            <Link href="/dashboard" className="flex items-center gap-3">
+              <img
+                src="/logo3.png"
+                alt="Logo Prima RIB CAT"
+                className="h-9 w-9 object-contain shrink-0"
+              />
+              <div>
+                {mobilePageHeading.greeting && (
+                  <p className="text-xs font-medium text-slate-400 leading-snug">
+                    {mobilePageHeading.greeting}
+                  </p>
+                )}
+                <h1 className="text-xl font-extrabold tracking-tight text-[#312e81]">
+                  {mobilePageHeading.title}
+                </h1>
+              </div>
+            </Link>
 
             <div className="flex items-center gap-2">
               <Link

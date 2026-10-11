@@ -242,9 +242,16 @@ export default function DownloadAppPage() {
               </span>
             </div>
 
-            <h2 className="text-xl font-extrabold text-[#1e1b4b]">
-              Prima RIB CAT untuk Android
-            </h2>
+            <div className="flex items-center gap-3 pt-1">
+              <img
+                src="/logo1.png"
+                alt="Ikon Aplikasi Prima RIB CAT"
+                className="h-12 w-12 rounded-2xl object-contain shadow-xs shrink-0"
+              />
+              <h2 className="text-xl font-extrabold text-[#1e1b4b]">
+                Prima RIB CAT untuk Android
+              </h2>
+            </div>
             <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
               Instal langsung di smartphone atau tablet Android Anda. Mendukung
               mode layar penuh (*standalone*), sinkronisasi jawaban otomatis,
@@ -300,9 +307,16 @@ export default function DownloadAppPage() {
               </span>
             </div>
 
-            <h2 className="text-xl font-extrabold text-[#1e1b4b]">
-              Prima RIB CAT untuk iOS (iPhone &amp; iPad)
-            </h2>
+            <div className="flex items-center gap-3 pt-1">
+              <img
+                src="/logo1.png"
+                alt="Ikon Aplikasi iOS Prima RIB CAT"
+                className="h-12 w-12 rounded-2xl object-contain shadow-xs shrink-0"
+              />
+              <h2 className="text-xl font-extrabold text-[#1e1b4b]">
+                Prima RIB CAT untuk iOS (iPhone &amp; iPad)
+              </h2>
+            </div>
             <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
               Nikmati pengalaman aplikasi native di iPhone &amp; iPad melalui
               integrasi Web-App iOS resmi tanpa perlu kapasitas penyimpanan
@@ -343,9 +357,16 @@ export default function DownloadAppPage() {
         {/* Kartu Link Cepat / Akses Mobile */}
         <div className="lg:col-span-2 rounded-[28px] bg-gradient-to-br from-[#4338ca] to-[#312e81] p-5 text-white shadow-[0_12px_32px_rgba(67,56,202,0.22)] flex flex-col justify-between space-y-4">
           <div className="space-y-2">
-            <span className="inline-block rounded-lg bg-white/15 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider">
-              Akses Cepat
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="inline-block rounded-lg bg-white/15 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider">
+                Akses Cepat
+              </span>
+              <img
+                src="/logo1.png"
+                alt="Ikon Share Link Prima RIB CAT"
+                className="h-8 w-8 rounded-lg object-contain shadow-xs"
+              />
+            </div>
             <h3 className="text-sm font-extrabold leading-snug">
               Buka di Smartphone Anda
             </h3>
@@ -478,13 +499,20 @@ export default function DownloadAppPage() {
             <div className="space-y-5">
               {/* Header */}
               <div className="flex items-center justify-between pt-1">
-                <div>
-                  <p className="text-[11px] font-medium text-slate-400">
-                    Selamat datang di,
-                  </p>
-                  <h3 className="text-lg font-extrabold tracking-tight text-[#312e81]">
-                    Prima RIB CAT.
-                  </h3>
+                <div className="flex items-center gap-2.5">
+                  <img
+                    src="/logo3.png"
+                    alt="Logo Prima RIB CAT"
+                    className="h-8 w-8 object-contain shrink-0"
+                  />
+                  <div>
+                    <p className="text-[11px] font-medium text-slate-400">
+                      Selamat datang di,
+                    </p>
+                    <h3 className="text-lg font-extrabold tracking-tight text-[#312e81]">
+                      Prima RIB CAT.
+                    </h3>
+                  </div>
                 </div>
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eef0ff] text-[#4338ca]">
                   <LayoutGrid className="h-4 w-4" />
