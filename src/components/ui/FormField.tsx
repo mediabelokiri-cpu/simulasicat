@@ -27,7 +27,7 @@ export function Button({
     primary:
       "bg-gradient-to-r from-[#494ae2] to-[#7854ec] text-white hover:opacity-95 active:opacity-90 border border-transparent shadow-[0_6px_20px_rgba(73,74,226,0.22)]",
     accent:
-      "bg-gradient-to-r from-[#7854ec] to-[#494ae2] text-white hover:opacity-95 active:opacity-90 border border-white/20 font-semibold shadow-[0_6px_18px_rgba(120,84,236,0.25)]",
+      "bg-[#494ae2] text-white hover:bg-[#3f40cc] active:bg-[#3637b8] border border-white/25 font-semibold shadow-[0_6px_18px_rgba(73,74,226,0.28)]",
     outline:
       "bg-white text-[#0c0c13] border border-neutral-300 hover:bg-[#f5f8ff] hover:border-[#494ae2]",
     danger:

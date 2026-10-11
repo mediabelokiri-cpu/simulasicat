@@ -716,7 +716,7 @@ export default function LandingPage() {
                       <Button
                         variant="accent"
                         size="sm"
-                        className="whitespace-nowrap"
+                        className="bg-none bg-[#494ae2] hover:bg-[#3f40cc] active:bg-[#3637b8] text-white border-white/25 whitespace-nowrap"
                         leftIcon={<UserPlus className="h-4 w-4" />}
                       >
                         {config.header.registerButtonLabel}
