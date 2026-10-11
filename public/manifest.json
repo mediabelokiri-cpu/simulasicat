@@ -1,0 +1,24 @@
+{
+  "name": "Simulasi CAT Prima RIB (Android & iOS)",
+  "short_name": "Prima RIB CAT",
+  "description": "Aplikasi Mobile Resmi Simulasi CAT CPNS, Sekolah Kedinasan & Polri — Prima RIB",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#4338ca",
+  "theme_color": "#4338ca",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo1.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

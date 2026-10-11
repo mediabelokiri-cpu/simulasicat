@@ -12,6 +12,12 @@ export const metadata: Metadata = {
   title: "Simulasi CAT Prima RIB — CPNS, Sekdin & Polri",
   description:
     "Platform ujian simulasi berbasis Computer Assisted Test (CAT) resmi untuk peserta bimbingan belajar Prima RIB dan institusi mitra.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Prima RIB CAT",
+  },
   icons: {
     icon: "/logo1.png",
     apple: "/logo1.png",

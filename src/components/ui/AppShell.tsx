@@ -22,6 +22,9 @@ import {
   History,
   LogOut,
   ShieldCheck,
+  Smartphone,
+  Home,
+  LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { setCurrentUserClient } from "@/lib/auth";
@@ -49,9 +52,10 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
 ];
 
 export const USER_NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Dashboard", href: "/dashboard", icon: Home },
   { label: "Daftar Ujian", href: "/ujian", icon: ClipboardList },
-  { label: "Riwayat & Hasil", href: "/hasil", icon: History },
+  { label: "Riwayat & Hasil", href: "/hasil", icon: BookOpen },
+  { label: "Download App", href: "/download-app", icon: Smartphone, badge: "APP" },
   { label: "Profil Saya", href: "/profil", icon: UserCircle },
 ];
 
@@ -156,103 +160,169 @@ export function Topbar({
 }: TopbarProps) {
   const pathname = usePathname();
 
-  return (
-    <header className="sticky top-0 z-30 border-b border-[#093db0] bg-[#0b49d0] text-white shadow-xs">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
-        <div className="flex items-center gap-3">
-          {role === "admin" && (
-            <button
-              type="button"
-              onClick={onOpenMobileMenu}
-              aria-label="Buka menu navigasi"
-              className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/25 bg-white/10 text-white hover:bg-white/20 lg:hidden"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-          )}
+  const mobilePageHeading =
+    pathname === "/dashboard"
+      ? { greeting: "Selamat datang di,", title: "Prima RIB CAT." }
+      : pathname.startsWith("/hasil")
+      ? { greeting: null, title: "Hasil Studi & CAT" }
+      : pathname.startsWith("/ujian")
+      ? { greeting: null, title: "Jadwal & Sesi CAT" }
+      : pathname.startsWith("/download-app")
+      ? { greeting: null, title: "Download Aplikasi" }
+      : pathname.startsWith("/profil")
+      ? { greeting: null, title: "Profil Peserta" }
+      : { greeting: "Selamat datang di,", title: "Prima RIB CAT." };
 
-          {role === "user" && (
-            <Link href="/dashboard" className="flex items-center gap-2.5">
-              <img
-                src="/logo1.png"
-                alt="Logo Prima RIB"
-                className="h-9 w-9 rounded-xl object-contain"
-              />
-              <div>
-                <span className="block text-sm sm:text-base font-extrabold tracking-tight text-white">
-                  SIMULASI CAT
-                </span>
-                <span className="block text-[11px] font-semibold text-white/80">
-                  PRIMA RIB
+  return (
+    <>
+      {/* Mobile Clean App Header (Khusus Portal User di layar Mobile) */}
+      {role === "user" && (
+        <header className="sticky top-0 z-30 bg-[#f6f7ff]/95 backdrop-blur-md px-5 pt-4 pb-2.5 lg:hidden">
+          <div className="mx-auto flex max-w-md items-center justify-between">
+            <div>
+              {mobilePageHeading.greeting && (
+                <p className="text-xs font-medium text-slate-400 leading-snug">
+                  {mobilePageHeading.greeting}
+                </p>
+              )}
+              <h1 className="text-xl font-extrabold tracking-tight text-[#312e81]">
+                {mobilePageHeading.title}
+              </h1>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Link
+                href={
+                  pathname.startsWith("/download-app")
+                    ? "/dashboard"
+                    : "/download-app"
+                }
+                title="Aplikasi Mobile & Menu Cepat"
+                aria-label="Aplikasi Mobile & Menu Cepat"
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef0ff] text-[#4338ca] shadow-2xs transition-transform active:scale-95"
+              >
+                <LayoutGrid className="h-5 w-5" />
+              </Link>
+            </div>
+          </div>
+        </header>
+      )}
+
+      {/* Desktop Topbar (dan Admin Topbar) */}
+      <header
+        className={cn(
+          "sticky top-0 z-30 border-b border-[#093db0] bg-[#0b49d0] text-white shadow-xs",
+          role === "user" && "hidden lg:block"
+        )}
+      >
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            {role === "admin" && (
+              <button
+                type="button"
+                onClick={onOpenMobileMenu}
+                aria-label="Buka menu navigasi"
+                className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/25 bg-white/10 text-white hover:bg-white/20 lg:hidden"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            )}
+
+            {role === "user" && (
+              <Link href="/dashboard" className="flex items-center gap-2.5">
+                <img
+                  src="/logo1.png"
+                  alt="Logo Prima RIB"
+                  className="h-9 w-9 rounded-xl object-contain"
+                />
+                <div>
+                  <span className="block text-sm sm:text-base font-extrabold tracking-tight text-white">
+                    SIMULASI CAT
+                  </span>
+                  <span className="block text-[11px] font-semibold text-white/80">
+                    PRIMA RIB
+                  </span>
+                </div>
+              </Link>
+            )}
+
+            {role === "admin" && (
+              <div className="flex items-center gap-2 lg:hidden">
+                <img
+                  src="/logo1.png"
+                  alt="Logo Prima RIB"
+                  className="h-8 w-8 rounded-lg object-contain"
+                />
+                <span className="text-sm font-bold text-white">
+                  Admin Prima RIB
                 </span>
               </div>
-            </Link>
-          )}
-
-          {role === "admin" && (
-            <div className="flex items-center gap-2 lg:hidden">
-              <img
-                src="/logo1.png"
-                alt="Logo Prima RIB"
-                className="h-8 w-8 rounded-lg object-contain"
-              />
-              <span className="text-sm font-bold text-white">
-                Admin Prima RIB
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Desktop User Navigation Links */}
-        {role === "user" && (
-          <nav
-            className="hidden lg:flex lg:items-center lg:gap-1"
-            aria-label="Navigasi Peserta"
-          >
-            {USER_NAV_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const isActive =
-                item.href === "/dashboard"
-                  ? pathname === "/dashboard"
-                  : pathname.startsWith(item.href);
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex min-h-[42px] items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition-colors",
-                    isActive
-                      ? "bg-[#ffc63d] text-[#151515] font-bold shadow-xs"
-                      : "text-white/90 hover:bg-white/10 hover:text-white"
-                  )}
-                >
-                  <Icon className="h-4 w-4" aria-hidden="true" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-        )}
-
-        {/* User Profile Pill */}
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:block text-right">
-            <p className="text-sm font-bold text-white leading-tight">
-              {userName}
-            </p>
-            <p className="text-xs text-white/80">{userSubtitle}</p>
+            )}
           </div>
-          <Link
-            href={role === "admin" ? "/admin/pengaturan" : "/profil"}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ffc63d] text-[#151515] font-extrabold border border-[#e5ad28]"
-            title="Profil & Pengaturan"
-          >
-            {userName.charAt(0).toUpperCase()}
-          </Link>
+
+          {/* Desktop User Navigation Links */}
+          {role === "user" && (
+            <nav
+              className="hidden lg:flex lg:items-center lg:gap-1"
+              aria-label="Navigasi Peserta"
+            >
+              {USER_NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const isActive =
+                  item.href === "/dashboard"
+                    ? pathname === "/dashboard"
+                    : pathname.startsWith(item.href);
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "flex min-h-[42px] items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition-colors",
+                      isActive
+                        ? "bg-[#ffc63d] text-[#151515] font-bold shadow-xs"
+                        : "text-white/90 hover:bg-white/10 hover:text-white"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                    <span>{item.label}</span>
+                    {item.badge && (
+                      <span
+                        className={cn(
+                          "rounded-md px-1.5 py-0.5 text-[10px] font-extrabold",
+                          isActive
+                            ? "bg-[#151515] text-[#ffc63d]"
+                            : "bg-[#ffc63d] text-[#151515]"
+                        )}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
+          )}
+
+          {/* User Profile Pill */}
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:block text-right">
+              <p className="text-sm font-bold text-white leading-tight">
+                {userName}
+              </p>
+              <p className="text-xs text-white/80">{userSubtitle}</p>
+            </div>
+            <Link
+              href={role === "admin" ? "/admin/pengaturan" : "/profil"}
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ffc63d] text-[#151515] font-extrabold border border-[#e5ad28]"
+              title="Profil & Pengaturan"
+            >
+              {userName.charAt(0).toUpperCase()}
+            </Link>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </>
   );
 }
 
@@ -269,14 +339,14 @@ export function MobileNavigation({
   role,
   pathname,
 }: MobileNavigationProps) {
-  // Khusus Portal User di Mobile: menggunakan Bottom Footer Navigation Bar
+  // Khusus Portal User di Mobile: menggunakan Bottom Footer Navigation Bar bergaya Modern App
   if (role === "user") {
     return (
       <nav
         aria-label="Menu utama peserta (mobile footer)"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white/95 backdrop-blur-md shadow-[0_-4px_16px_rgba(0,0,0,0.06)] lg:hidden pb-[env(safe-area-inset-bottom)]"
+        className="fixed inset-x-0 bottom-0 z-40 rounded-t-[28px] border-t border-indigo-100/80 bg-white/95 backdrop-blur-md shadow-[0_-10px_30px_rgba(67,56,202,0.08)] lg:hidden pb-[env(safe-area-inset-bottom)]"
       >
-        <div className="mx-auto grid max-w-md grid-cols-4 px-2 py-1.5">
+        <div className="mx-auto grid max-w-md grid-cols-5 px-2 py-2">
           {USER_NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive =
@@ -289,22 +359,24 @@ export function MobileNavigation({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "relative flex min-h-[54px] flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[11px] font-semibold transition-all",
+                  "relative flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-2xl px-1 py-1.5 text-[10px] font-bold transition-all",
                   isActive
-                    ? "text-[#0b49d0] font-extrabold bg-[#eef4ff]/80"
-                    : "text-neutral-500 hover:text-[#151515]"
+                    ? "text-[#4338ca]"
+                    : "text-[#c7d2fe] hover:text-[#6366f1]"
                 )}
               >
                 {isActive && (
                   <span
-                    className="absolute top-0 h-1 w-8 rounded-full bg-[#ffc63d]"
+                    className="absolute -top-2 h-1 w-6 rounded-full bg-[#4338ca]"
                     aria-hidden="true"
                   />
                 )}
                 <Icon
                   className={cn(
                     "h-5 w-5 shrink-0 transition-transform",
-                    isActive ? "text-[#0b49d0] scale-105" : "text-neutral-500"
+                    isActive
+                      ? "text-[#4338ca] scale-110 stroke-[2.4]"
+                      : "text-[#c7d2fe]"
                   )}
                   aria-hidden="true"
                 />
@@ -313,9 +385,11 @@ export function MobileNavigation({
                     ? "Hasil"
                     : item.label === "Daftar Ujian"
                     ? "Ujian"
+                    : item.label === "Download App"
+                    ? "App"
                     : item.label === "Profil Saya"
                     ? "Profil"
-                    : item.label}
+                    : "Beranda"}
                 </span>
               </Link>
             );
@@ -419,7 +493,12 @@ export function AppShell({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#fcfbf7] text-[#151515] flex flex-col lg:flex-row">
+    <div
+      className={cn(
+        "min-h-screen text-[#151515] flex flex-col lg:flex-row",
+        role === "user" ? "bg-[#f6f7ff] lg:bg-[#fcfbf7]" : "bg-[#fcfbf7]"
+      )}
+    >
       {/* Desktop Admin Sidebar */}
       {role === "admin" && (
         <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:block lg:w-64">
@@ -450,8 +529,10 @@ export function AppShell({
         />
         <main
           className={cn(
-            "mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8",
-            role === "user" && "pb-24 lg:pb-8"
+            "mx-auto w-full max-w-7xl flex-1 px-4 sm:px-6 lg:px-8",
+            role === "user"
+              ? "pt-2 pb-28 lg:py-6 lg:pb-8"
+              : "py-6"
           )}
         >
           {children}
