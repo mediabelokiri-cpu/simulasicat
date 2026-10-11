@@ -324,7 +324,7 @@ export default function JadwalSesiPage() {
   return (
     <AppShell
       role="admin"
-      userName="Admin Prima RIB"
+      userName="Admin CATARA"
       userSubtitle="Jadwal & Sesi Ujian"
     >
       <PageHeader

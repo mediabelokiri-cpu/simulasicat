@@ -56,7 +56,7 @@ export default function DownloadAppPage() {
     "android" | "ios"
   >("android");
   const [copiedUrl, setCopiedUrl] = useState(false);
-  const [appUrl, setAppUrl] = useState("https://simulasicat-primarib.id");
+  const [appUrl, setAppUrl] = useState("https://catara.id");
   const [toast, setToast] = useState<{
     type: "success" | "info";
     title: string;
@@ -112,7 +112,7 @@ export default function DownloadAppPage() {
         setToast({
           type: "success",
           title: "Instalasi Aplikasi Android Dimulai",
-          desc: "Aplikasi Prima RIB CAT sedang ditambahkan ke layar utama perangkat Android Anda.",
+          desc: "Aplikasi CATARA sedang ditambahkan ke layar utama perangkat Android Anda.",
         });
       }
       setDeferredPrompt(null);
@@ -123,24 +123,24 @@ export default function DownloadAppPage() {
     const origin =
       typeof window !== "undefined"
         ? window.location.origin
-        : "https://simulasicat.id";
+        : "https://catara.id";
     const launcherHtml = `<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Prima RIB CAT Mobile Launcher (Android)</title>
+<title>CATARA — Digital Assessment Platform (Android)</title>
 <meta http-equiv="refresh" content="1;url=${origin}/dashboard" />
 <style>
-  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#4338ca; color:#fff; font-family:Arial,sans-serif; text-align:center; padding:24px; }
-  .box { max-width:360px; background:#5248e8; padding:28px; border-radius:28px; box-shadow:0 20px 50px rgba(0,0,0,0.25); }
-  a { display:inline-block; margin-top:16px; background:#fff; color:#3730a3; text-decoration:none; font-weight:800; padding:12px 24px; border-radius:14px; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#494ae2,#7854ec); color:#fff; font-family:Arial,sans-serif; text-align:center; padding:24px; }
+  .box { max-width:360px; background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.22); padding:28px; border-radius:28px; box-shadow:0 20px 50px rgba(12,12,19,0.28); }
+  a { display:inline-block; margin-top:16px; background:#fff; color:#494ae2; text-decoration:none; font-weight:800; padding:12px 24px; border-radius:14px; }
 </style>
 </head>
 <body>
   <div class="box">
-    <h2>Prima RIB CAT Mobile</h2>
-    <p>Membuka aplikasi simulasi CAT resmi...</p>
+    <h2>CATARA Mobile</h2>
+    <p>Membuka CATARA — Digital Assessment Platform...</p>
     <a href="${origin}/dashboard">Buka Sekarang</a>
   </div>
 </body>
@@ -150,7 +150,7 @@ export default function DownloadAppPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "Prima-RIB-CAT-Android-Launcher.html";
+    a.download = "CATARA-Android-Launcher.html";
     a.click();
     URL.revokeObjectURL(url);
 
@@ -185,13 +185,13 @@ export default function DownloadAppPage() {
   return (
     <AppShell
       role="user"
-      userName={user.full_name || "Peserta Prima RIB"}
+      userName={user.full_name || "Peserta CATARA"}
       userSubtitle={`Peserta • ${user.target_selection || "CPNS"}`}
     >
       <div className="hidden lg:block">
         <PageHeader
           title="Download Aplikasi Mobile (Android & iOS)"
-          description="Akses latihan dan simulasi CAT CPNS, Sekolah Kedinasan, dan Polri lebih praktis dengan tampilan antarmuka khusus perangkat mobile."
+          description="Akses CATARA — Digital Assessment Platform lebih praktis dengan tampilan antarmuka khusus perangkat mobile."
           badge={<StatusBadge variant="featured" label="Android & iOS Ready" />}
           actions={
             <div className="flex flex-wrap gap-2.5">
@@ -205,7 +205,7 @@ export default function DownloadAppPage() {
               <Button
                 variant="outline"
                 onClick={handleInstallIOS}
-                leftIcon={<Smartphone className="h-4 w-4 text-[#4338ca]" />}
+                leftIcon={<Smartphone className="h-4 w-4 text-[#494ae2]" />}
               >
                 Install untuk iOS (iPhone/iPad)
               </Button>
@@ -230,7 +230,7 @@ export default function DownloadAppPage() {
           ===================================================================== */}
       <section className="mx-auto max-w-md lg:max-w-none grid grid-cols-1 gap-5 lg:grid-cols-12 mb-8">
         {/* Kartu Download Android */}
-        <div className="lg:col-span-5 rounded-[28px] border border-indigo-100 bg-white p-6 shadow-[0_12px_32px_rgba(67,56,202,0.07)] flex flex-col justify-between space-y-5">
+        <div className="lg:col-span-5 rounded-[28px] border border-indigo-100 bg-white p-6 shadow-[0_12px_32px_rgba(73,74,226,0.07)] flex flex-col justify-between space-y-5">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-100 px-3 py-1 text-xs font-extrabold text-emerald-800">
@@ -244,12 +244,12 @@ export default function DownloadAppPage() {
 
             <div className="flex items-center gap-3 pt-1">
               <img
-                src="/logo1.png"
-                alt="Ikon Aplikasi Prima RIB CAT"
+                src="/logoiconinstallmobile.png"
+                alt="Ikon Aplikasi CATARA"
                 className="h-12 w-12 rounded-2xl object-contain shadow-xs shrink-0"
               />
-              <h2 className="text-xl font-extrabold text-[#1e1b4b]">
-                Prima RIB CAT untuk Android
+              <h2 className="text-xl font-extrabold text-[#0c0c13]">
+                CATARA untuk Android
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
@@ -265,11 +265,11 @@ export default function DownloadAppPage() {
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                <span>Notifikasi Sesi Ujian &amp; Kelompok Belajar</span>
+                <span>Notifikasi Sesi Ujian &amp; Pemantauan Real-Time</span>
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                <span>Unduh Transkripsi Nilai &amp; Pembahasan Soal</span>
+                <span>Unduh Transkripsi Nilai &amp; Analisis Hasil</span>
               </li>
             </ul>
           </div>
@@ -278,7 +278,7 @@ export default function DownloadAppPage() {
             <button
               type="button"
               onClick={() => void handleInstallAndroid()}
-              className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#4338ca] hover:bg-[#3730a3] py-4 px-5 text-xs sm:text-sm font-extrabold text-white shadow-[0_12px_28px_rgba(67,56,202,0.28)] transition-transform active:scale-98 cursor-pointer"
+              className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#494ae2] to-[#7854ec] hover:from-[#3f40cc] hover:to-[#6946de] py-4 px-5 text-xs sm:text-sm font-extrabold text-white shadow-[0_12px_28px_rgba(73,74,226,0.28)] transition-transform active:scale-98 cursor-pointer"
             >
               <Download className="h-4 w-4" />
               <span>
@@ -295,10 +295,10 @@ export default function DownloadAppPage() {
         </div>
 
         {/* Kartu Download iOS (iPhone & iPad) */}
-        <div className="lg:col-span-5 rounded-[28px] border border-indigo-100 bg-white p-6 shadow-[0_12px_32px_rgba(67,56,202,0.07)] flex flex-col justify-between space-y-5">
+        <div className="lg:col-span-5 rounded-[28px] border border-indigo-100 bg-white p-6 shadow-[0_12px_32px_rgba(73,74,226,0.07)] flex flex-col justify-between space-y-5">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-100 px-3 py-1 text-xs font-extrabold text-[#4338ca]">
+              <span className="inline-flex items-center gap-1.5 rounded-xl bg-[#f5f8ff] border border-indigo-100 px-3 py-1 text-xs font-extrabold text-[#494ae2]">
                 <Smartphone className="h-3.5 w-3.5" />
                 APPLE iOS &amp; iPadOS
               </span>
@@ -309,12 +309,12 @@ export default function DownloadAppPage() {
 
             <div className="flex items-center gap-3 pt-1">
               <img
-                src="/logo1.png"
-                alt="Ikon Aplikasi iOS Prima RIB CAT"
+                src="/logoiconinstallmobile.png"
+                alt="Ikon Aplikasi iOS CATARA"
                 className="h-12 w-12 rounded-2xl object-contain shadow-xs shrink-0"
               />
-              <h2 className="text-xl font-extrabold text-[#1e1b4b]">
-                Prima RIB CAT untuk iOS (iPhone &amp; iPad)
+              <h2 className="text-xl font-extrabold text-[#0c0c13]">
+                CATARA untuk iOS (iPhone &amp; iPad)
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
@@ -325,16 +325,16 @@ export default function DownloadAppPage() {
 
             <ul className="space-y-2 pt-1 text-xs text-slate-600">
               <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-[#4338ca]" />
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-[#494ae2]" />
                 <span>Ikon Aplikasi Langsung di Home Screen iPhone</span>
               </li>
               <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-[#4338ca]" />
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-[#494ae2]" />
                 <span>Bebas Address Bar (Mode Layar Penuh iOS)</span>
               </li>
               <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-[#4338ca]" />
-                <span>Sinkronisasi Real-Time dengan Server CAT</span>
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-[#494ae2]" />
+                <span>Sinkronisasi Real-Time dengan Server CATARA</span>
               </li>
             </ul>
           </div>
@@ -343,7 +343,7 @@ export default function DownloadAppPage() {
             <button
               type="button"
               onClick={handleInstallIOS}
-              className="flex w-full items-center justify-center gap-2.5 rounded-2xl border-2 border-[#4338ca] bg-[#eef0ff] hover:bg-[#4338ca] hover:text-white py-4 px-5 text-xs sm:text-sm font-extrabold text-[#4338ca] transition-all active:scale-98 cursor-pointer"
+              className="flex w-full items-center justify-center gap-2.5 rounded-2xl border-2 border-[#494ae2] bg-[#f5f8ff] hover:bg-gradient-to-r hover:from-[#494ae2] hover:to-[#7854ec] hover:border-transparent hover:text-white py-4 px-5 text-xs sm:text-sm font-extrabold text-[#494ae2] transition-all active:scale-98 cursor-pointer"
             >
               <Smartphone className="h-4 w-4" />
               <span>Pasang di iPhone / iPad (iOS)</span>
@@ -355,22 +355,22 @@ export default function DownloadAppPage() {
         </div>
 
         {/* Kartu Link Cepat / Akses Mobile */}
-        <div className="lg:col-span-2 rounded-[28px] bg-gradient-to-br from-[#4338ca] to-[#312e81] p-5 text-white shadow-[0_12px_32px_rgba(67,56,202,0.22)] flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-2 rounded-[28px] bg-gradient-to-br from-[#494ae2] to-[#7854ec] p-5 text-white shadow-[0_12px_32px_rgba(73,74,226,0.22)] flex flex-col justify-between space-y-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="inline-block rounded-lg bg-white/15 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider">
                 Akses Cepat
               </span>
               <img
-                src="/logo1.png"
-                alt="Ikon Share Link Prima RIB CAT"
+                src="/logoiconinstallmobile.png"
+                alt="Ikon Share Link CATARA"
                 className="h-8 w-8 rounded-lg object-contain shadow-xs"
               />
             </div>
             <h3 className="text-sm font-extrabold leading-snug">
               Buka di Smartphone Anda
             </h3>
-            <p className="text-[11px] text-indigo-100 leading-relaxed">
+            <p className="text-[11px] text-[#f5f8ff]/90 leading-relaxed">
               Salin tautan aplikasi di bawah ini lalu buka di browser Chrome
               (Android) atau Safari (iPhone):
             </p>
@@ -380,7 +380,7 @@ export default function DownloadAppPage() {
             <button
               type="button"
               onClick={handleCopyAppLink}
-              className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-white py-2.5 px-3 text-xs font-extrabold text-[#3730a3] shadow-sm cursor-pointer"
+              className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-white py-2.5 px-3 text-xs font-extrabold text-[#494ae2] shadow-sm cursor-pointer"
             >
               {copiedUrl ? (
                 <>
@@ -408,13 +408,13 @@ export default function DownloadAppPage() {
       {/* =====================================================================
           BAGIAN 2: PRATINJAU 3 LAYAR TAMPILAN MOBILE RESMI (Sesuai Desain)
           ===================================================================== */}
-      <section className="rounded-[32px] border border-indigo-100 bg-[#e8ecff]/70 p-5 sm:p-8 shadow-inner mb-8">
+      <section className="rounded-[32px] border border-indigo-100 bg-gradient-to-br from-[#f5f8ff] to-[#e9edff]/70 p-5 sm:p-8 shadow-inner mb-8">
         <div className="text-center max-w-2xl mx-auto mb-7 space-y-1.5">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1 text-xs font-extrabold text-[#4338ca] shadow-2xs">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1 text-xs font-extrabold text-[#494ae2] shadow-2xs">
             <Smartphone className="h-3.5 w-3.5" />
-            Tampilan Antarmuka Mobile Prima RIB CAT
+            Tampilan Antarmuka Mobile CATARA
           </span>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-[#1e1b4b]">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-[#0c0c13]">
             Desain Modern, Ringkas &amp; Nyaman di Genggaman
           </h2>
           <p className="text-xs sm:text-sm text-slate-600">
@@ -423,10 +423,10 @@ export default function DownloadAppPage() {
           </p>
         </div>
 
-        {/* 3 Phone Mockups Grid (Persis Seperti Gambar Referensi) */}
+        {/* 3 Phone Mockups Grid */}
         <div className="grid grid-cols-1 gap-7 md:grid-cols-3 max-w-5xl mx-auto items-stretch">
           {/* LAYAR 1: ONBOARDING MOBILE ("Lebih mudah untuk mengakses simulasi CAT dengan mobile") */}
-          <div className="relative mx-auto w-full max-w-[320px] rounded-[36px] bg-[#4338ca] p-5 text-white shadow-[0_24px_60px_rgba(67,56,202,0.32)] flex flex-col justify-between overflow-hidden">
+          <div className="relative mx-auto w-full max-w-[320px] rounded-[36px] bg-gradient-to-br from-[#494ae2] via-[#5e4fe7] to-[#7854ec] p-5 text-white shadow-[0_24px_60px_rgba(73,74,226,0.32)] flex flex-col justify-between overflow-hidden">
             {/* Wavy Top Lines */}
             <svg
               viewBox="0 0 400 100"
@@ -454,25 +454,25 @@ export default function DownloadAppPage() {
             {/* 3D Stylized Smartphone Illustration */}
             <div className="relative my-auto py-8 flex flex-col items-center justify-center">
               <div className="relative flex h-44 w-28 flex-col items-center justify-between rounded-[24px] border-4 border-rose-200 bg-white p-3 shadow-2xl">
-                <div className="flex h-16 w-full items-center justify-center rounded-xl bg-rose-400 text-white shadow-inner">
+                <div className="flex h-16 w-full items-center justify-center rounded-xl bg-gradient-to-br from-rose-400 to-[#7854ec] text-white shadow-inner">
                   <PlayCircle className="h-8 w-8 fill-white/20" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="h-3.5 w-3.5 rounded-full bg-rose-400" />
-                  <span className="h-3.5 w-3.5 rounded-full bg-indigo-950" />
-                  <span className="h-3.5 w-3.5 rounded-full bg-amber-400" />
+                  <span className="h-3.5 w-3.5 rounded-full bg-[#494ae2]" />
+                  <span className="h-3.5 w-3.5 rounded-full bg-[#0c0c13]" />
+                  <span className="h-3.5 w-3.5 rounded-full bg-[#7854ec]" />
                 </div>
                 <div className="grid w-full grid-cols-3 gap-1.5">
-                  <span className="h-4 rounded-md bg-rose-100" />
-                  <span className="h-4 rounded-md bg-rose-100" />
-                  <span className="h-4 rounded-md bg-rose-100" />
+                  <span className="h-4 rounded-md bg-[#f5f8ff]" />
+                  <span className="h-4 rounded-md bg-[#f5f8ff]" />
+                  <span className="h-4 rounded-md bg-[#f5f8ff]" />
                 </div>
               </div>
               <div className="mt-[-10px] h-7 w-32 rounded-full border-4 border-rose-400/90" />
             </div>
 
             {/* Bottom Frosted Card */}
-            <div className="rounded-[28px] bg-[#5248e8] p-6 text-center space-y-3.5 shadow-inner">
+            <div className="rounded-[28px] bg-white/15 backdrop-blur-md border border-white/20 p-6 text-center space-y-3.5 shadow-inner">
               <div className="flex items-center justify-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
                 <span className="h-2 w-2 rounded-full bg-white" />
@@ -481,55 +481,56 @@ export default function DownloadAppPage() {
               <h3 className="text-base font-extrabold leading-snug text-white">
                 Lebih mudah untuk mengakses simulasi CAT dengan mobile
               </h3>
-              <p className="text-xs text-indigo-100/90 leading-relaxed">
-                Sekarang kamu bisa mengakses simulasi CAT dengan lebih mudah.
+              <p className="text-xs text-[#f5f8ff]/90 leading-relaxed">
+                Sekarang kamu bisa mengakses CATARA — Digital Assessment Platform
+                dengan lebih mudah.
               </p>
               <button
                 type="button"
                 onClick={() => router.push("/dashboard")}
-                className="mt-2 w-full rounded-2xl bg-white py-3.5 text-xs font-extrabold text-[#3730a3] shadow-md transition-transform hover:scale-[1.01] active:scale-98 cursor-pointer"
+                className="mt-2 w-full rounded-2xl bg-white py-3.5 text-xs font-extrabold text-[#494ae2] shadow-md transition-transform hover:scale-[1.01] active:scale-98 cursor-pointer"
               >
                 Mulai
               </button>
             </div>
           </div>
 
-          {/* LAYAR 2: BERANDA MOBILE ("Selamat datang di, Prima RIB CAT.") */}
-          <div className="mx-auto w-full max-w-[320px] rounded-[36px] bg-[#f8f9ff] p-5 shadow-[0_24px_60px_rgba(67,56,202,0.16)] border border-white flex flex-col justify-between space-y-5">
+          {/* LAYAR 2: BERANDA MOBILE ("Selamat datang di, CATARA") */}
+          <div className="mx-auto w-full max-w-[320px] rounded-[36px] bg-[#f5f8ff] p-5 shadow-[0_24px_60px_rgba(73,74,226,0.16)] border border-white flex flex-col justify-between space-y-5">
             <div className="space-y-5">
               {/* Header */}
               <div className="flex items-center justify-between pt-1">
                 <div className="flex items-center gap-2.5">
                   <img
-                    src="/logo3.png"
-                    alt="Logo Prima RIB CAT"
+                    src="/logoheadermobile.png"
+                    alt="Logo CATARA"
                     className="h-8 w-8 object-contain shrink-0"
                   />
                   <div>
                     <p className="text-[11px] font-medium text-slate-400">
                       Selamat datang di,
                     </p>
-                    <h3 className="text-lg font-extrabold tracking-tight text-[#312e81]">
-                      Simulasi CAT
+                    <h3 className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-[#494ae2] to-[#7854ec] bg-clip-text text-transparent">
+                      CATARA
                     </h3>
                   </div>
                 </div>
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eef0ff] text-[#4338ca]">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white border border-indigo-100 text-[#494ae2]">
                   <LayoutGrid className="h-4 w-4" />
                 </div>
               </div>
 
               {/* Hero Profile Card */}
-              <div className="relative overflow-hidden rounded-[22px] bg-gradient-to-br from-[#4338ca] via-[#493fe8] to-[#3730a3] p-4 text-white shadow-[0_14px_30px_rgba(67,56,202,0.28)]">
+              <div className="relative overflow-hidden rounded-[22px] bg-gradient-to-br from-[#494ae2] via-[#5e4fe7] to-[#7854ec] p-4 text-white shadow-[0_14px_30px_rgba(73,74,226,0.28)]">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-[10px] font-semibold text-indigo-200 tabular-nums">
+                    <p className="text-[10px] font-semibold text-white/80 tabular-nums">
                       1983242342
                     </p>
                     <p className="mt-0.5 text-base font-extrabold text-white">
-                      {user.full_name || "Peserta Prima RIB"}
+                      {user.full_name || "Peserta CATARA"}
                     </p>
-                    <p className="mt-3 text-[11px] text-indigo-100">
+                    <p className="mt-3 text-[11px] text-white/90">
                       {user.institution ||
                         `Seleksi ${user.target_selection || "CPNS"}`}
                     </p>
@@ -538,10 +539,10 @@ export default function DownloadAppPage() {
                     </p>
                   </div>
                   <div className="flex flex-col items-end justify-between self-stretch">
-                    <div className="flex h-12 w-14 items-center justify-center rounded-xl bg-white/10">
-                      <PenTool className="h-6 w-6 text-amber-300" />
+                    <div className="flex h-12 w-14 items-center justify-center rounded-xl bg-white/15">
+                      <PenTool className="h-6 w-6 text-white" />
                     </div>
-                    <span className="mt-3 rounded-xl bg-white px-2.5 py-1 text-[10px] font-extrabold text-[#3730a3]">
+                    <span className="mt-3 rounded-xl bg-white px-2.5 py-1 text-[10px] font-extrabold text-[#494ae2]">
                       110 Soal
                     </span>
                   </div>
@@ -550,7 +551,7 @@ export default function DownloadAppPage() {
 
               {/* Menu Informasi (8 Ikon) */}
               <div className="space-y-2.5">
-                <p className="text-xs font-extrabold text-[#1e1b4b]">
+                <p className="text-xs font-extrabold text-[#0c0c13]">
                   Menu Informasi
                 </p>
                 <div className="grid grid-cols-4 gap-2.5">
@@ -558,7 +559,7 @@ export default function DownloadAppPage() {
                     {
                       label: "Jadwal",
                       icon: CalendarClock,
-                      bg: "bg-indigo-100 text-[#4338ca]",
+                      bg: "bg-indigo-100 text-[#494ae2]",
                       href: "/ujian",
                     },
                     {
@@ -582,7 +583,7 @@ export default function DownloadAppPage() {
                     {
                       label: "Cat PA",
                       icon: PenTool,
-                      bg: "bg-purple-100 text-purple-600",
+                      bg: "bg-purple-100 text-[#7854ec]",
                       href: "/hasil",
                     },
                     {
@@ -594,7 +595,7 @@ export default function DownloadAppPage() {
                     {
                       label: "LPBA",
                       icon: Bookmark,
-                      bg: "bg-blue-100 text-[#4338ca]",
+                      bg: "bg-blue-100 text-[#494ae2]",
                       href: "/hasil",
                     },
                     {
@@ -609,14 +610,14 @@ export default function DownloadAppPage() {
                       <Link
                         key={m.label}
                         href={m.href}
-                        className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white p-2.5 shadow-[0_6px_16px_rgba(67,56,202,0.05)]"
+                        className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white p-2.5 shadow-[0_6px_16px_rgba(73,74,226,0.05)]"
                       >
                         <div
                           className={`flex h-9 w-9 items-center justify-center rounded-xl ${m.bg}`}
                         >
                           <Icon className="h-4 w-4" />
                         </div>
-                        <span className="text-[10px] font-bold text-[#1e1b4b]">
+                        <span className="text-[10px] font-bold text-[#0c0c13]">
                           {m.label}
                         </span>
                       </Link>
@@ -628,21 +629,21 @@ export default function DownloadAppPage() {
               {/* Notifikasi */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-extrabold text-[#1e1b4b]">
+                  <p className="text-xs font-extrabold text-[#0c0c13]">
                     Notifikasi
                   </p>
-                  <span className="text-[10px] font-bold text-[#4338ca]">
+                  <span className="text-[10px] font-bold text-[#494ae2]">
                     Lihat semua
                   </span>
                 </div>
-                <div className="flex items-start gap-2.5 rounded-2xl bg-white p-3.5 shadow-[0_6px_16px_rgba(67,56,202,0.05)]">
+                <div className="flex items-start gap-2.5 rounded-2xl bg-white p-3.5 shadow-[0_6px_16px_rgba(73,74,226,0.05)]">
                   <span className="h-9 w-1 shrink-0 rounded-full bg-emerald-400" />
                   <div>
-                    <p className="text-[11px] font-extrabold text-[#1e1b4b]">
+                    <p className="text-[11px] font-extrabold text-[#0c0c13]">
                       Pendaftaran Simulasi CAT Batch Aktif
                     </p>
                     <p className="mt-0.5 text-[10px] text-slate-400">
-                      Peserta bersertifikat seleksi CPNS, Sekdin &amp; Polri
+                      CATARA — Digital Assessment Platform
                     </p>
                   </div>
                 </div>
@@ -650,9 +651,9 @@ export default function DownloadAppPage() {
             </div>
 
             {/* Bottom Tab Bar Preview */}
-            <div className="grid grid-cols-5 items-center pt-3 border-t border-indigo-50 text-[#c7d2fe]">
-              <div className="flex flex-col items-center gap-1 text-[#4338ca]">
-                <span className="h-1 w-4 rounded-full bg-[#4338ca]" />
+            <div className="grid grid-cols-5 items-center pt-3 border-t border-indigo-100/70 text-[#c7d2fe]">
+              <div className="flex flex-col items-center gap-1 text-[#494ae2]">
+                <span className="h-1 w-4 rounded-full bg-gradient-to-r from-[#494ae2] to-[#7854ec]" />
                 <Home className="h-4 w-4" />
               </div>
               <div className="flex justify-center">
@@ -671,20 +672,20 @@ export default function DownloadAppPage() {
           </div>
 
           {/* LAYAR 3: HASIL STUDI & TRANSKRIPSI NILAI */}
-          <div className="mx-auto w-full max-w-[320px] rounded-[36px] bg-[#f8f9ff] p-5 shadow-[0_24px_60px_rgba(67,56,202,0.16)] border border-white flex flex-col justify-between space-y-5">
+          <div className="mx-auto w-full max-w-[320px] rounded-[36px] bg-[#f5f8ff] p-5 shadow-[0_24px_60px_rgba(73,74,226,0.16)] border border-white flex flex-col justify-between space-y-5">
             <div className="space-y-5">
               {/* Header */}
               <div className="flex items-center justify-between pt-1">
-                <h3 className="text-lg font-extrabold tracking-tight text-[#312e81]">
+                <h3 className="text-lg font-extrabold tracking-tight text-[#0c0c13]">
                   Hasil Studi
                 </h3>
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eef0ff] text-[#4338ca]">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white border border-indigo-100 text-[#494ae2]">
                   <LayoutGrid className="h-4 w-4" />
                 </div>
               </div>
 
               {/* Session Selector Pill */}
-              <div className="flex items-center justify-between rounded-2xl border border-indigo-50 bg-white px-3.5 py-3 text-[11px] font-bold text-slate-500 shadow-[0_4px_14px_rgba(67,56,202,0.04)]">
+              <div className="flex items-center justify-between rounded-2xl border border-indigo-100/80 bg-white px-3.5 py-3 text-[11px] font-bold text-slate-500 shadow-[0_4px_14px_rgba(73,74,226,0.04)]">
                 <span>Simulasi SKD - 2025/2026 Genap</span>
                 <span>▾</span>
               </div>
@@ -731,16 +732,16 @@ export default function DownloadAppPage() {
                   return (
                     <div
                       key={c.label}
-                      className="rounded-2xl bg-white p-3.5 shadow-[0_6px_18px_rgba(67,56,202,0.05)] space-y-2.5"
+                      className="rounded-2xl bg-white p-3.5 shadow-[0_6px_18px_rgba(73,74,226,0.05)] space-y-2.5"
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#4338ca] text-white">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-white">
                           <Icon className="h-4 w-4" />
                         </div>
                         <MoreVertical className="h-3.5 w-3.5 text-slate-300" />
                       </div>
                       <div>
-                        <p className="text-xl font-extrabold text-[#312e81] tabular-nums">
+                        <p className="text-xl font-extrabold text-[#0c0c13] tabular-nums">
                           {c.val}
                         </p>
                         <p className="text-[10px] font-medium text-slate-400">
@@ -754,7 +755,7 @@ export default function DownloadAppPage() {
 
               {/* Transkripsi Nilai */}
               <div className="space-y-2.5 pt-1">
-                <p className="text-xs font-extrabold text-[#1e1b4b]">
+                <p className="text-xs font-extrabold text-[#0c0c13]">
                   Transkripsi Nilai
                 </p>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
@@ -763,7 +764,7 @@ export default function DownloadAppPage() {
                 </p>
                 <Link
                   href="/hasil"
-                  className="block w-full rounded-2xl bg-[#4338ca] py-3.5 text-center text-xs font-extrabold text-white shadow-[0_10px_24px_rgba(67,56,202,0.28)]"
+                  className="block w-full rounded-2xl bg-gradient-to-r from-[#494ae2] to-[#7854ec] py-3.5 text-center text-xs font-extrabold text-white shadow-[0_10px_24px_rgba(73,74,226,0.28)]"
                 >
                   Download File
                 </Link>
@@ -771,15 +772,15 @@ export default function DownloadAppPage() {
             </div>
 
             {/* Bottom Tab Bar Preview */}
-            <div className="grid grid-cols-5 items-center pt-3 border-t border-indigo-50 text-[#c7d2fe]">
+            <div className="grid grid-cols-5 items-center pt-3 border-t border-indigo-100/70 text-[#c7d2fe]">
               <div className="flex justify-center">
                 <Home className="h-4 w-4" />
               </div>
               <div className="flex justify-center">
                 <ClipboardList className="h-4 w-4" />
               </div>
-              <div className="flex flex-col items-center gap-1 text-[#4338ca]">
-                <span className="h-1 w-4 rounded-full bg-[#4338ca]" />
+              <div className="flex flex-col items-center gap-1 text-[#494ae2]">
+                <span className="h-1 w-4 rounded-full bg-gradient-to-r from-[#494ae2] to-[#7854ec]" />
                 <BookOpen className="h-4 w-4" />
               </div>
               <div className="flex justify-center">
@@ -802,7 +803,7 @@ export default function DownloadAppPage() {
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
-            <h2 className="text-base sm:text-lg font-extrabold text-[#1e1b4b]">
+            <h2 className="text-base sm:text-lg font-extrabold text-[#0c0c13]">
               Cara Memasang Aplikasi di Layar Utama HP
             </h2>
             <p className="text-xs text-slate-500">
@@ -811,14 +812,14 @@ export default function DownloadAppPage() {
             </p>
           </div>
 
-          <div className="inline-flex rounded-2xl bg-[#f6f7ff] p-1 border border-indigo-100">
+          <div className="inline-flex rounded-2xl bg-[#f5f8ff] p-1 border border-indigo-100">
             <button
               type="button"
               onClick={() => setSelectedPlatformTab("android")}
               className={`rounded-xl px-4 py-2 text-xs font-extrabold transition-colors cursor-pointer ${
                 selectedPlatformTab === "android"
-                  ? "bg-[#4338ca] text-white shadow-xs"
-                  : "text-slate-600 hover:text-[#4338ca]"
+                  ? "bg-gradient-to-r from-[#494ae2] to-[#7854ec] text-white shadow-xs"
+                  : "text-slate-600 hover:text-[#494ae2]"
               }`}
             >
               Android (Chrome)
@@ -828,8 +829,8 @@ export default function DownloadAppPage() {
               onClick={() => setSelectedPlatformTab("ios")}
               className={`rounded-xl px-4 py-2 text-xs font-extrabold transition-colors cursor-pointer ${
                 selectedPlatformTab === "ios"
-                  ? "bg-[#4338ca] text-white shadow-xs"
-                  : "text-slate-600 hover:text-[#4338ca]"
+                  ? "bg-gradient-to-r from-[#494ae2] to-[#7854ec] text-white shadow-xs"
+                  : "text-slate-600 hover:text-[#494ae2]"
               }`}
             >
               iOS (iPhone / iPad)
@@ -839,11 +840,11 @@ export default function DownloadAppPage() {
 
         {selectedPlatformTab === "android" ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-indigo-50 bg-[#f8f9ff] p-4 space-y-2">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-[#4338ca] text-xs font-extrabold text-white">
+            <div className="rounded-2xl border border-indigo-50 bg-[#f5f8ff] p-4 space-y-2">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-xs font-extrabold text-white">
                 1
               </span>
-              <h3 className="text-sm font-extrabold text-[#1e1b4b]">
+              <h3 className="text-sm font-extrabold text-[#0c0c13]">
                 Tekan Tombol Install Android
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed">
@@ -852,11 +853,11 @@ export default function DownloadAppPage() {
                 pojok kanan atas browser Chrome Android Anda.
               </p>
             </div>
-            <div className="rounded-2xl border border-indigo-50 bg-[#f8f9ff] p-4 space-y-2">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-[#4338ca] text-xs font-extrabold text-white">
+            <div className="rounded-2xl border border-indigo-50 bg-[#f5f8ff] p-4 space-y-2">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-xs font-extrabold text-white">
                 2
               </span>
-              <h3 className="text-sm font-extrabold text-[#1e1b4b]">
+              <h3 className="text-sm font-extrabold text-[#0c0c13]">
                 Pilih &ldquo;Instal Aplikasi&rdquo;
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed">
@@ -866,29 +867,29 @@ export default function DownloadAppPage() {
                 muncul.
               </p>
             </div>
-            <div className="rounded-2xl border border-indigo-50 bg-[#f8f9ff] p-4 space-y-2">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-[#4338ca] text-xs font-extrabold text-white">
+            <div className="rounded-2xl border border-indigo-50 bg-[#f5f8ff] p-4 space-y-2">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-xs font-extrabold text-white">
                 3
               </span>
-              <h3 className="text-sm font-extrabold text-[#1e1b4b]">
+              <h3 className="text-sm font-extrabold text-[#0c0c13]">
                 Siap Digunakan di Home Screen
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Ikon <strong>Prima RIB CAT</strong> kini tampil di daftar
-                aplikasi Android Anda dan berjalan dalam mode layar penuh!
+                Ikon <strong>CATARA</strong> kini tampil di daftar aplikasi
+                Android Anda dan berjalan dalam mode layar penuh!
               </p>
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-indigo-50 bg-[#f8f9ff] p-4 space-y-2">
+            <div className="rounded-2xl border border-indigo-50 bg-[#f5f8ff] p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-[#4338ca] text-xs font-extrabold text-white">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-xs font-extrabold text-white">
                   1
                 </span>
-                <Share className="h-4 w-4 text-[#4338ca]" />
+                <Share className="h-4 w-4 text-[#494ae2]" />
               </div>
-              <h3 className="text-sm font-extrabold text-[#1e1b4b]">
+              <h3 className="text-sm font-extrabold text-[#0c0c13]">
                 Buka di Safari &amp; Ketuk Bagikan (Share)
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed">
@@ -897,14 +898,14 @@ export default function DownloadAppPage() {
                 di bilah navigasi bawah.
               </p>
             </div>
-            <div className="rounded-2xl border border-indigo-50 bg-[#f8f9ff] p-4 space-y-2">
+            <div className="rounded-2xl border border-indigo-50 bg-[#f5f8ff] p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-[#4338ca] text-xs font-extrabold text-white">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-xs font-extrabold text-white">
                   2
                 </span>
-                <PlusSquare className="h-4 w-4 text-[#4338ca]" />
+                <PlusSquare className="h-4 w-4 text-[#494ae2]" />
               </div>
-              <h3 className="text-sm font-extrabold text-[#1e1b4b]">
+              <h3 className="text-sm font-extrabold text-[#0c0c13]">
                 Pilih &ldquo;Tambah ke Layar Utama&rdquo;
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed">
@@ -912,20 +913,20 @@ export default function DownloadAppPage() {
                 <strong>Tambah ke Layar Utama (Add to Home Screen)</strong>.
               </p>
             </div>
-            <div className="rounded-2xl border border-indigo-50 bg-[#f8f9ff] p-4 space-y-2">
+            <div className="rounded-2xl border border-indigo-50 bg-[#f5f8ff] p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-[#4338ca] text-xs font-extrabold text-white">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-xs font-extrabold text-white">
                   3
                 </span>
                 <CheckCircle2 className="h-4 w-4 text-emerald-600" />
               </div>
-              <h3 className="text-sm font-extrabold text-[#1e1b4b]">
+              <h3 className="text-sm font-extrabold text-[#0c0c13]">
                 Ketuk &ldquo;Tambah (Add)&rdquo;
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed">
                 Ketuk <strong>Tambah</strong> di pojok kanan atas. Aplikasi{" "}
-                <strong>Prima RIB CAT</strong> siap dibuka langsung dari Home
-                Screen iPhone/iPad Anda!
+                <strong>CATARA</strong> siap dibuka langsung dari Home Screen
+                iPhone/iPad Anda!
               </p>
             </div>
           </div>

@@ -42,11 +42,11 @@ export default function LoginPage() {
       title="Masuk ke Akun Anda"
       subtitle="Masukkan alamat email dan kata sandi untuk mengakses ruang ujian atau panel pengelolaan."
       footer={
-        <p className="text-neutral-600">
+        <p className="text-slate-600">
           Belum memiliki akun peserta?{" "}
           <Link
             href="/register"
-            className="font-bold text-[#0b49d0] hover:underline"
+            className="font-bold text-[#494ae2] hover:underline"
           >
             Daftar Sekarang
           </Link>
@@ -80,13 +80,13 @@ export default function LoginPage() {
           <div className="flex items-center justify-between">
             <label
               htmlFor="login-password"
-              className="block text-sm font-semibold text-[#151515]"
+              className="block text-sm font-semibold text-[#0c0c13]"
             >
               Kata Sandi <span className="text-red-600">*</span>
             </label>
             <Link
               href="/lupa-password"
-              className="text-xs font-semibold text-[#0b49d0] hover:underline"
+              className="text-xs font-semibold text-[#494ae2] hover:underline"
             >
               Lupa kata sandi?
             </Link>

@@ -25,7 +25,7 @@ import { appendAuditLog } from "@/lib/admin-store";
 import { ERD_TABLES_SUMMARY } from "@/lib/mock-store";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 
-const SYSTEM_SETTINGS_KEY = "prima_cat_system_settings_v2_prod";
+const SYSTEM_SETTINGS_KEY = "catara_system_settings_v1";
 
 interface SystemSettingsData {
   orgName: string;
@@ -38,9 +38,9 @@ interface SystemSettingsData {
 }
 
 const DEFAULT_SYSTEM_SETTINGS: SystemSettingsData = {
-  orgName: "Prima RIB",
-  appTitle: "Simulasi CAT Prima RIB",
-  supportEmail: "support@primarib.id",
+  orgName: "CATARA",
+  appTitle: "CATARA — Digital Assessment Platform",
+  supportEmail: "support@catara.id",
   timezone: "Asia/Makassar (WITA - UTC+8)",
   defaultGraceMins: "15",
   signedUrlTtl: "60",
@@ -175,7 +175,7 @@ export default function AdminPengaturanPage() {
     setResetModalOpen(false);
     setToast({
       type: "warning",
-      title: "Cache SesiSementara Dibersihkan",
+      title: "Cache Sesi Sementara Dibersihkan",
       desc: "Cache sesi sementara telah dibersihkan tanpa menghapus Pengaturan Sistem dan Konfigurasi Homepage Anda.",
     });
   }
@@ -188,7 +188,7 @@ export default function AdminPengaturanPage() {
     >
       <PageHeader
         title="Pengaturan Aplikasi & Kebijakan Sistem"
-        description="Kelola profil instansi Prima RIB, kebijakan keamanan ruang ujian CAT, konfigurasi bucket privat Supabase Storage, dan utilitas sistem."
+        description="Kelola profil platform CATARA, kebijakan keamanan ruang ujian CAT, konfigurasi bucket privat Supabase Storage, dan utilitas sistem."
         badge={<StatusBadge variant="active" label="Production Ready" />}
         actions={
           <Button
@@ -221,7 +221,7 @@ export default function AdminPengaturanPage() {
             <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
           )}
           <div>
-            <p className="text-sm font-extrabold text-[#151515]">
+            <p className="text-sm font-extrabold text-[#0c0c13]">
               Status Koneksi Supabase:{" "}
               {supabaseConnected
                 ? "Terhubung ke Supabase Produksi"
@@ -247,8 +247,8 @@ export default function AdminPengaturanPage() {
           className="lg:col-span-7 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-5"
         >
           <div className="border-b border-neutral-100 pb-3">
-            <h2 className="text-base font-extrabold text-[#151515] flex items-center gap-2">
-              <Settings className="h-5 w-5 text-[#0b49d0]" />
+            <h2 className="text-base font-extrabold text-[#0c0c13] flex items-center gap-2">
+              <Settings className="h-5 w-5 text-[#494ae2]" />
               <span>Identitas Instansi & Parameter Operasional</span>
             </h2>
             <p className="text-xs text-neutral-500">
@@ -354,29 +354,29 @@ export default function AdminPengaturanPage() {
         {/* Kebijakan Keamanan & Storage (5/12) */}
         <div className="lg:col-span-5 space-y-6">
           <section className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-3.5">
-            <h2 className="text-base font-extrabold text-[#151515] flex items-center gap-2">
+            <h2 className="text-base font-extrabold text-[#0c0c13] flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-emerald-600" />
               <span>Standar Keamanan & Integritas CAT</span>
             </h2>
             <ul className="space-y-2.5 text-xs text-neutral-700 leading-relaxed">
-              <li className="rounded-xl bg-[#fcfbf7] border border-neutral-200 p-3">
-                <strong className="text-[#151515] block">
+              <li className="rounded-xl bg-[#f5f8ff] border border-neutral-200 p-3">
+                <strong className="text-[#0c0c13] block">
                   1. Proteksi Kunci Jawaban & Penilaian Server-Side
                 </strong>
                 Payload soal ke perangkat peserta (`SafeQuestionSnapshot`) telah
                 dibersihkan dari <code>correct_option</code>,{" "}
                 <code>tkp_scores</code>, dan <code>explanation</code>.
               </li>
-              <li className="rounded-xl bg-[#fcfbf7] border border-neutral-200 p-3">
-                <strong className="text-[#151515] block">
+              <li className="rounded-xl bg-[#f5f8ff] border border-neutral-200 p-3">
+                <strong className="text-[#0c0c13] block">
                   2. Pencegahan Eskalasi Role (`role = user`)
                 </strong>
                 Trigger database PostgreSQL{" "}
                 <code>handle_new_auth_user()</code> memaksa seluruh registrasi
                 mandiri berstatus <code>user</code>.
               </li>
-              <li className="rounded-xl bg-[#fcfbf7] border border-neutral-200 p-3">
-                <strong className="text-[#151515] block">
+              <li className="rounded-xl bg-[#f5f8ff] border border-neutral-200 p-3">
+                <strong className="text-[#0c0c13] block">
                   3. Private Storage Bucket (`question-assets`)
                 </strong>
                 Format diizinkan: <code>JPG, PNG, WEBP</code> dengan ukuran
@@ -387,8 +387,8 @@ export default function AdminPengaturanPage() {
 
           <section className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-extrabold text-[#151515] flex items-center gap-2">
-                <Database className="h-4 w-4 text-[#0b49d0]" />
+              <h2 className="text-sm font-extrabold text-[#0c0c13] flex items-center gap-2">
+                <Database className="h-4 w-4 text-[#494ae2]" />
                 <span>Status Skema 19 Tabel ERD</span>
               </h2>
               <span className="rounded-lg bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
@@ -404,9 +404,9 @@ export default function AdminPengaturanPage() {
               {ERD_TABLES_SUMMARY.map((t) => (
                 <div
                   key={t.no}
-                  className="flex items-center justify-between rounded-lg border border-neutral-100 bg-[#fcfbf7] px-2.5 py-1.5 text-xs"
+                  className="flex items-center justify-between rounded-lg border border-neutral-100 bg-[#f5f8ff] px-2.5 py-1.5 text-xs"
                 >
-                  <span className="font-mono font-bold text-[#0b49d0]">
+                  <span className="font-mono font-bold text-[#494ae2]">
                     {t.no}. {t.name}
                   </span>
                   <span className="text-[11px] text-neutral-500">

@@ -38,7 +38,7 @@ export function SubmitConfirmation({
       cancelLabel="Kembali ke Ruang Ujian"
     >
       <div className="space-y-3">
-        <div className="rounded-xl border border-neutral-200 bg-[#fcfbf7] p-4 text-xs sm:text-sm space-y-2">
+        <div className="rounded-xl border border-neutral-200 bg-[#f5f8ff] p-4 text-xs sm:text-sm space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-neutral-600 flex items-center gap-1.5">
               <CheckCircle2 className="h-4 w-4 text-emerald-600" />
@@ -53,7 +53,7 @@ export function SubmitConfirmation({
             <span className="text-neutral-600">Belum Dijawab (Kosong):</span>
             <span
               className={`font-bold tabular-nums ${
-                unansweredCount > 0 ? "text-red-600" : "text-[#151515]"
+                unansweredCount > 0 ? "text-red-600" : "text-[#0c0c13]"
               }`}
             >
               {unansweredCount} Soal
@@ -64,7 +64,7 @@ export function SubmitConfirmation({
             <span className="text-neutral-600">Ditandai Ragu-ragu:</span>
             <span
               className={`font-bold tabular-nums ${
-                flaggedCount > 0 ? "text-amber-700" : "text-[#151515]"
+                flaggedCount > 0 ? "text-[#7854ec]" : "text-[#0c0c13]"
               }`}
             >
               {flaggedCount} Soal
@@ -73,8 +73,8 @@ export function SubmitConfirmation({
         </div>
 
         {(unansweredCount > 0 || flaggedCount > 0) && (
-          <div className="flex items-start gap-2 rounded-xl border border-[#ffc63d] bg-[#fff9e6] p-3 text-xs text-[#151515]">
-            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-700 mt-0.5" />
+          <div className="flex items-start gap-2 rounded-xl border border-[#7854ec]/30 bg-[#f5f8ff] p-3 text-xs text-[#0c0c13]">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-[#7854ec] mt-0.5" />
             <span>
               Anda masih memiliki{" "}
               {unansweredCount > 0 && (
@@ -91,7 +91,7 @@ export function SubmitConfirmation({
         )}
 
         <p className="text-[11px] text-neutral-500 flex items-center gap-1.5">
-          <Send className="h-3.5 w-3.5 text-[#0b49d0]" />
+          <Send className="h-3.5 w-3.5 text-[#494ae2]" />
           <span>
             Setelah dikirim, sesi ujian akan dikunci oleh server dan tidak dapat
             diubah kembali.

@@ -238,7 +238,7 @@ function QuestionEditorInner() {
   return (
     <AppShell
       role="admin"
-      userName="Admin Prima RIB"
+      userName="Admin CATARA"
       userSubtitle="Editor Bank Soal"
     >
       <PageHeader
@@ -247,7 +247,7 @@ function QuestionEditorInner() {
         backLink={
           <Link
             href="/admin/bank-soal"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0b49d0] hover:underline"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#494ae2] hover:underline"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             <span>Kembali ke Bank Soal</span>

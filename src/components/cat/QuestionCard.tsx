@@ -39,10 +39,10 @@ export function QuestionCard({
       {/* Header Nomor Soal & Badge Subtes */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 pb-3.5">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center rounded-xl bg-[#0b49d0] px-3 py-1.5 text-sm sm:text-base font-extrabold text-white tabular-nums">
+          <span className="inline-flex items-center rounded-xl bg-gradient-to-r from-[#494ae2] to-[#7854ec] px-3 py-1.5 text-sm sm:text-base font-extrabold text-white tabular-nums">
             Soal No. {display_number}
           </span>
-          <span className="rounded-lg bg-[#eef4ff] px-2.5 py-1 text-xs font-bold text-[#0b49d0]">
+          <span className="rounded-lg bg-[#f5f8ff] px-2.5 py-1 text-xs font-bold text-[#494ae2] border border-[#494ae2]/15">
             Subtes: {section_key}
           </span>
           <span className="text-xs text-neutral-500 tabular-nums">
@@ -64,8 +64,8 @@ export function QuestionCard({
             disabled={disabled}
             className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
               is_flagged
-                ? "border-[#e5ad28] bg-[#ffc63d] text-[#151515]"
-                : "border-neutral-300 bg-[#fcfbf7] text-[#151515] hover:border-[#ffc63d]"
+                ? "border-[#7854ec] bg-[#7854ec] text-white"
+                : "border-neutral-300 bg-[#f5f8ff] text-[#0c0c13] hover:border-[#7854ec]"
             }`}
           >
             <Flag className="h-3.5 w-3.5" />
@@ -76,12 +76,12 @@ export function QuestionCard({
 
       {/* Teks & Gambar Pertanyaan */}
       <div className="space-y-4">
-        <div className="text-base sm:text-[17px] text-[#151515] leading-relaxed font-medium whitespace-pre-line">
+        <div className="text-base sm:text-[17px] text-[#0c0c13] leading-relaxed font-medium whitespace-pre-line">
           {question_snapshot.prompt.replace(/^\[Simulasi[^\]]*\]\s*/i, "")}
         </div>
 
         {promptAsset && (
-          <div className="rounded-xl border border-neutral-200 bg-[#fcfbf7] p-3 space-y-2">
+          <div className="rounded-xl border border-neutral-200 bg-[#f5f8ff] p-3 space-y-2">
             <img
               src={promptAsset.storage_path}
               alt={promptAsset.alt_text || "Gambar pertanyaan"}
@@ -96,7 +96,7 @@ export function QuestionCard({
                     alt: promptAsset.alt_text || "Gambar pertanyaan",
                   })
                 }
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0b49d0] hover:underline"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#494ae2] hover:underline"
               >
                 <ZoomIn className="h-3.5 w-3.5" />
                 <span>Perbesar Gambar</span>
@@ -150,7 +150,7 @@ export function QuestionCard({
             <button
               type="button"
               onClick={() => setZoomedImage(null)}
-              className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-xl bg-[#151515] text-white"
+              className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-xl bg-[#0c0c13] text-white"
               aria-label="Tutup perbesaran gambar"
             >
               <X className="h-5 w-5" />

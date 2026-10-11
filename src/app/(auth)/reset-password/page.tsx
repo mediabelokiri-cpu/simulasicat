@@ -42,7 +42,7 @@ export default function ResetPasswordPage() {
       footer={
         <Link
           href="/login"
-          className="font-bold text-[#0b49d0] hover:underline"
+          className="font-bold text-[#494ae2] hover:underline"
         >
           Kembali ke Halaman Login
         </Link>

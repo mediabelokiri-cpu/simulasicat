@@ -46,8 +46,8 @@ export function QuestionNavigator({
       <div className="flex flex-col space-y-4">
         <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
           <div className="flex items-center gap-2">
-            <Grid className="h-4 w-4 text-[#0b49d0]" />
-            <h2 className="text-sm font-bold text-[#151515]">
+            <Grid className="h-4 w-4 text-[#494ae2]" />
+            <h2 className="text-sm font-bold text-[#0c0c13]">
               Navigasi Nomor Soal
             </h2>
           </div>
@@ -72,8 +72,8 @@ export function QuestionNavigator({
               className={cn(
                 "rounded-lg px-2.5 py-1 text-xs font-bold transition-colors cursor-pointer",
                 sectionTab === "ALL"
-                  ? "bg-[#0b49d0] text-white"
-                  : "bg-neutral-100 text-[#151515] hover:bg-neutral-200"
+                  ? "bg-gradient-to-r from-[#494ae2] to-[#7854ec] text-white"
+                  : "bg-neutral-100 text-[#0c0c13] hover:bg-neutral-200"
               )}
             >
               Semua ({questions.length})
@@ -86,8 +86,8 @@ export function QuestionNavigator({
                 className={cn(
                   "rounded-lg px-2.5 py-1 text-xs font-bold transition-colors cursor-pointer",
                   sectionTab === sk
-                    ? "bg-[#0b49d0] text-white"
-                    : "bg-neutral-100 text-[#151515] hover:bg-neutral-200"
+                    ? "bg-gradient-to-r from-[#494ae2] to-[#7854ec] text-white"
+                    : "bg-neutral-100 text-[#0c0c13] hover:bg-neutral-200"
                 )}
               >
                 {sk}
@@ -124,11 +124,11 @@ export function QuestionNavigator({
                 className={cn(
                   "relative flex h-11 w-full flex-col items-center justify-center rounded-xl border text-xs font-bold tabular-nums transition-all cursor-pointer select-none",
                   isFlagged
-                    ? "border-[#d89c14] bg-[#ffc63d] text-[#151515]"
+                    ? "border-[#7854ec] bg-[#7854ec] text-white"
                     : isAnswered
-                    ? "border-[#0b49d0] bg-[#0b49d0] text-white"
-                    : "border-neutral-300 bg-white text-[#151515] hover:border-[#0b49d0]",
-                  isCurrent && "ring-2 ring-[#151515] ring-offset-2"
+                    ? "border-[#494ae2] bg-[#494ae2] text-white"
+                    : "border-neutral-300 bg-white text-[#0c0c13] hover:border-[#494ae2]",
+                  isCurrent && "ring-2 ring-[#0c0c13] ring-offset-2"
                 )}
               >
                 <span>{sq.display_number}</span>
@@ -156,25 +156,25 @@ export function QuestionNavigator({
         {/* Legenda Status Soal (Warna + Simbol + Teks) */}
         <div className="border-t border-neutral-200 pt-3 grid grid-cols-2 gap-2 text-[11px] text-neutral-700">
           <div className="flex items-center gap-2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-md bg-[#0b49d0] text-[10px] font-bold text-white">
+            <span className="flex h-5 w-5 items-center justify-center rounded-md bg-[#494ae2] text-[10px] font-bold text-white">
               ✓
             </span>
             <span>Sudah Dijawab</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-md bg-[#ffc63d] text-[10px] font-bold text-[#151515]">
+            <span className="flex h-5 w-5 items-center justify-center rounded-md bg-[#7854ec] text-[10px] font-bold text-white">
               !
             </span>
             <span>Ragu-ragu</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-md border border-neutral-300 bg-white text-[10px] font-bold text-[#151515]">
+            <span className="flex h-5 w-5 items-center justify-center rounded-md border border-neutral-300 bg-white text-[10px] font-bold text-[#0c0c13]">
               -
             </span>
             <span>Belum Dijawab</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-md border-2 border-[#151515] bg-white text-[10px] font-bold text-[#151515]">
+            <span className="flex h-5 w-5 items-center justify-center rounded-md border-2 border-[#0c0c13] bg-white text-[10px] font-bold text-[#0c0c13]">
               #
             </span>
             <span>Nomor Aktif</span>

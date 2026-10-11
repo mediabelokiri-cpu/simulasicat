@@ -1,14 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-blue: #0b49d0;
-  --color-brand-blue-hover: #093db0;
-  --color-brand-blue-light: #eef4ff;
-  --color-brand-yellow: #ffc63d;
-  --color-brand-yellow-hover: #f2b726;
-  --color-brand-yellow-light: #fff9e6;
-  --color-brand-bg: #fcfbf7;
-  --color-brand-dark: #151515;
+  --color-brand-blue: #494ae2;
+  --color-brand-blue-hover: #7854ec;
+  --color-brand-blue-light: #f5f8ff;
+  --color-brand-violet: #7854ec;
+  --color-brand-bg: #f5f8ff;
+  --color-brand-dark: #0c0c13;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
@@ -16,15 +14,15 @@
 @layer base {
   html,
   body {
-    background-color: #fcfbf7;
-    color: #151515;
+    background-color: #f5f8ff;
+    color: #0c0c13;
     font-family: var(--font-sans);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
   }
 
   *:focus-visible {
-    outline: 2px solid #0b49d0;
+    outline: 2px solid #494ae2;
     outline-offset: 2px;
   }
 }

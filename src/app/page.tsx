@@ -135,15 +135,25 @@ export default function LandingPage() {
     return (
       <section
         key="hero"
-        className="relative overflow-hidden border-b border-neutral-200/80 bg-gradient-to-b from-[#eef4ff]/70 to-[#fcfbf7] py-10 sm:py-14"
+        className="relative overflow-hidden border-b border-indigo-100/80 bg-gradient-to-br from-[#f5f8ff] via-white to-[#eef2ff] py-12 sm:py-16"
       >
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        {/* Subtle decorative gradient orbs */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-gradient-to-br from-[#494ae2]/10 to-[#7854ec]/15 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-gradient-to-tr from-[#7854ec]/10 to-[#494ae2]/10 blur-3xl"
+        />
+
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center">
             <div className="lg:col-span-7 space-y-6">
               {(config.hero.badgeText || config.hero.badgeSubtext) && (
-                <div className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-2xl sm:rounded-full border border-[#0b49d0]/20 bg-white px-3 py-1.5 shadow-2xs">
+                <div className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-2xl sm:rounded-full border border-[#494ae2]/20 bg-white px-3 py-1.5 shadow-2xs">
                   {config.hero.badgeText && (
-                    <span className=" shrink-0">
+                    <span className="shrink-0">
                       <StatusBadge
                         variant="featured"
                         label={config.hero.badgeText}
@@ -152,24 +162,24 @@ export default function LandingPage() {
                     </span>
                   )}
                   {config.hero.badgeSubtext && (
-                    <span className="text-[11px] sm:text-xs font-semibold text-[#0b49d0] leading-tight">
+                    <span className="text-[11px] sm:text-xs font-semibold bg-gradient-to-r from-[#494ae2] to-[#7854ec] bg-clip-text text-transparent leading-tight">
                       {config.hero.badgeSubtext}
                     </span>
                   )}
                 </div>
               )}
 
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#151515] leading-[1.15]">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#0c0c13] leading-[1.15]">
                 {config.hero.titlePrefix}{" "}
-                <span className="text-[#0b49d0]">
+                <span className="bg-gradient-to-r from-[#494ae2] to-[#7854ec] bg-clip-text text-transparent">
                   {config.hero.titleHighlight}
                 </span>{" "}
                 {config.hero.titleSuffix}
               </h1>
 
-              <p className="text-sm sm:text-base text-neutral-600 leading-relaxed max-w-2xl">
+              <div className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl whitespace-pre-line">
                 {config.hero.description}
-              </p>
+              </div>
 
               <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 pt-1">
                 {activeUser ? (
@@ -215,13 +225,13 @@ export default function LandingPage() {
               </div>
 
               {config.hero.stats.length > 0 && (
-                <div className="grid grid-cols-3 gap-3 sm:gap-4 pt-4 border-t border-neutral-200/80 max-w-lg text-xs">
+                <div className="grid grid-cols-3 gap-3 sm:gap-4 pt-4 border-t border-indigo-100/90 max-w-lg text-xs">
                   {config.hero.stats.map((st, i) => (
                     <div key={i} className="min-w-0">
-                      <p className="font-extrabold text-sm sm:text-lg text-[#0b49d0] tabular-nums truncate">
+                      <p className="font-extrabold text-sm sm:text-lg bg-gradient-to-r from-[#494ae2] to-[#7854ec] bg-clip-text text-transparent tabular-nums truncate">
                         {st.value}
                       </p>
-                      <p className="text-[11px] sm:text-xs text-neutral-600 leading-snug">
+                      <p className="text-[11px] sm:text-xs text-slate-600 leading-snug">
                         {st.label}
                       </p>
                     </div>
@@ -233,34 +243,37 @@ export default function LandingPage() {
             {/* Right Hero Visual (Gambar Hero PNG Transparan atau Kartu Keamanan) */}
             <div className="lg:col-span-5 flex justify-center lg:justify-end">
               {config.hero.rightDisplayMode === "card" ? (
-                <div className="w-full rounded-2xl border border-neutral-200 bg-white p-6 shadow-md space-y-5">
-                  <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
+                <div className="w-full rounded-2xl border border-indigo-100 bg-white p-6 shadow-[0_16px_40px_rgba(73,74,226,0.08)] space-y-5">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0b49d0] text-white">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-white shadow-sm">
                         <ShieldCheck className="h-6 w-6" />
                       </div>
                       <div>
-                        <h2 className="text-base font-extrabold text-[#151515]">
+                        <h2 className="text-base font-extrabold text-[#0c0c13]">
                           {config.hero.securityCardTitle}
                         </h2>
-                        <p className="text-xs text-neutral-500">
+                        <p className="text-xs text-slate-500">
                           {config.hero.securityCardSubtitle}
                         </p>
                       </div>
                     </div>
                     {config.hero.securityCardBadge && (
-                      <span className="rounded-lg bg-[#ffc63d] px-2.5 py-1 text-xs font-extrabold text-[#151515]">
+                      <span className="rounded-lg bg-gradient-to-r from-[#494ae2] to-[#7854ec] px-2.5 py-1 text-xs font-extrabold text-white">
                         {config.hero.securityCardBadge}
                       </span>
                     )}
                   </div>
 
-                  <ul className="space-y-3 text-xs sm:text-sm text-neutral-700">
+                  <ul className="space-y-3 text-xs sm:text-sm text-slate-700">
                     {config.hero.securityFeatures.map((feat) => (
                       <li key={feat.id} className="flex items-start gap-2.5">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <CheckCircle2 className="h-4 w-4 text-[#494ae2] shrink-0 mt-0.5" />
                         <span>
-                          <strong>{feat.title}</strong> {feat.description}
+                          <strong className="text-[#0c0c13]">
+                            {feat.title}
+                          </strong>{" "}
+                          {feat.description}
                         </span>
                       </li>
                     ))}
@@ -271,7 +284,7 @@ export default function LandingPage() {
                   src={config.hero.heroImageUrl || "/hero-prima-rib.png"}
                   alt={
                     config.hero.heroImageAlt ||
-                    "Peserta Simulasi CAT Prima RIB"
+                    "CATARA — Digital Assessment Platform"
                   }
                   style={{
                     maxWidth: `${config.hero.heroImageWidth || 380}px`,
@@ -294,10 +307,10 @@ export default function LandingPage() {
         className="mx-auto max-w-6xl px-4 py-12 sm:px-6 space-y-6"
       >
         <div className="text-center max-w-2xl mx-auto space-y-2">
-          <h2 className="text-xl sm:text-2xl font-extrabold text-[#151515]">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-[#0c0c13]">
             {config.categories.sectionTitle}
           </h2>
-          <p className="text-xs sm:text-sm text-neutral-600">
+          <p className="text-xs sm:text-sm text-slate-600">
             {config.categories.sectionSubtitle}
           </p>
         </div>
@@ -306,14 +319,14 @@ export default function LandingPage() {
           {config.categories.items.map((cat) => (
             <div
               key={cat.id}
-              className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs space-y-3"
+              className="rounded-2xl border border-indigo-100/90 bg-white p-6 shadow-xs hover:shadow-md transition-shadow space-y-3"
             >
               <div
                 className={cn(
-                  "flex h-11 w-11 items-center justify-center rounded-xl",
+                  "flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-xs",
                   cat.icon === "building"
-                    ? "bg-[#fff9e6] text-[#0b49d0]"
-                    : "bg-[#eef4ff] text-[#0b49d0]"
+                    ? "bg-gradient-to-br from-[#7854ec] to-[#494ae2]"
+                    : "bg-gradient-to-br from-[#494ae2] to-[#7854ec]"
                 )}
               >
                 {cat.icon === "award" ? (
@@ -324,10 +337,10 @@ export default function LandingPage() {
                   <BookOpen className="h-5 w-5" />
                 )}
               </div>
-              <h3 className="text-base font-extrabold text-[#151515]">
+              <h3 className="text-base font-extrabold text-[#0c0c13]">
                 {cat.title}
               </h3>
-              <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                 {cat.description}
               </p>
             </div>
@@ -347,18 +360,18 @@ export default function LandingPage() {
             id="leaderboard"
             className="mx-auto max-w-6xl px-4 py-8 pb-14 sm:px-6 space-y-5"
           >
-            <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-7 shadow-xs space-y-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-neutral-100 pb-4">
+            <div className="rounded-2xl border border-indigo-100/90 bg-white p-5 sm:p-7 shadow-xs space-y-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2.5">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ffc63d] text-[#151515]">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-white shadow-xs">
                       <Trophy className="h-5 w-5" />
                     </div>
                     <div>
-                      <h2 className="text-lg sm:text-xl font-extrabold text-[#151515]">
+                      <h2 className="text-lg sm:text-xl font-extrabold text-[#0c0c13]">
                         {config.leaderboard.sectionTitle}
                       </h2>
-                      <p className="text-xs text-neutral-500">
+                      <p className="text-xs text-slate-500">
                         {config.leaderboard.sectionSubtitle}
                       </p>
                     </div>
@@ -387,10 +400,10 @@ export default function LandingPage() {
                 )}
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-xl border border-indigo-100/80">
                 <table className="w-full text-left border-collapse text-xs sm:text-sm">
                   <thead>
-                    <tr className="border-b border-neutral-200 bg-[#0b49d0] text-white font-bold">
+                    <tr className="border-b border-[#494ae2]/20 bg-gradient-to-r from-[#494ae2] to-[#7854ec] text-white font-bold">
                       <th className="py-3 px-3">Peringkat</th>
                       <th className="py-3 px-3">Nama Peserta</th>
                       <th className="py-3 px-3">Sesi Ujian</th>
@@ -403,18 +416,18 @@ export default function LandingPage() {
                       <th className="py-3 px-3">Status Passing Grade</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-neutral-200/80">
+                  <tbody className="divide-y divide-slate-200/80">
                     {leaderboardRows.length === 0 ? (
                       <tr>
                         <td
                           colSpan={8}
-                          className="py-10 px-4 text-center text-neutral-500"
+                          className="py-10 px-4 text-center text-slate-500"
                         >
                           <div className="mx-auto max-w-md space-y-1.5">
-                            <p className="text-sm font-bold text-[#151515]">
+                            <p className="text-sm font-bold text-[#0c0c13]">
                               {config.leaderboard.emptyTitle}
                             </p>
-                            <p className="text-xs text-neutral-500">
+                            <p className="text-xs text-slate-500">
                               {config.leaderboard.emptyDescription}
                             </p>
                           </div>
@@ -432,10 +445,14 @@ export default function LandingPage() {
                         const examObj = exams.find(
                           (e) => e.id === runObj?.exam_id
                         );
-                        const snapshotTitle =
+                        const rawTitle =
                           (row.result_snapshot?.exam_title as string) ||
                           examObj?.title ||
-                          "Simulasi CAT Prima RIB";
+                          "Simulasi CAT CATARA";
+                        const snapshotTitle = rawTitle.replace(
+                          /Prima\s*RIB/gi,
+                          "CATARA"
+                        );
                         const snapshotRunName =
                           (row.result_snapshot?.run_name as string) ||
                           runObj?.name ||
@@ -465,17 +482,17 @@ export default function LandingPage() {
                               isMe && "font-semibold"
                             )}
                           >
-                            <td className="py-3 px-3 tabular-nums font-extrabold text-[#151515]">
+                            <td className="py-3 px-3 tabular-nums font-extrabold text-[#0c0c13]">
                               <span
                                 className={cn(
                                   "inline-flex h-7 w-7 items-center justify-center rounded-lg text-xs",
                                   idx === 0
-                                    ? "bg-[#ffc63d] text-[#151515]"
+                                    ? "bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-white shadow-2xs"
                                     : idx === 1
-                                    ? "bg-neutral-300 text-[#151515]"
+                                    ? "bg-[#0c0c13] text-white"
                                     : idx === 2
-                                    ? "bg-amber-700 text-white"
-                                    : "bg-white/90 text-neutral-800 border border-neutral-300"
+                                    ? "bg-indigo-100 text-[#494ae2]"
+                                    : "bg-white/90 text-slate-800 border border-slate-300"
                                 )}
                               >
                                 #{idx + 1}
@@ -483,37 +500,40 @@ export default function LandingPage() {
                             </td>
                             <td className="py-3 px-3">
                               <div className="flex items-center gap-2">
-                                <span className="font-bold text-[#151515]">
-                                  {prof?.full_name || "Peserta Simulasi"}
+                                <span className="font-bold text-[#0c0c13]">
+                                  {(prof?.full_name || "Peserta CATARA").replace(
+                                    /Prima\s*RIB/gi,
+                                    "CATARA"
+                                  )}
                                 </span>
                                 {isMe && (
-                                  <span className="rounded-md bg-[#0b49d0] px-2 py-0.5 text-[10px] font-bold text-white">
+                                  <span className="rounded-md bg-gradient-to-r from-[#494ae2] to-[#7854ec] px-2 py-0.5 text-[10px] font-bold text-white">
                                     Anda
                                   </span>
                                 )}
                               </div>
-                              <span className="block text-[11px] text-neutral-600">
+                              <span className="block text-[11px] text-slate-600">
                                 Selesai: {formatDateTimeID(row.created_at)}
                               </span>
                             </td>
                             <td className="py-3 px-3">
-                              <span className="block font-semibold text-[#151515]">
+                              <span className="block font-semibold text-[#0c0c13]">
                                 {snapshotTitle}
                               </span>
-                              <span className="block text-[11px] text-neutral-600">
+                              <span className="block text-[11px] text-slate-600">
                                 {snapshotRunName}
                               </span>
                             </td>
-                            <td className="py-3 px-3 text-center tabular-nums font-bold text-[#151515]">
+                            <td className="py-3 px-3 text-center tabular-nums font-bold text-[#0c0c13]">
                               {twk}
                             </td>
-                            <td className="py-3 px-3 text-center tabular-nums font-bold text-[#151515]">
+                            <td className="py-3 px-3 text-center tabular-nums font-bold text-[#0c0c13]">
                               {tiu}
                             </td>
-                            <td className="py-3 px-3 text-center tabular-nums font-bold text-[#151515]">
+                            <td className="py-3 px-3 text-center tabular-nums font-bold text-[#0c0c13]">
                               {tkp}
                             </td>
-                            <td className="py-3 px-3 text-center tabular-nums text-base font-extrabold text-[#0b49d0]">
+                            <td className="py-3 px-3 text-center tabular-nums text-base font-extrabold text-[#494ae2]">
                               {row.total_score}
                             </td>
                             <td className="py-3 px-3">
@@ -566,158 +586,181 @@ export default function LandingPage() {
 
       <div
         className={cn(
-          "min-h-screen bg-[#fcfbf7] text-[#151515] flex-col",
+          "min-h-screen bg-[#f5f8ff] text-[#0c0c13] flex-col",
           !activeUser ? "hidden lg:flex" : "flex"
         )}
       >
-      {/* Banner Pengumuman Opsional */}
-      {config.announcement.enabled && (
-        <div className="bg-[#ffc63d] text-[#151515] border-b border-[#e5ad28] px-4 py-2.5 text-xs sm:text-sm">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 font-medium">
-              <span className="inline-flex items-center gap-1 rounded-md bg-[#151515] px-2 py-0.5 text-[11px] font-bold text-[#ffc63d]">
-                <Megaphone className="h-3 w-3" />
-                {config.announcement.badge}
-              </span>
-              <span className="font-semibold">
-                {config.announcement.message}
-              </span>
-            </div>
-            {config.announcement.ctaLabel && config.announcement.ctaHref && (
-              <Link
-                href={config.announcement.ctaHref}
-                className="font-extrabold text-[#0b49d0] underline hover:no-underline"
-              >
-                {config.announcement.ctaLabel} →
-              </Link>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Top Navbar */}
-      <header className="sticky top-0 z-30 border-b border-[#093db0] bg-[#0b49d0] text-white shadow-xs">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3.5 py-3 sm:px-6 sm:py-3.5">
-          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 shrink-0">
-            <img
-              src={config.header.logoUrl || "/logo1.png"}
-              alt="Simulasi CAT"
-              className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-xl object-contain"
-            />
-            <div className="min-w-0">
-              <span className="block text-base sm:text-lg font-extrabold tracking-tight text-white whitespace-nowrap leading-tight">
-                {config.header.brandName &&
-                config.header.brandName !== "Prima RIB"
-                  ? config.header.brandName
-                  : "Simulasi CAT"}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-            <Link href="/live-score" className="shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white/15 text-white border-white/30 hover:bg-white/25 font-bold whitespace-nowrap px-2.5 sm:px-3.5 text-xs"
-                leftIcon={<Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#ffc63d]" />}
-              >
-                Live Score
-              </Button>
-            </Link>
-
-            {activeUser ? (
-              <>
-                {activeUser.role === "admin" && (
-                  <Link href="/admin/homepage" className="hidden md:inline-flex shrink-0">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-white/15 text-white border-white/30 hover:bg-white/25 font-semibold whitespace-nowrap"
-                      leftIcon={<SlidersHorizontal className="h-4 w-4" />}
-                    >
-                      Kelola Homepage
-                    </Button>
-                  </Link>
-                )}
+        {/* Banner Pengumuman Opsional */}
+        {config.announcement.enabled && (
+          <div className="bg-[#0c0c13] text-white border-b border-white/10 px-4 py-2.5 text-xs sm:text-sm">
+            <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2 font-medium">
+                <span className="inline-flex items-center gap-1 rounded-md bg-gradient-to-r from-[#494ae2] to-[#7854ec] px-2 py-0.5 text-[11px] font-bold text-white">
+                  <Megaphone className="h-3 w-3" />
+                  {config.announcement.badge}
+                </span>
+                <span className="font-semibold text-[#f5f8ff]">
+                  {config.announcement.message}
+                </span>
+              </div>
+              {config.announcement.ctaLabel && config.announcement.ctaHref && (
                 <Link
-                  href={activeUser.role === "admin" ? "/admin" : "/dashboard"}
-                  className="shrink-0"
+                  href={config.announcement.ctaHref}
+                  className="font-extrabold text-[#f5f8ff] underline hover:no-underline"
                 >
-                  <Button
-                    variant="accent"
-                    size="sm"
-                    className="whitespace-nowrap px-2.5 sm:px-3.5 text-xs"
-                    rightIcon={<ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
-                  >
-                    Dashboard
-                  </Button>
+                  {config.announcement.ctaLabel} →
                 </Link>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Top Navbar */}
+        <header className="sticky top-0 z-30 border-b border-white/15 bg-gradient-to-r from-[#494ae2] to-[#7854ec] text-white shadow-sm">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3.5 py-3 sm:px-6 sm:py-3.5">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 shrink-0">
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-white p-1.5 shadow-xs">
+                <img
+                  src="/logoheaderfooterhomepage.png"
+                  alt="CATARA — Digital Assessment Platform"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+              <div className="min-w-0">
+                <span className="block text-base sm:text-lg font-extrabold tracking-tight text-white whitespace-nowrap leading-tight">
+                  {config.header.brandName &&
+                  !config.header.brandName.toLowerCase().includes("prima")
+                    ? config.header.brandName
+                    : "CATARA"}
+                </span>
+                <span className="hidden sm:block text-[11px] font-medium text-white/85 truncate">
+                  {config.header.brandSubtitle ||
+                    "Digital Assessment Platform"}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+              <Link href="/live-score" className="shrink-0">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleLogout}
-                  className="hidden sm:inline-flex bg-white text-[#0b49d0] border-white hover:bg-neutral-100 font-bold whitespace-nowrap"
-                  leftIcon={<LogOut className="h-4 w-4" />}
+                  className="bg-white/15 text-white border-white/30 hover:bg-white/25 font-bold whitespace-nowrap px-2.5 sm:px-3.5 text-xs"
+                  leftIcon={
+                    <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
+                  }
                 >
-                  Keluar
+                  Live Score
                 </Button>
-              </>
-            ) : (
-              <>
-                <Link href="/login" className="shrink-0">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="bg-white text-[#0b49d0] border-white hover:bg-neutral-100 font-bold whitespace-nowrap px-3 sm:px-3.5 text-xs"
-                    leftIcon={<LogIn className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+              </Link>
+
+              {activeUser ? (
+                <>
+                  {activeUser.role === "admin" && (
+                    <Link
+                      href="/admin/homepage"
+                      className="hidden md:inline-flex shrink-0"
+                    >
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="bg-white/15 text-white border-white/30 hover:bg-white/25 font-semibold whitespace-nowrap"
+                        leftIcon={<SlidersHorizontal className="h-4 w-4" />}
+                      >
+                        Kelola Homepage
+                      </Button>
+                    </Link>
+                  )}
+                  <Link
+                    href={activeUser.role === "admin" ? "/admin" : "/dashboard"}
+                    className="shrink-0"
                   >
-                    {config.header.loginButtonLabel}
-                  </Button>
-                </Link>
-                {config.header.showRegisterButton && (
-                  <Link href="/register" className="hidden md:inline-flex shrink-0">
                     <Button
                       variant="accent"
                       size="sm"
-                      className="whitespace-nowrap"
-                      leftIcon={<UserPlus className="h-4 w-4" />}
+                      className="whitespace-nowrap px-2.5 sm:px-3.5 text-xs"
+                      rightIcon={
+                        <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      }
                     >
-                      {config.header.registerButtonLabel}
+                      Dashboard
                     </Button>
                   </Link>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content Sections (Berdasarkan urutan & visibilitas dari Admin) */}
-      <main className="flex-1">
-        {config.sectionOrder.map((secKey) => renderSectionByKey(secKey))}
-      </main>
-
-      {/* Footer */}
-      {config.footer.enabled && (
-        <footer className="border-t border-neutral-200 bg-white py-6">
-          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 sm:flex-row sm:px-6 text-xs text-neutral-500">
-            <div className="flex items-center gap-2">
-              <img
-                src={config.header.logoUrl || "/logo1.png"}
-                alt={config.header.brandName}
-                className="h-6 w-6 rounded-md object-contain"
-              />
-              <span className="font-bold text-[#151515]">
-                {config.footer.brandText}
-              </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleLogout}
+                    className="hidden sm:inline-flex bg-white text-[#494ae2] border-white hover:bg-[#f5f8ff] font-bold whitespace-nowrap"
+                    leftIcon={<LogOut className="h-4 w-4" />}
+                  >
+                    Keluar
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-white text-[#494ae2] border-white hover:bg-[#f5f8ff] font-bold whitespace-nowrap px-3 sm:px-3.5 text-xs"
+                      leftIcon={<LogIn className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+                    >
+                      {config.header.loginButtonLabel}
+                    </Button>
+                  </Link>
+                  {config.header.showRegisterButton && (
+                    <Link
+                      href="/register"
+                      className="hidden md:inline-flex shrink-0"
+                    >
+                      <Button
+                        variant="accent"
+                        size="sm"
+                        className="whitespace-nowrap"
+                        leftIcon={<UserPlus className="h-4 w-4" />}
+                      >
+                        {config.header.registerButtonLabel}
+                      </Button>
+                    </Link>
+                  )}
+                </>
+              )}
             </div>
-            <p>
-              © {new Date().getFullYear()} {config.footer.copyrightText}
-            </p>
           </div>
-        </footer>
-      )}
+        </header>
+
+        {/* Main Content Sections (Berdasarkan urutan & visibilitas dari Admin) */}
+        <main className="flex-1">
+          {config.sectionOrder.map((secKey) => renderSectionByKey(secKey))}
+        </main>
+
+        {/* Footer */}
+        {config.footer.enabled && (
+          <footer className="border-t border-indigo-100/80 bg-white py-8">
+            <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6 text-xs text-slate-500">
+              <div className="flex items-center gap-2.5">
+                <img
+                  src="/logoheaderfooterhomepage.png"
+                  alt="CATARA — Digital Assessment Platform"
+                  className="h-7 w-7 rounded-md object-contain"
+                />
+                <span className="font-extrabold text-[#0c0c13]">
+                  {config.footer.brandText &&
+                  !config.footer.brandText.toLowerCase().includes("prima")
+                    ? config.footer.brandText
+                    : "CATARA — Digital Assessment Platform"}
+                </span>
+              </div>
+              <p>
+                © {new Date().getFullYear()}{" "}
+                {config.footer.copyrightText &&
+                !config.footer.copyrightText.toLowerCase().includes("prima")
+                  ? config.footer.copyrightText
+                  : "CATARA. Hak cipta dilindungi."}
+              </p>
+            </div>
+          </footer>
+        )}
       </div>
     </>
   );

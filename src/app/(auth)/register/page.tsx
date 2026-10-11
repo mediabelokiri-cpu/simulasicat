@@ -54,11 +54,11 @@ export default function RegisterPage() {
       title="Pendaftaran Peserta Baru"
       subtitle="Buat akun peserta untuk mengikuti ujian simulasi CPNS, Sekolah Kedinasan, dan Polri."
       footer={
-        <p className="text-neutral-600">
+        <p className="text-slate-600">
           Sudah memiliki akun peserta?{" "}
           <Link
             href="/login"
-            className="font-bold text-[#0b49d0] hover:underline"
+            className="font-bold text-[#494ae2] hover:underline"
           >
             Masuk di sini
           </Link>
@@ -133,7 +133,7 @@ export default function RegisterPage() {
               type="text"
               value={institution}
               onChange={(e) => setInstitution(e.target.value)}
-              placeholder="Mis. Bimbel Prima RIB"
+              placeholder="Mis. Kelas Intensif SKD"
               className={inputBaseClasses}
             />
           </FormField>
@@ -190,8 +190,8 @@ export default function RegisterPage() {
           />
         </FormField>
 
-        <div className="rounded-xl border border-neutral-200 bg-[#fcfbf7] p-3 text-xs text-neutral-600 flex items-start gap-2.5">
-          <ShieldAlert className="h-4 w-4 shrink-0 text-[#0b49d0] mt-0.5" />
+        <div className="rounded-xl border border-indigo-100 bg-[#f5f8ff] p-3 text-xs text-slate-600 flex items-start gap-2.5">
+          <ShieldAlert className="h-4 w-4 shrink-0 text-[#494ae2] mt-0.5" />
           <span>
             Sesuai kebijakan keamanan sistem, pendaftaran mandiri otomatis
             diberikan hak akses <strong>Peserta (User)</strong> dan memerlukan

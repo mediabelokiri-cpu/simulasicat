@@ -258,7 +258,7 @@ export default function ManajemenKelompokPage() {
   return (
     <AppShell
       role="admin"
-      userName="Admin Prima RIB"
+      userName="Admin CATARA"
       userSubtitle="Manajemen Kelompok"
     >
       <PageHeader

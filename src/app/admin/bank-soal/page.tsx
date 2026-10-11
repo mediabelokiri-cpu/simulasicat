@@ -296,7 +296,7 @@ export default function BankSoalPage() {
   return (
     <AppShell
       role="admin"
-      userName="Admin Prima RIB"
+      userName="Admin CATARA"
       userSubtitle="Manajemen Bank Soal"
     >
       <PageHeader

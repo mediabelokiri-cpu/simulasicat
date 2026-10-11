@@ -34,10 +34,10 @@ export function EmptyState({
         className
       )}
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef4ff] text-[#0b49d0]">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f5f8ff] text-[#494ae2]">
         {icon ?? <Inbox className="h-6 w-6" aria-hidden="true" />}
       </div>
-      <h3 className="mt-4 text-base sm:text-lg font-bold text-[#151515]">
+      <h3 className="mt-4 text-base sm:text-lg font-bold text-[#0c0c13]">
         {title}
       </h3>
       <p className="mt-1.5 max-w-md text-sm text-neutral-600 leading-relaxed">
@@ -74,7 +74,7 @@ export function LoadingState({
         className
       )}
     >
-      <div className="flex items-center gap-2.5 text-sm font-medium text-[#0b49d0]">
+      <div className="flex items-center gap-2.5 text-sm font-medium text-[#494ae2]">
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
         <span>{message}</span>
       </div>
@@ -109,7 +109,7 @@ export function ErrorState({
     <div
       role="alert"
       className={cn(
-        "rounded-2xl border border-red-200 bg-red-50/70 p-5 sm:p-6 text-[#151515]",
+        "rounded-2xl border border-red-200 bg-red-50/70 p-5 sm:p-6 text-[#0c0c13]",
         className
       )}
     >
@@ -158,8 +158,8 @@ export function ToastNotification({
   const styles = {
     success: "border-emerald-300 bg-emerald-50 text-emerald-950",
     error: "border-red-300 bg-red-50 text-red-950",
-    warning: "border-[#ffc63d] bg-[#fff9e6] text-[#151515]",
-    info: "border-[#0b49d0]/30 bg-[#eef4ff] text-[#151515]",
+    warning: "border-[#7854ec]/40 bg-[#f5f8ff] text-[#0c0c13]",
+    info: "border-[#494ae2]/30 bg-[#f5f8ff] text-[#0c0c13]",
   };
 
   return (
@@ -172,7 +172,7 @@ export function ToastNotification({
       )}
     >
       <div className="flex items-start gap-2.5">
-        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#0b49d0]" />
+        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#494ae2]" />
         <div>
           <p className="text-sm font-bold">{title}</p>
           {description && (
@@ -198,7 +198,7 @@ export function OfflineBanner({ isOffline }: { isOffline?: boolean }) {
   return (
     <div
       role="alert"
-      className="flex items-center justify-center gap-2 bg-[#ffc63d] px-4 py-2 text-xs sm:text-sm font-semibold text-[#151515]"
+      className="flex items-center justify-center gap-2 bg-gradient-to-r from-[#494ae2] to-[#7854ec] px-4 py-2 text-xs sm:text-sm font-semibold text-white"
     >
       <WifiOff className="h-4 w-4 shrink-0" aria-hidden="true" />
       <span>

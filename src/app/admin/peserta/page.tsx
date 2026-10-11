@@ -295,7 +295,7 @@ export default function ManajemenPesertaPage() {
   return (
     <AppShell
       role="admin"
-      userName="Admin Prima RIB"
+      userName="Admin CATARA"
       userSubtitle="Manajemen Peserta"
     >
       <PageHeader

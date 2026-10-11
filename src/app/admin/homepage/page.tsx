@@ -125,7 +125,7 @@ export default function AdminHomepagePage() {
     setToast({
       type: "warning",
       title: "Homepage Dikembalikan ke Default",
-      desc: "Seluruh konten dan urutan section halaman depan telah dikembalikan ke pengaturan awal Prima RIB.",
+      desc: "Seluruh konten dan urutan section halaman depan telah dikembalikan ke pengaturan awal CATARA.",
     });
   }
 
@@ -322,8 +322,8 @@ export default function AdminHomepagePage() {
               className={cn(
                 "inline-flex min-h-[42px] items-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-bold transition-colors cursor-pointer",
                 active
-                  ? "bg-[#0b49d0] text-white shadow-xs"
-                  : "bg-white text-neutral-700 border border-neutral-200 hover:bg-neutral-50"
+                  ? "bg-gradient-to-r from-[#494ae2] to-[#7854ec] text-white shadow-xs"
+                  : "bg-white text-neutral-700 border border-neutral-200 hover:bg-[#f5f8ff]"
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -338,7 +338,7 @@ export default function AdminHomepagePage() {
         {activeTab === "layout" && (
           <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-6">
             <div className="border-b border-neutral-100 pb-4">
-              <h2 className="text-base sm:text-lg font-extrabold text-[#151515]">
+              <h2 className="text-base sm:text-lg font-extrabold text-[#0c0c13]">
                 Atur Visibilitas & Urutan Section Homepage
               </h2>
               <p className="text-xs text-neutral-500">
@@ -350,13 +350,13 @@ export default function AdminHomepagePage() {
 
             {/* Banner Pengumuman & Footer Quick Toggles */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-[#fcfbf7] p-4">
+              <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-[#f5f8ff] p-4">
                 <div className="space-y-0.5">
-                  <p className="text-sm font-extrabold text-[#151515]">
+                  <p className="text-sm font-extrabold text-[#0c0c13]">
                     Banner Pengumuman Atas
                   </p>
                   <p className="text-xs text-neutral-500">
-                    Pita pengumuman kuning di bagian paling atas halaman depan
+                    Pita pengumuman di bagian paling atas halaman depan
                   </p>
                 </div>
                 <Button
@@ -384,9 +384,9 @@ export default function AdminHomepagePage() {
                 </Button>
               </div>
 
-              <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-[#fcfbf7] p-4">
+              <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-[#f5f8ff] p-4">
                 <div className="space-y-0.5">
-                  <p className="text-sm font-extrabold text-[#151515]">
+                  <p className="text-sm font-extrabold text-[#0c0c13]">
                     Footer Halaman Depan
                   </p>
                   <p className="text-xs text-neutral-500">
@@ -440,12 +440,12 @@ export default function AdminHomepagePage() {
                     )}
                   >
                     <div className="flex items-start gap-3.5">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#0b49d0] text-xs font-extrabold text-white tabular-nums">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-xs font-extrabold text-white tabular-nums">
                         #{idx + 1}
                       </span>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm sm:text-base font-extrabold text-[#151515]">
+                          <h3 className="text-sm sm:text-base font-extrabold text-[#0c0c13]">
                             {info.title}
                           </h3>
                           <StatusBadge
@@ -513,14 +513,14 @@ export default function AdminHomepagePage() {
         {/* TAB 2: HEADER & PENGUMUMAN */}
         {activeTab === "header" && (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Pengaturan Header Biru */}
+            {/* Pengaturan Header */}
             <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
               <div className="border-b border-neutral-100 pb-3">
-                <h2 className="text-base font-extrabold text-[#151515]">
+                <h2 className="text-base font-extrabold text-[#0c0c13]">
                   Pengaturan Header / Navbar Utama
                 </h2>
                 <p className="text-xs text-neutral-500">
-                  Mengatur nama instansi, logo, dan tombol navigasi di bagian
+                  Mengatur nama platform, logo, dan tombol navigasi di bagian
                   atas halaman depan.
                 </p>
               </div>
@@ -558,7 +558,7 @@ export default function AdminHomepagePage() {
               <FormField
                 id="hdr-logo"
                 label="Path / URL Logo Header"
-                hint="Default: /logo1.png"
+                hint="Default: /logoheaderfooterhomepage.png"
               >
                 <input
                   id="hdr-logo"
@@ -593,7 +593,7 @@ export default function AdminHomepagePage() {
                   />
                 </FormField>
 
-                <FormField id="hdr-reg" label="Label Tombol Daftar (Kuning)">
+                <FormField id="hdr-reg" label="Label Tombol Daftar">
                   <input
                     id="hdr-reg"
                     type="text"
@@ -612,7 +612,7 @@ export default function AdminHomepagePage() {
                 </FormField>
               </div>
 
-              <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-[#fcfbf7] p-3.5 cursor-pointer">
+              <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-[#f5f8ff] p-3.5 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={config.header.showRegisterButton}
@@ -625,9 +625,9 @@ export default function AdminHomepagePage() {
                       },
                     }))
                   }
-                  className="h-4 w-4 rounded border-neutral-300 text-[#0b49d0]"
+                  className="h-4 w-4 rounded border-neutral-300 text-[#494ae2]"
                 />
-                <span className="text-xs sm:text-sm font-semibold text-[#151515]">
+                <span className="text-xs sm:text-sm font-semibold text-[#0c0c13]">
                   Tampilkan tombol Pendaftaran Peserta di Header & Hero
                 </span>
               </label>
@@ -637,7 +637,7 @@ export default function AdminHomepagePage() {
             <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                 <div>
-                  <h2 className="text-base font-extrabold text-[#151515]">
+                  <h2 className="text-base font-extrabold text-[#0c0c13]">
                     Banner Pengumuman Atas
                   </h2>
                   <p className="text-xs text-neutral-500">
@@ -651,7 +651,7 @@ export default function AdminHomepagePage() {
                 />
               </div>
 
-              <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-[#fcfbf7] p-3.5 cursor-pointer">
+              <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-[#f5f8ff] p-3.5 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={config.announcement.enabled}
@@ -664,9 +664,9 @@ export default function AdminHomepagePage() {
                       },
                     }))
                   }
-                  className="h-4 w-4 rounded border-neutral-300 text-[#0b49d0]"
+                  className="h-4 w-4 rounded border-neutral-300 text-[#494ae2]"
                 />
-                <span className="text-xs sm:text-sm font-semibold text-[#151515]">
+                <span className="text-xs sm:text-sm font-semibold text-[#0c0c13]">
                   Aktifkan Pita Pengumuman di Halaman Utama
                 </span>
               </label>
@@ -755,7 +755,7 @@ export default function AdminHomepagePage() {
             <div className="lg:col-span-7 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                 <div>
-                  <h2 className="text-base font-extrabold text-[#151515]">
+                  <h2 className="text-base font-extrabold text-[#0c0c13]">
                     Konten Utama Hero Section
                   </h2>
                   <p className="text-xs text-neutral-500">
@@ -773,14 +773,14 @@ export default function AdminHomepagePage() {
                         hero: { ...prev.hero, enabled: e.target.checked },
                       }))
                     }
-                    className="h-4 w-4 rounded border-neutral-300 text-[#0b49d0]"
+                    className="h-4 w-4 rounded border-neutral-300 text-[#494ae2]"
                   />
                   <span>Tampilkan Hero</span>
                 </label>
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField id="hero-badge" label="Teks Badge Kuning">
+                <FormField id="hero-badge" label="Teks Badge Utama">
                   <input
                     id="hero-badge"
                     type="text"
@@ -827,7 +827,7 @@ export default function AdminHomepagePage() {
                   />
                 </FormField>
 
-                <FormField id="hero-t2" label="Judul Highlight (Biru)">
+                <FormField id="hero-t2" label="Judul Highlight (Gradasi)">
                   <input
                     id="hero-t2"
                     type="text"
@@ -874,7 +874,7 @@ export default function AdminHomepagePage() {
               </FormField>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField id="hero-cta1" label="Label Tombol Utama (Biru)">
+                <FormField id="hero-cta1" label="Label Tombol Utama">
                   <input
                     id="hero-cta1"
                     type="text"
@@ -892,7 +892,7 @@ export default function AdminHomepagePage() {
                   />
                 </FormField>
 
-                <FormField id="hero-cta2" label="Label Tombol Kedua (Kuning)">
+                <FormField id="hero-cta2" label="Label Tombol Kedua">
                   <input
                     id="hero-cta2"
                     type="text"
@@ -919,7 +919,7 @@ export default function AdminHomepagePage() {
                   {config.hero.stats.map((st, idx) => (
                     <div
                       key={idx}
-                      className="rounded-xl border border-neutral-200 bg-[#fcfbf7] p-3 space-y-2"
+                      className="rounded-xl border border-neutral-200 bg-[#f5f8ff] p-3 space-y-2"
                     >
                       <input
                         type="text"
@@ -965,8 +965,8 @@ export default function AdminHomepagePage() {
             <div className="lg:col-span-5 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
               <div className="border-b border-neutral-100 pb-3 space-y-2">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5 text-[#0b49d0]" />
-                  <h2 className="text-base font-extrabold text-[#151515]">
+                  <ShieldCheck className="h-5 w-5 text-[#494ae2]" />
+                  <h2 className="text-base font-extrabold text-[#0c0c13]">
                     Visual Sisi Kanan Hero Section
                   </h2>
                 </div>
@@ -1000,7 +1000,7 @@ export default function AdminHomepagePage() {
 
               {config.hero.rightDisplayMode !== "card" ? (
                 <div className="space-y-4">
-                  <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-[#fcfbf7] p-3 flex justify-center">
+                  <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-[#f5f8ff] p-3 flex justify-center">
                     <img
                       src={config.hero.heroImageUrl || "/hero-prima-rib.png"}
                       alt={config.hero.heroImageAlt || "Preview Gambar Hero"}
@@ -1055,7 +1055,7 @@ export default function AdminHomepagePage() {
                         };
                         reader.readAsDataURL(file);
                       }}
-                      className="block w-full text-xs text-neutral-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#0b49d0] file:px-3 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-[#093db0] cursor-pointer"
+                      className="block w-full text-xs text-neutral-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#494ae2] file:px-3 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-[#3f40cd] cursor-pointer"
                     />
                   </FormField>
 
@@ -1065,7 +1065,7 @@ export default function AdminHomepagePage() {
                       type="text"
                       value={
                         config.hero.heroImageAlt ||
-                        "Peserta Simulasi CAT Prima RIB"
+                        "Peserta Simulasi CAT CATARA"
                       }
                       onChange={(e) =>
                         setConfig((prev) => ({
@@ -1103,7 +1103,7 @@ export default function AdminHomepagePage() {
                           },
                         }))
                       }
-                      className="w-full accent-[#0b49d0] cursor-pointer"
+                      className="w-full accent-[#494ae2] cursor-pointer"
                     />
                   </FormField>
                 </div>
@@ -1188,10 +1188,10 @@ export default function AdminHomepagePage() {
                     {config.hero.securityFeatures.map((feat, i) => (
                       <div
                         key={feat.id}
-                        className="rounded-xl border border-neutral-200 bg-[#fcfbf7] p-3.5 space-y-2"
+                        className="rounded-xl border border-neutral-200 bg-[#f5f8ff] p-3.5 space-y-2"
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-bold text-[#0b49d0]">
+                          <span className="text-xs font-bold text-[#494ae2]">
                             Poin #{i + 1}
                           </span>
                           {config.hero.securityFeatures.length > 1 && (
@@ -1241,12 +1241,12 @@ export default function AdminHomepagePage() {
           <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 pb-4">
               <div>
-                <h2 className="text-base sm:text-lg font-extrabold text-[#151515]">
+                <h2 className="text-base sm:text-lg font-extrabold text-[#0c0c13]">
                   Kelola Section Kategori Simulasi Seleksi
                 </h2>
                 <p className="text-xs text-neutral-500">
                   Ubah judul section, edit kartu kategori yang ada, atau
-                  tambahkan kartu kategori baru sesuai layanan Prima RIB.
+                  tambahkan kartu kategori baru sesuai layanan CATARA.
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -1263,7 +1263,7 @@ export default function AdminHomepagePage() {
                         },
                       }))
                     }
-                    className="h-4 w-4 rounded border-neutral-300 text-[#0b49d0]"
+                    className="h-4 w-4 rounded border-neutral-300 text-[#494ae2]"
                   />
                   <span>Tampilkan Section Kategori</span>
                 </label>
@@ -1321,11 +1321,11 @@ export default function AdminHomepagePage() {
               {config.categories.items.map((item, idx) => (
                 <div
                   key={item.id}
-                  className="rounded-2xl border border-neutral-200 bg-[#fcfbf7] p-4 space-y-3 flex flex-col justify-between"
+                  className="rounded-2xl border border-neutral-200 bg-[#f5f8ff] p-4 space-y-3 flex flex-col justify-between"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-extrabold text-[#0b49d0]">
+                      <span className="text-xs font-extrabold text-[#494ae2]">
                         Kartu Kategori #{idx + 1}
                       </span>
                       {config.categories.items.length > 1 && (
@@ -1411,7 +1411,7 @@ export default function AdminHomepagePage() {
             <div className="lg:col-span-7 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                 <div>
-                  <h2 className="text-base font-extrabold text-[#151515]">
+                  <h2 className="text-base font-extrabold text-[#0c0c13]">
                     Pengaturan Papan Leaderboard Hasil Ujian
                   </h2>
                   <p className="text-xs text-neutral-500">
@@ -1431,16 +1431,16 @@ export default function AdminHomepagePage() {
                         },
                       }))
                     }
-                    className="h-4 w-4 rounded border-neutral-300 text-[#0b49d0]"
+                    className="h-4 w-4 rounded border-neutral-300 text-[#494ae2]"
                   />
                   <span>Tampilkan di Homepage</span>
                 </label>
               </div>
 
               {/* Informasi Halaman Tersendiri untuk Papan Live Score Real-Time */}
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#0b49d0]/20 bg-[#eef4ff]/70 p-3.5">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#494ae2]/20 bg-[#f5f8ff] p-3.5">
                 <div>
-                  <p className="text-xs font-extrabold text-[#0b49d0]">
+                  <p className="text-xs font-extrabold text-[#494ae2]">
                     Papan Live Score Real-Time Memiliki Halaman Tersendiri (/live-score)
                   </p>
                   <p className="text-[11px] text-neutral-600">
@@ -1451,13 +1451,13 @@ export default function AdminHomepagePage() {
                   <Link
                     href="/live-score"
                     target="_blank"
-                    className="rounded-lg bg-white border border-neutral-200 px-3 py-1.5 text-xs font-bold text-[#151515] hover:bg-neutral-50"
+                    className="rounded-lg bg-white border border-neutral-200 px-3 py-1.5 text-xs font-bold text-[#0c0c13] hover:bg-neutral-50"
                   >
                     Lihat Halaman /live-score ↗
                   </Link>
                   <Link
                     href="/admin/live-score"
-                    className="rounded-lg bg-[#0b49d0] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#093bb0]"
+                    className="rounded-lg bg-gradient-to-r from-[#494ae2] to-[#7854ec] px-3 py-1.5 text-xs font-bold text-white hover:opacity-95"
                   >
                     Kelola Live Score →
                   </Link>
@@ -1560,7 +1560,7 @@ export default function AdminHomepagePage() {
                 </FormField>
               </div>
 
-              <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-[#fcfbf7] p-3.5 cursor-pointer">
+              <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-[#f5f8ff] p-3.5 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={config.leaderboard.showSessionFilter}
@@ -1573,9 +1573,9 @@ export default function AdminHomepagePage() {
                       },
                     }))
                   }
-                  className="h-4 w-4 rounded border-neutral-300 text-[#0b49d0]"
+                  className="h-4 w-4 rounded border-neutral-300 text-[#494ae2]"
                 />
-                <span className="text-xs sm:text-sm font-semibold text-[#151515]">
+                <span className="text-xs sm:text-sm font-semibold text-[#0c0c13]">
                   Tampilkan Dropdown Filter Sesi Ujian kepada pengunjung
                 </span>
               </label>
@@ -1629,7 +1629,7 @@ export default function AdminHomepagePage() {
             <div className="lg:col-span-5 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-4 h-fit">
               <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                 <div>
-                  <h2 className="text-base font-extrabold text-[#151515]">
+                  <h2 className="text-base font-extrabold text-[#0c0c13]">
                     Pengaturan Footer Homepage
                   </h2>
                   <p className="text-xs text-neutral-500">
@@ -1646,7 +1646,7 @@ export default function AdminHomepagePage() {
                         footer: { ...prev.footer, enabled: e.target.checked },
                       }))
                     }
-                    className="h-4 w-4 rounded border-neutral-300 text-[#0b49d0]"
+                    className="h-4 w-4 rounded border-neutral-300 text-[#494ae2]"
                   />
                   <span>Tampilkan</span>
                 </label>
@@ -1720,7 +1720,7 @@ export default function AdminHomepagePage() {
         onClose={() => setResetModalOpen(false)}
         onConfirm={handleResetDefault}
         title="Kembalikan Homepage ke Pengaturan Awal?"
-        description="Seluruh perubahan teks, urutan section, dan daftar kartu pada Homepage akan dikembalikan ke standar awal Simulasi CAT Prima RIB."
+        description="Seluruh perubahan teks, urutan section, dan daftar kartu pada Homepage akan dikembalikan ke standar awal CATARA — Digital Assessment Platform."
         confirmLabel="Ya, Reset ke Default"
         variant="danger"
       />

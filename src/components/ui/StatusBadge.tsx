@@ -48,15 +48,15 @@ const variantConfig: Record<
     icon: CheckCircle2,
   },
   ongoing: {
-    bg: "bg-[#eef4ff]",
-    text: "text-[#0b49d0]",
-    border: "border-[#0b49d0]/30",
+    bg: "bg-[#f5f8ff]",
+    text: "text-[#494ae2]",
+    border: "border-[#494ae2]/30",
     icon: PlayCircle,
   },
   scheduled: {
-    bg: "bg-[#fff9e6]",
-    text: "text-[#151515]",
-    border: "border-[#ffc63d]",
+    bg: "bg-[#f5f8ff]",
+    text: "text-[#7854ec]",
+    border: "border-[#7854ec]/35",
     icon: Clock,
   },
   completed: {
@@ -84,9 +84,9 @@ const variantConfig: Record<
     icon: Archive,
   },
   featured: {
-    bg: "bg-[#ffc63d]",
-    text: "text-[#151515]",
-    border: "border-[#e5ad28]",
+    bg: "bg-gradient-to-r from-[#494ae2] to-[#7854ec]",
+    text: "text-white",
+    border: "border-transparent",
     icon: Sparkles,
   },
   warning: {
@@ -103,7 +103,7 @@ const variantConfig: Record<
   },
   paused: {
     bg: "bg-amber-100",
-    text: "text-[#151515]",
+    text: "text-[#0c0c13]",
     border: "border-amber-400",
     icon: PauseCircle,
   },
@@ -115,7 +115,7 @@ const variantConfig: Record<
   },
   neutral: {
     bg: "bg-white",
-    text: "text-[#151515]",
+    text: "text-[#0c0c13]",
     border: "border-neutral-300",
     icon: Clock,
   },

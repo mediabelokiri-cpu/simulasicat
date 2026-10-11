@@ -1,5 +1,5 @@
 /**
- * PRODUCTION REFERENCE & STORE CONSTANTS — SIMULASI CAT PRIMA RIB
+ * PRODUCTION REFERENCE & STORE CONSTANTS — CATARA DIGITAL ASSESSMENT PLATFORM
  * Berisi hanya data master kategori seleksi resmi (CPNS, Sekdin, Polri),
  * preset standar penilaian SKD, dan metadata skema 19 tabel ERD.
  * Seluruh data dummy/demo telah dihapus untuk kesiapan deployment produksi.
@@ -113,12 +113,12 @@ export const EMPTY_USER_FALLBACK: ProfileRow = {
 export const INITIAL_PROFILES: ProfileRow[] = [
   {
     id: "usr-admin-01",
-    full_name: "Administrator Utama Prima RIB",
+    full_name: "Administrator Utama CATARA",
     email: "admin@primarib.id",
     role: "admin",
     is_active: true,
     phone: null,
-    institution: "Prima RIB",
+    institution: "CATARA",
     target_selection: "Administrator",
     email_verified: true,
     created_at: "2026-10-01T08:00:00Z",
@@ -126,12 +126,12 @@ export const INITIAL_PROFILES: ProfileRow[] = [
   },
   {
     id: "usr-admin-02",
-    full_name: "Administrator Simulasi CAT",
+    full_name: "Administrator CATARA",
     email: "admin@simulasicat.id",
     role: "admin",
     is_active: true,
     phone: null,
-    institution: "Prima RIB",
+    institution: "CATARA",
     target_selection: "Administrator",
     email_verified: true,
     created_at: "2026-10-01T08:00:00Z",

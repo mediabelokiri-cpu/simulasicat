@@ -1,21 +1,21 @@
 {
-  "name": "Simulasi CAT Prima RIB (Android & iOS)",
-  "short_name": "Prima RIB CAT",
-  "description": "Aplikasi Mobile Resmi Simulasi CAT CPNS, Sekolah Kedinasan & Polri — Prima RIB",
+  "name": "CATARA — Digital Assessment Platform",
+  "short_name": "CATARA",
+  "description": "CATARA adalah platform ujian digital berbasis teknologi yang menghadirkan sistem simulasi Computer Assisted Test (CAT) modern dan terintegrasi.",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#4338ca",
-  "theme_color": "#4338ca",
+  "background_color": "#494ae2",
+  "theme_color": "#494ae2",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/logo1.png",
+      "src": "/logoiconinstallmobile.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/logo1.png",
+      "src": "/logoiconinstallmobile.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

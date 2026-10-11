@@ -169,16 +169,16 @@ function HasilPesertaInner() {
 <html lang="id">
 <head>
 <meta charset="utf-8" />
-<title>Transkripsi Nilai Simulasi CAT - ${user.full_name}</title>
+<title>Transkripsi Nilai CATARA - ${user.full_name}</title>
 <style>
-  body { font-family: Arial, sans-serif; padding: 36px; color: #1e1b4b; max-width: 720px; margin: 0 auto; }
-  .header { border-bottom: 3px solid #4338ca; padding-bottom: 16px; margin-bottom: 24px; }
-  .title { font-size: 22px; font-weight: 800; color: #4338ca; margin: 0; }
+  body { font-family: Arial, sans-serif; padding: 36px; color: #0c0c13; max-width: 720px; margin: 0 auto; }
+  .header { border-bottom: 3px solid #494ae2; padding-bottom: 16px; margin-bottom: 24px; }
+  .title { font-size: 22px; font-weight: 800; color: #494ae2; margin: 0; }
   .sub { font-size: 13px; color: #64748b; margin-top: 4px; }
-  .card { background: #f6f7ff; border: 1px solid #e0e7ff; border-radius: 14px; padding: 18px; margin-bottom: 20px; }
+  .card { background: #f5f8ff; border: 1px solid #e0e7ff; border-radius: 14px; padding: 18px; margin-bottom: 20px; }
   table { width: 100%; border-collapse: collapse; margin-top: 12px; }
   th, td { border: 1px solid #cbd5e1; padding: 10px 12px; text-align: left; font-size: 13px; }
-  th { background: #4338ca; color: #fff; }
+  th { background: #494ae2; color: #fff; }
   .badge { display: inline-block; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 12px; background: ${
     res.thresholds_met ? "#dcfce7" : "#fee2e2"
   }; color: ${res.thresholds_met ? "#166534" : "#991b1b"}; }
@@ -186,7 +186,7 @@ function HasilPesertaInner() {
 </head>
 <body>
   <div class="header">
-    <h1 class="title">TRANSKRIPSI NILAI SIMULASI CAT PRIMA RIB</h1>
+    <h1 class="title">TRANSKRIPSI NILAI — CATARA DIGITAL ASSESSMENT PLATFORM</h1>
     <p class="sub">Dokumen Evaluasi Resmi Hasil Pengerjaan Peserta</p>
   </div>
   <div class="card">
@@ -225,7 +225,7 @@ function HasilPesertaInner() {
         .join("")}
       <tr>
         <td><strong>TOTAL NILAI AKHIR</strong></td>
-        <td colspan="3"><strong style="font-size:16px;color:#4338ca;">${
+        <td colspan="3"><strong style="font-size:16px;color:#494ae2;">${
           res.total_score
         } Poin</strong> (TWK: ${twk}, TIU: ${tiu}, TKP: ${tkp})</td>
       </tr>
@@ -238,7 +238,7 @@ function HasilPesertaInner() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `Transkripsi-Nilai-CAT-${user.full_name
+    a.download = `Transkripsi-Nilai-CATARA-${user.full_name
       .replace(/\s+/g, "-")
       .toLowerCase()}.html`;
     a.click();
@@ -256,7 +256,7 @@ function HasilPesertaInner() {
       >
         {/* Mobile View ketika belum ada hasil (Tetap bergaya Screen 3) */}
         <div className="mx-auto max-w-md space-y-5 lg:hidden">
-          <div className="rounded-2xl border border-indigo-100 bg-white px-4 py-3.5 text-xs font-bold text-slate-500 shadow-[0_6px_20px_rgba(67,56,202,0.05)] flex items-center justify-between">
+          <div className="rounded-2xl border border-indigo-100 bg-white px-4 py-3.5 text-xs font-bold text-slate-500 shadow-[0_6px_20px_rgba(73,74,226,0.05)] flex items-center justify-between">
             <span>Belum Ada Sesi Selesai - 2026</span>
             <span>▾</span>
           </div>
@@ -272,16 +272,16 @@ function HasilPesertaInner() {
               return (
                 <div
                   key={card.label}
-                  className="rounded-2xl border border-indigo-50/90 bg-white p-4 shadow-[0_8px_24px_rgba(67,56,202,0.05)] space-y-3"
+                  className="rounded-2xl border border-indigo-50/90 bg-white p-4 shadow-[0_8px_24px_rgba(73,74,226,0.05)] space-y-3"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#4338ca] text-white">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-white">
                       <Icon className="h-4 w-4" />
                     </div>
                     <MoreVertical className="h-4 w-4 text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-2xl font-extrabold text-[#312e81] tabular-nums">
+                    <p className="text-2xl font-extrabold text-[#0c0c13] tabular-nums">
                       {card.val}
                     </p>
                     <p className="mt-0.5 text-[11px] font-medium text-slate-400">
@@ -294,7 +294,7 @@ function HasilPesertaInner() {
           </div>
 
           <div className="space-y-3 pt-1">
-            <h2 className="text-sm font-extrabold text-[#1e1b4b]">
+            <h2 className="text-sm font-extrabold text-[#0c0c13]">
               Transkripsi Nilai
             </h2>
             <p className="text-xs text-slate-400 leading-relaxed">
@@ -304,7 +304,7 @@ function HasilPesertaInner() {
             <button
               type="button"
               onClick={() => router.push("/ujian")}
-              className="w-full rounded-2xl bg-[#4338ca] py-4 text-xs font-extrabold text-white shadow-[0_12px_28px_rgba(67,56,202,0.28)] transition-transform active:scale-98 cursor-pointer"
+              className="w-full rounded-2xl bg-gradient-to-r from-[#494ae2] to-[#7854ec] py-4 text-xs font-extrabold text-white shadow-[0_12px_28px_rgba(73,74,226,0.28)] transition-transform active:scale-98 cursor-pointer"
             >
               Mulai Simulasi Sekarang
             </button>
@@ -328,20 +328,20 @@ function HasilPesertaInner() {
 
         {/* Peringkat Resmi Sesi Ujian (Leaderboard) tetap tampil saat diakses dari menu Leaderboard */}
         {(activeTab === "leaderboard" || globalLeaderboard.length > 0) && (
-          <section className="mx-auto mt-6 max-w-md lg:max-w-none rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+          <section className="mx-auto mt-6 max-w-md lg:max-w-none rounded-2xl border border-indigo-100 bg-white p-5 sm:p-6 shadow-xs space-y-4">
             <div>
-              <h3 className="text-base sm:text-lg font-extrabold text-[#151515] flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-amber-600" />
+              <h3 className="text-base sm:text-lg font-extrabold text-[#0c0c13] flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-[#494ae2]" />
                 <span>Peringkat Resmi Simulasi CAT (Leaderboard)</span>
               </h3>
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-slate-500">
                 Diurutkan berdasarkan kelulusan ambang batas (Passing Grade),
                 Skor Total tertinggi, lalu tie-breaker TKP → TIU → TWK.
               </p>
             </div>
 
             {globalLeaderboard.length === 0 ? (
-              <p className="py-6 text-center text-xs text-neutral-500">
+              <p className="py-6 text-center text-xs text-slate-500">
                 Belum ada peserta yang menyelesaikan sesi ujian pada leaderboard
                 saat ini.
               </p>
@@ -349,7 +349,7 @@ function HasilPesertaInner() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-xs sm:text-sm">
                   <thead>
-                    <tr className="border-b border-neutral-200 bg-[#fcfbf7] text-neutral-600 font-bold">
+                    <tr className="border-b border-indigo-100 bg-[#f5f8ff] text-slate-600 font-bold">
                       <th className="py-3 px-3">Peringkat</th>
                       <th className="py-3 px-3">Nama Peserta</th>
                       <th className="py-3 px-3 text-center">TWK</th>
@@ -359,7 +359,7 @@ function HasilPesertaInner() {
                       <th className="py-3 px-3">Status Ambang Batas</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-neutral-100">
+                  <tbody className="divide-y divide-slate-100">
                     {globalLeaderboard.map((row, idx) => {
                       const prof = profiles.find((p) => p.id === row.user_id);
                       const snap = (row.result_snapshot || {}) as {
@@ -378,31 +378,31 @@ function HasilPesertaInner() {
                       return (
                         <tr
                           key={row.id}
-                          className="transition-colors hover:bg-neutral-50"
+                          className="transition-colors hover:bg-slate-50"
                         >
-                          <td className="py-3 px-3 tabular-nums font-extrabold text-[#151515]">
+                          <td className="py-3 px-3 tabular-nums font-extrabold text-[#0c0c13]">
                             <span
                               className={cn(
                                 "inline-flex h-7 w-7 items-center justify-center rounded-lg text-xs",
                                 idx === 0
-                                  ? "bg-[#ffc63d] text-[#151515]"
+                                  ? "bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-white"
                                   : idx === 1
-                                  ? "bg-neutral-200 text-[#151515]"
+                                  ? "bg-[#0c0c13] text-white"
                                   : idx === 2
-                                  ? "bg-amber-100 text-amber-900"
-                                  : "bg-neutral-100 text-neutral-700"
+                                  ? "bg-indigo-100 text-[#494ae2]"
+                                  : "bg-slate-100 text-slate-700"
                               )}
                             >
                               #{idx + 1}
                             </span>
                           </td>
                           <td className="py-3 px-3">
-                            <span className="font-bold text-[#151515]">
+                            <span className="font-bold text-[#0c0c13]">
                               {prof?.full_name ||
                                 snap.full_name ||
-                                "Peserta Simulasi"}
+                                "Peserta CATARA"}
                             </span>
-                            <span className="block text-[11px] text-neutral-500">
+                            <span className="block text-[11px] text-slate-500">
                               Submit: {formatDateTimeID(row.created_at)}
                             </span>
                           </td>
@@ -415,7 +415,7 @@ function HasilPesertaInner() {
                           <td className="py-3 px-3 text-center tabular-nums font-bold">
                             {tkp}
                           </td>
-                          <td className="py-3 px-3 text-center tabular-nums text-base font-extrabold text-[#0b49d0]">
+                          <td className="py-3 px-3 text-center tabular-nums text-base font-extrabold text-[#494ae2]">
                             {row.total_score}
                           </td>
                           <td className="py-3 px-3">
@@ -447,8 +447,12 @@ function HasilPesertaInner() {
   const runResultsSorted = sortOfficialLeaderboard(
     allResults.filter((r) => r.exam_run_id === activeResult.exam_run_id)
   );
-  const rankIdx = runResultsSorted.findIndex((r) => r.id === activeResult.id);
-  const rankPosition = rankIdx !== -1 ? rankIdx + 1 : 1;
+  const rankPosition = (() => {
+    const rankIdx = runResultsSorted.findIndex(
+      (r) => r.id === activeResult.id
+    );
+    return rankIdx !== -1 ? rankIdx + 1 : 1;
+  })();
 
   // Cek konfigurasi publikasi leaderboard pada ujian induk
   const runObj = getExamRuns().find((r) => r.id === activeResult.exam_run_id);
@@ -493,7 +497,7 @@ function HasilPesertaInner() {
             id="mobile-result-select"
             value={activeResult.id}
             onChange={(e) => setSelectedResultId(e.target.value)}
-            className="w-full rounded-2xl border border-indigo-100/90 bg-white px-4 py-3.5 text-xs font-bold text-slate-600 shadow-[0_6px_20px_rgba(67,56,202,0.05)] focus:border-[#4338ca] focus:outline-none"
+            className="w-full rounded-2xl border border-indigo-100/90 bg-white px-4 py-3.5 text-xs font-bold text-slate-600 shadow-[0_6px_20px_rgba(73,74,226,0.05)] focus:border-[#494ae2] focus:outline-none"
           >
             {displayList.map((resItem, idx) => {
               const snap = (resItem.result_snapshot || {}) as {
@@ -509,7 +513,7 @@ function HasilPesertaInner() {
           </select>
         </div>
 
-        {/* Grid 2x2 Kartu Nilai (Sesuai Referensi Gambar Kanan) */}
+        {/* Grid 2x2 Kartu Nilai */}
         <div className="grid grid-cols-2 gap-3.5">
           {[
             {
@@ -537,16 +541,16 @@ function HasilPesertaInner() {
             return (
               <div
                 key={card.label}
-                className="rounded-2xl border border-indigo-50/90 bg-white p-4 shadow-[0_8px_24px_rgba(67,56,202,0.06)] space-y-3"
+                className="rounded-2xl border border-indigo-50/90 bg-white p-4 shadow-[0_8px_24px_rgba(73,74,226,0.06)] space-y-3"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#4338ca] text-white shadow-xs">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-white shadow-xs">
                     <Icon className="h-4 w-4" />
                   </div>
                   <MoreVertical className="h-4 w-4 text-slate-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-extrabold text-[#312e81] tabular-nums">
+                  <p className="text-2xl font-extrabold text-[#0c0c13] tabular-nums">
                     {card.val}
                   </p>
                   <p className="mt-0.5 text-[11px] font-medium text-slate-400">
@@ -561,7 +565,7 @@ function HasilPesertaInner() {
         {/* Bagian Transkripsi Nilai + Tombol Download File */}
         <div className="space-y-3 pt-1">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-extrabold text-[#1e1b4b]">
+            <h2 className="text-sm font-extrabold text-[#0c0c13]">
               Transkripsi Nilai
             </h2>
             <span
@@ -584,7 +588,7 @@ function HasilPesertaInner() {
           <button
             type="button"
             onClick={() => handleDownloadTranscript(activeResult)}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#4338ca] hover:bg-[#3730a3] py-4 text-xs font-extrabold text-white shadow-[0_12px_28px_rgba(67,56,202,0.3)] transition-transform active:scale-98 cursor-pointer"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#494ae2] to-[#7854ec] hover:from-[#3f40cc] hover:to-[#6946de] py-4 text-xs font-extrabold text-white shadow-[0_12px_28px_rgba(73,74,226,0.3)] transition-transform active:scale-98 cursor-pointer"
           >
             <Download className="h-4 w-4" />
             <span>Download File</span>
@@ -628,9 +632,9 @@ function HasilPesertaInner() {
       <div className="space-y-6 max-w-md mx-auto lg:max-w-none">
         {/* Pilihan Riwayat Sesi Ujian (Desktop) */}
         {displayList.length > 1 && (
-          <div className="hidden lg:block rounded-2xl border border-neutral-200 bg-white p-4 shadow-xs space-y-2.5">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#151515]">
-              <History className="h-4 w-4 text-[#0b49d0]" />
+          <div className="hidden lg:block rounded-2xl border border-indigo-100 bg-white p-4 shadow-xs space-y-2.5">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#0c0c13]">
+              <History className="h-4 w-4 text-[#494ae2]" />
               <span>Pilih Riwayat Sesi Pengerjaan:</span>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -647,8 +651,8 @@ function HasilPesertaInner() {
                     className={cn(
                       "inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-bold transition-colors cursor-pointer",
                       isSelected
-                        ? "border-[#0b49d0] bg-[#0b49d0] text-white"
-                        : "border-neutral-200 bg-[#fcfbf7] text-[#151515] hover:border-[#0b49d0]"
+                        ? "border-transparent bg-gradient-to-r from-[#494ae2] to-[#7854ec] text-white"
+                        : "border-indigo-100 bg-[#f5f8ff] text-[#0c0c13] hover:border-[#494ae2]"
                     )}
                   >
                     <span>{snap.run_name || "Sesi Ujian"}</span>
@@ -656,8 +660,8 @@ function HasilPesertaInner() {
                       className={cn(
                         "rounded-md px-1.5 py-0.5 text-[11px] tabular-nums",
                         isSelected
-                          ? "bg-[#ffc63d] text-[#151515]"
-                          : "bg-neutral-200 text-[#151515]"
+                          ? "bg-white text-[#494ae2]"
+                          : "bg-indigo-100/80 text-[#0c0c13]"
                       )}
                     >
                       Skor: {resItem.total_score}
@@ -679,15 +683,15 @@ function HasilPesertaInner() {
         </div>
 
         {/* Tab Navigasi Detail Hasil */}
-        <div className="flex flex-wrap gap-2 border-b border-neutral-200 pb-3">
+        <div className="flex flex-wrap gap-2 border-b border-indigo-100 pb-3">
           <button
             type="button"
             onClick={() => setActiveTab("breakdown")}
             className={cn(
               "inline-flex min-h-[42px] items-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-bold transition-colors cursor-pointer",
               activeTab === "breakdown"
-                ? "bg-[#0b49d0] text-white shadow-xs"
-                : "bg-white border border-neutral-200 text-[#151515] hover:bg-neutral-50"
+                ? "bg-gradient-to-r from-[#494ae2] to-[#7854ec] text-white shadow-xs"
+                : "bg-white border border-indigo-100 text-[#0c0c13] hover:bg-[#f5f8ff]"
             )}
           >
             <BarChart3 className="h-4 w-4" />
@@ -700,8 +704,8 @@ function HasilPesertaInner() {
             className={cn(
               "inline-flex min-h-[42px] items-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-bold transition-colors cursor-pointer",
               activeTab === "review"
-                ? "bg-[#0b49d0] text-white shadow-xs"
-                : "bg-white border border-neutral-200 text-[#151515] hover:bg-neutral-50"
+                ? "bg-gradient-to-r from-[#494ae2] to-[#7854ec] text-white shadow-xs"
+                : "bg-white border border-indigo-100 text-[#0c0c13] hover:bg-[#f5f8ff]"
             )}
           >
             <BookOpen className="h-4 w-4" />
@@ -715,8 +719,8 @@ function HasilPesertaInner() {
               className={cn(
                 "inline-flex min-h-[42px] items-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-bold transition-colors cursor-pointer",
                 activeTab === "leaderboard"
-                  ? "bg-[#0b49d0] text-white shadow-xs"
-                  : "bg-white border border-neutral-200 text-[#151515] hover:bg-neutral-50"
+                  ? "bg-gradient-to-r from-[#494ae2] to-[#7854ec] text-white shadow-xs"
+                  : "bg-white border border-indigo-100 text-[#0c0c13] hover:bg-[#f5f8ff]"
               )}
             >
               <Trophy className="h-4 w-4" />
@@ -742,13 +746,13 @@ function HasilPesertaInner() {
 
         {/* Isi Tab 3: Peringkat Sesi (Leaderboard Resmi) */}
         {activeTab === "leaderboard" && showLeaderboard && (
-          <section className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+          <section className="rounded-2xl border border-indigo-100 bg-white p-5 sm:p-6 shadow-xs space-y-4">
             <div>
-              <h3 className="text-base sm:text-lg font-extrabold text-[#151515] flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-amber-600" />
+              <h3 className="text-base sm:text-lg font-extrabold text-[#0c0c13] flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-[#494ae2]" />
                 <span>Peringkat Resmi Sesi Ujian (Leaderboard)</span>
               </h3>
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-slate-500">
                 Diurutkan berdasarkan kelulusan ambang batas (Passing Grade),
                 Skor Total tertinggi, lalu tie-breaker TKP → TIU → TWK.
               </p>
@@ -757,7 +761,7 @@ function HasilPesertaInner() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs sm:text-sm">
                 <thead>
-                  <tr className="border-b border-neutral-200 bg-[#fcfbf7] text-neutral-600 font-bold">
+                  <tr className="border-b border-indigo-100 bg-[#f5f8ff] text-slate-600 font-bold">
                     <th className="py-3 px-3">Peringkat</th>
                     <th className="py-3 px-3">Nama Peserta</th>
                     <th className="py-3 px-3 text-center">TWK</th>
@@ -767,7 +771,7 @@ function HasilPesertaInner() {
                     <th className="py-3 px-3">Status Ambang Batas</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-slate-100">
                   {runResultsSorted.map((row, idx) => {
                     const prof = profiles.find((p) => p.id === row.user_id);
                     const isMe = row.user_id === user.id;
@@ -786,20 +790,20 @@ function HasilPesertaInner() {
                         key={row.id}
                         className={cn(
                           "transition-colors",
-                          isMe ? "bg-[#eef4ff]/70 font-semibold" : "hover:bg-neutral-50"
+                          isMe ? "bg-[#f5f8ff] font-semibold" : "hover:bg-slate-50"
                         )}
                       >
-                        <td className="py-3 px-3 tabular-nums font-extrabold text-[#151515]">
+                        <td className="py-3 px-3 tabular-nums font-extrabold text-[#0c0c13]">
                           <span
                             className={cn(
                               "inline-flex h-7 w-7 items-center justify-center rounded-lg text-xs",
                               idx === 0
-                                ? "bg-[#ffc63d] text-[#151515]"
+                                ? "bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-white"
                                 : idx === 1
-                                ? "bg-neutral-200 text-[#151515]"
+                                ? "bg-[#0c0c13] text-white"
                                 : idx === 2
-                                ? "bg-amber-100 text-amber-900"
-                                : "bg-neutral-100 text-neutral-700"
+                                ? "bg-indigo-100 text-[#494ae2]"
+                                : "bg-slate-100 text-slate-700"
                             )}
                           >
                             #{idx + 1}
@@ -807,16 +811,16 @@ function HasilPesertaInner() {
                         </td>
                         <td className="py-3 px-3">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-[#151515]">
-                              {prof?.full_name || "Peserta Simulasi"}
+                            <span className="font-bold text-[#0c0c13]">
+                              {prof?.full_name || "Peserta CATARA"}
                             </span>
                             {isMe && (
-                              <span className="rounded-md bg-[#0b49d0] px-2 py-0.5 text-[10px] font-bold text-white">
+                              <span className="rounded-md bg-gradient-to-r from-[#494ae2] to-[#7854ec] px-2 py-0.5 text-[10px] font-bold text-white">
                                 Anda
                               </span>
                             )}
                           </div>
-                          <span className="block text-[11px] text-neutral-500">
+                          <span className="block text-[11px] text-slate-500">
                             Submit: {formatDateTimeID(row.created_at)}
                           </span>
                         </td>
@@ -829,7 +833,7 @@ function HasilPesertaInner() {
                         <td className="py-3 px-3 text-center tabular-nums font-bold">
                           {tkp}
                         </td>
-                        <td className="py-3 px-3 text-center tabular-nums text-base font-extrabold text-[#0b49d0]">
+                        <td className="py-3 px-3 text-center tabular-nums text-base font-extrabold text-[#494ae2]">
                           {row.total_score}
                         </td>
                         <td className="py-3 px-3">

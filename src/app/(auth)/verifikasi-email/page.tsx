@@ -25,21 +25,21 @@ export default function VerifikasiEmailPage() {
       footer={
         <Link
           href="/login"
-          className="font-bold text-[#0b49d0] hover:underline"
+          className="font-bold text-[#494ae2] hover:underline"
         >
           Kembali ke Halaman Login
         </Link>
       }
     >
       <div className="space-y-5">
-        <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-[#fcfbf7] p-4">
+        <div className="flex items-center justify-between rounded-xl border border-indigo-100 bg-[#f5f8ff] p-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#eef4ff] text-[#0b49d0]">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-white shadow-2xs">
               <MailCheck className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs text-neutral-500">Email Terdaftar</p>
-              <p className="text-sm font-bold text-[#151515] truncate">
+              <p className="text-xs text-slate-500">Email Terdaftar</p>
+              <p className="text-sm font-bold text-[#0c0c13] truncate">
                 {user?.email || "-"}
               </p>
             </div>

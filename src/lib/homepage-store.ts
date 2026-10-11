@@ -1,5 +1,5 @@
 /**
- * HOMEPAGE CMS STORE
+ * HOMEPAGE CMS STORE — CATARA (Digital Assessment Platform)
  * Menyimpan dan mengelola seluruh konfigurasi konten, visibilitas, dan urutan
  * section di Halaman Utama (Homepage) melalui Portal Admin (/admin/homepage).
  */
@@ -85,14 +85,14 @@ export interface HomepageConfig {
   updatedAt: string;
 }
 
-export const HOMEPAGE_STORAGE_KEY = "prima_cat_homepage_config_v3_prod";
+export const HOMEPAGE_STORAGE_KEY = "catara_homepage_config_v4_prod";
 
 export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
   sectionOrder: ["hero", "categories", "leaderboard"],
   header: {
-    brandName: "Simulasi CAT",
-    brandSubtitle: "",
-    logoUrl: "/logo1.png",
+    brandName: "CATARA",
+    brandSubtitle: "Digital Assessment Platform",
+    logoUrl: "/logoheaderfooterhomepage.png",
     loginButtonLabel: "Masuk",
     registerButtonLabel: "Daftar Peserta",
     showRegisterButton: true,
@@ -101,59 +101,59 @@ export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
     enabled: false,
     badge: "Info Terbaru",
     message:
-      "Pendaftaran Simulasi CAT SKD CPNS, Sekolah Kedinasan, dan Polri periode terbaru telah dibuka.",
+      "CATARA — Digital Assessment Platform siap mendukung pelaksanaan simulasi Computer Assisted Test (CAT) yang terstruktur, efisien, dan terukur.",
     ctaLabel: "Daftar Sekarang",
     ctaHref: "/register",
   },
   hero: {
     enabled: true,
-    badgeText: "Standar CAT Resmi",
-    badgeSubtext: "CPNS • Sekolah Kedinasan • Polri",
-    titlePrefix: "Sistem Simulasi",
+    badgeText: "CATARA",
+    badgeSubtext: "Digital Assessment Platform",
+    titlePrefix: "Platform Ujian Digital & Simulasi",
     titleHighlight: "Computer Assisted Test (CAT)",
-    titleSuffix: "Prima RIB",
+    titleSuffix: "Terintegrasi",
     description:
-      "Latih kesiapan menghadapi ujian seleksi sesungguhnya dengan pengalaman ruang ujian CAT yang akurat, timer tersinkronisasi server, pengacakan soal per subtes, serta evaluasi ambang batas (Passing Grade) dan pembahasan komprehensif.",
+      "CATARA adalah platform ujian digital berbasis teknologi yang membantu lembaga pendidikan, bimbingan belajar, dan penyelenggara seleksi mengelola ujian secara terstruktur, efisien, dan terukur. Menyediakan Sistem simulasi Computer Assisted Test (CAT), pengelolaan jadwal dan peserta, pemantauan ujian secara real-time, serta analisis hasil, CATARA menghadirkan pengalaman ujian digital yang modern dalam satu platform terintegrasi.",
     primaryCtaLabel: "Masuk Ruang Ujian",
     secondaryCtaLabel: "Registrasi Akun Peserta",
     stats: [
-      { value: "Server-Side", label: "Penilaian & Timer" },
-      { value: "Autosave", label: "Sinkronisasi Jawaban" },
-      { value: "Realtime", label: "Analitik & Ranking" },
+      { value: "Terstruktur", label: "Jadwal & Peserta" },
+      { value: "Real-Time", label: "Monitoring Ujian" },
+      { value: "Terukur", label: "Analisis & Evaluasi" },
     ],
-    rightDisplayMode: "image",
-    heroImageUrl: "/hero-prima-rib.png",
-    heroImageAlt: "Peserta Simulasi CAT Prima RIB",
-    heroImageWidth: 380,
-    securityCardTitle: "Standar Keamanan & Integritas",
-    securityCardSubtitle: "Arsitektur CAT Terproteksi",
-    securityCardBadge: "Aktif",
+    rightDisplayMode: "card",
+    heroImageUrl: "/logoheaderfooterhomepage.png",
+    heroImageAlt: "CATARA — Digital Assessment Platform",
+    heroImageWidth: 340,
+    securityCardTitle: "CATARA — Digital Assessment Platform",
+    securityCardSubtitle: "Solusi Evaluasi & Seleksi Profesional",
+    securityCardBadge: "Terintegrasi",
     securityFeatures: [
       {
         id: "sec-1",
-        title: "Pengacakan Terkunci per Subtes:",
+        title: "Sistem Simulasi CAT Terstruktur:",
         description:
-          "Soal TWK, TIU, dan TKP diacak di dalam bloknya masing-masing dan tidak berubah saat halaman dimuat ulang.",
+          "Pengelolaan bank soal, pengacakan terkunci per subtes, serta pengaturan durasi dan bobot nilai yang fleksibel.",
       },
       {
         id: "sec-2",
-        title: "Autosave & Antrean Rekoneksi:",
+        title: "Pemantauan Ujian Secara Real-Time:",
         description:
-          "Setiap jawaban langsung tersimpan ke server dan aman saat jaringan sempat terputus.",
+          "Monitoring progres peserta secara langsung, autosave jawaban otomatis, serta penanganan insiden sesi ujian.",
       },
       {
         id: "sec-3",
-        title: "Evaluasi Passing Grade & Pembahasan:",
+        title: "Analisis Hasil & Evaluasi Terukur:",
         description:
-          "Rincian nilai per subtes, bobot TKP 1–5, dan pembahasan resmi sesuai jadwal publikasi.",
+          "Perhitungan skor otomatis, evaluasi ambang batas (Passing Grade), transkripsi nilai, dan pembahasan komprehensif.",
       },
     ],
   },
   categories: {
     enabled: true,
-    sectionTitle: "Kategori Simulasi Seleksi Prima RIB",
+    sectionTitle: "Solusi Evaluasi & Simulasi Seleksi CATARA",
     sectionSubtitle:
-      "Mendukung berbagai skema penilaian dan ambang batas kelulusan sesuai standar seleksi nasional.",
+      "Dikembangkan untuk mendukung penyelenggaraan ujian yang lebih profesional, CATARA hadir sebagai solusi fleksibel bagi berbagai kebutuhan evaluasi dan seleksi.",
     items: [
       {
         id: "cat-card-1",
@@ -171,31 +171,32 @@ export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
       },
       {
         id: "cat-card-3",
-        title: "3. Seleksi Penerimaan Polri",
+        title: "3. Seleksi Akademik & Institusi",
         description:
-          "Simulasi ujian akademik dan psikotes terstruktur dengan konfigurasi subtes, bobot penilaian, dan durasi yang fleksibel.",
+          "Simulasi ujian akademik, lembaga pendidikan, bimbingan belajar, dan seleksi Polri dengan konfigurasi subtes yang fleksibel.",
         icon: "book",
       },
     ],
   },
   leaderboard: {
     enabled: true,
-    sectionTitle: "Papan Leaderboard Hasil Ujian Simulasi CAT",
+    sectionTitle: "Papan Leaderboard Hasil Ujian CATARA",
     sectionSubtitle:
-      "Peringkat resmi nilai akhir peserta setelah menyelesaikan sesi simulasi CAT (Passing Grade, Total Skor, TKP → TIU → TWK).",
+      "Peringkat resmi nilai akhir peserta setelah menyelesaikan sesi ujian di CATARA (Passing Grade, Total Skor, TKP → TIU → TWK).",
     maxRows: 15,
     showSessionFilter: true,
     defaultRunId: "all",
     emptyTitle: "Belum Ada Hasil Ujian yang Selesai",
     emptyDescription:
-      "Papan Leaderboard ini akan otomatis terisi setelah peserta menyelesaikan sesi simulasi CAT atau waktu ujian berakhir.",
+      "Papan Leaderboard ini akan otomatis terisi setelah peserta menyelesaikan sesi ujian CAT atau waktu ujian berakhir.",
   },
   footer: {
     enabled: true,
-    brandText: "Simulasi CAT Prima RIB",
-    copyrightText: "Prima RIB. Seluruh hak cipta dilindungi.",
+    brandText: "CATARA — Digital Assessment Platform",
+    copyrightText:
+      "CATARA — Digital Assessment Platform. Seluruh hak cipta dilindungi.",
   },
-  updatedAt: "2026-10-10T00:00:00Z",
+  updatedAt: "2026-10-11T12:00:00Z",
 };
 
 const ALL_SECTION_KEYS: HomepageSectionKey[] = [

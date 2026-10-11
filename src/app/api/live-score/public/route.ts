@@ -140,7 +140,7 @@ export async function GET() {
       maxRows: settings.maxRows,
       updatedAt: settings.updatedAt,
     },
-    examTitle: board.exam?.title || "Simulasi CAT Prima RIB",
+    examTitle: board.exam?.title || "Simulasi CAT CATARA",
     runName: board.run.name,
     runId: board.run.id,
     passingGradeConfigured: board.passingGradeConfigured,

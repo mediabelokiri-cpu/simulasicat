@@ -9,40 +9,40 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Simulasi CAT Prima RIB — CPNS, Sekdin & Polri",
+  title: "CATARA — Digital Assessment Platform",
   description:
-    "Platform ujian simulasi berbasis Computer Assisted Test (CAT) resmi untuk peserta bimbingan belajar Prima RIB dan institusi mitra.",
+    "CATARA adalah platform ujian digital berbasis teknologi yang membantu lembaga pendidikan, bimbingan belajar, dan penyelenggara seleksi mengelola ujian secara terstruktur, efisien, dan terukur.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Prima RIB CAT",
+    title: "CATARA",
   },
   icons: {
-    icon: "/logo1.png",
-    shortcut: "/logo1.png",
-    apple: "/logo1.png",
+    icon: "/logourlbar.png",
+    shortcut: "/logourlbar.png",
+    apple: "/logoiconinstallmobile.png",
   },
   openGraph: {
-    title: "Simulasi CAT Prima RIB — CPNS, Sekdin & Polri",
+    title: "CATARA — Digital Assessment Platform",
     description:
-      "Platform ujian simulasi berbasis Computer Assisted Test (CAT) resmi untuk peserta bimbingan belajar Prima RIB dan institusi mitra.",
+      "CATARA adalah platform ujian digital berbasis teknologi yang membantu lembaga pendidikan, bimbingan belajar, dan penyelenggara seleksi mengelola ujian secara terstruktur, efisien, dan terukur.",
     type: "website",
     images: [
       {
-        url: "/logo1.png",
+        url: "/logoiconinstallmobile.png",
         width: 512,
         height: 512,
-        alt: "Simulasi CAT Prima RIB",
+        alt: "CATARA — Digital Assessment Platform",
       },
     ],
   },
   twitter: {
     card: "summary",
-    title: "Simulasi CAT Prima RIB — CPNS, Sekdin & Polri",
+    title: "CATARA — Digital Assessment Platform",
     description:
-      "Platform ujian simulasi berbasis Computer Assisted Test (CAT) resmi untuk peserta bimbingan belajar Prima RIB dan institusi mitra.",
-    images: ["/logo1.png"],
+      "CATARA adalah platform ujian digital berbasis teknologi yang membantu lembaga pendidikan, bimbingan belajar, dan penyelenggara seleksi mengelola ujian secara terstruktur, efisien, dan terukur.",
+    images: ["/logoiconinstallmobile.png"],
   },
 };
 
@@ -53,7 +53,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={inter.variable}>
-      <body className="min-h-screen bg-[#fcfbf7] text-[#151515] antialiased">
+      <body className="min-h-screen bg-[#f5f8ff] text-[#0c0c13] antialiased">
         {children}
       </body>
     </html>

@@ -41,23 +41,32 @@ export default function DedicatedLiveScorePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fcfbf7] text-[#151515] flex flex-col">
-      {/* Top Navbar Identitas Prima RIB */}
-      <header className="sticky top-0 z-30 border-b border-[#093db0] bg-[#0b49d0] text-white shadow-xs">
+    <div className="min-h-screen bg-[#f5f8ff] text-[#0c0c13] flex flex-col">
+      {/* Top Navbar Identitas CATARA */}
+      <header className="sticky top-0 z-30 border-b border-white/15 bg-gradient-to-r from-[#494ae2] to-[#7854ec] text-white shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3.5 py-3 sm:px-6 sm:py-3.5 lg:px-8">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 shrink-0">
-            <Link href="/" className="flex items-center gap-2.5 sm:gap-3 min-w-0 shrink-0">
-              <img
-                src={config.header.logoUrl || "/logo1.png"}
-                alt="Simulasi CAT"
-                className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-xl object-contain"
-              />
+            <Link
+              href="/"
+              className="flex items-center gap-2.5 sm:gap-3 min-w-0 shrink-0"
+            >
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-white p-1.5 shadow-xs">
+                <img
+                  src="/logoheaderfooterhomepage.png"
+                  alt="CATARA — Digital Assessment Platform"
+                  className="h-full w-full object-contain"
+                />
+              </div>
               <div className="min-w-0">
                 <span className="block text-base sm:text-lg font-extrabold tracking-tight text-white whitespace-nowrap leading-tight">
                   {config.header.brandName &&
-                  config.header.brandName !== "Prima RIB"
+                  !config.header.brandName.toLowerCase().includes("prima")
                     ? config.header.brandName
-                    : "Simulasi CAT"}
+                    : "CATARA"}
+                </span>
+                <span className="hidden sm:block text-[11px] font-medium text-white/85 truncate">
+                  {config.header.brandSubtitle ||
+                    "Digital Assessment Platform"}
                 </span>
               </div>
             </Link>
@@ -75,12 +84,15 @@ export default function DedicatedLiveScorePage() {
               </Button>
             </Link>
 
-            <Link href="/#leaderboard" className="hidden md:inline-flex shrink-0">
+            <Link
+              href="/#leaderboard"
+              className="hidden md:inline-flex shrink-0"
+            >
               <Button
                 variant="outline"
                 size="sm"
                 className="bg-white/15 text-white border-white/30 hover:bg-white/25 font-semibold whitespace-nowrap"
-                leftIcon={<Trophy className="h-4 w-4 text-[#ffc63d]" />}
+                leftIcon={<Trophy className="h-4 w-4 text-white" />}
               >
                 Leaderboard Hasil Akhir
               </Button>
@@ -89,11 +101,14 @@ export default function DedicatedLiveScorePage() {
             {activeUser ? (
               <>
                 {activeUser.role === "admin" && (
-                  <Link href="/admin/live-score" className="hidden md:inline-flex shrink-0">
+                  <Link
+                    href="/admin/live-score"
+                    className="hidden md:inline-flex shrink-0"
+                  >
                     <Button
                       variant="outline"
                       size="sm"
-                      className="bg-[#ffc63d] text-[#151515] border-[#ffc63d] hover:bg-[#f4b928] font-extrabold whitespace-nowrap"
+                      className="bg-white text-[#494ae2] border-white hover:bg-[#f5f8ff] font-extrabold whitespace-nowrap"
                       leftIcon={<SlidersHorizontal className="h-4 w-4" />}
                     >
                       Kelola Live Score
@@ -108,7 +123,9 @@ export default function DedicatedLiveScorePage() {
                     variant="accent"
                     size="sm"
                     className="whitespace-nowrap px-2.5 sm:px-3.5 text-xs"
-                    rightIcon={<ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+                    rightIcon={
+                      <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    }
                   >
                     Dashboard
                   </Button>
@@ -117,7 +134,7 @@ export default function DedicatedLiveScorePage() {
                   variant="outline"
                   size="sm"
                   onClick={handleLogout}
-                  className="hidden sm:inline-flex bg-white text-[#0b49d0] border-white hover:bg-neutral-100 font-bold whitespace-nowrap"
+                  className="hidden sm:inline-flex bg-white text-[#494ae2] border-white hover:bg-[#f5f8ff] font-bold whitespace-nowrap"
                   leftIcon={<LogOut className="h-4 w-4" />}
                 >
                   Keluar
@@ -129,14 +146,17 @@ export default function DedicatedLiveScorePage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="bg-white text-[#0b49d0] border-white hover:bg-neutral-100 font-bold whitespace-nowrap px-3 sm:px-3.5 text-xs"
+                    className="bg-white text-[#494ae2] border-white hover:bg-[#f5f8ff] font-bold whitespace-nowrap px-3 sm:px-3.5 text-xs"
                     leftIcon={<LogIn className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
                   >
                     {config.header.loginButtonLabel}
                   </Button>
                 </Link>
                 {config.header.showRegisterButton && (
-                  <Link href="/register" className="hidden md:inline-flex shrink-0">
+                  <Link
+                    href="/register"
+                    className="hidden md:inline-flex shrink-0"
+                  >
                     <Button
                       variant="accent"
                       size="sm"
@@ -163,20 +183,27 @@ export default function DedicatedLiveScorePage() {
 
       {/* Footer */}
       {config.footer.enabled && (
-        <footer className="border-t border-neutral-200 bg-white py-6">
-          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 sm:flex-row sm:px-6 lg:px-8 text-xs text-neutral-500">
-            <div className="flex items-center gap-2">
+        <footer className="border-t border-indigo-100/80 bg-white py-6">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 sm:flex-row sm:px-6 lg:px-8 text-xs text-slate-500">
+            <div className="flex items-center gap-2.5">
               <img
-                src={config.header.logoUrl || "/logo1.png"}
-                alt={config.header.brandName}
+                src="/logoheaderfooterhomepage.png"
+                alt="CATARA — Digital Assessment Platform"
                 className="h-6 w-6 rounded-md object-contain"
               />
-              <span className="font-bold text-[#151515]">
-                {config.footer.brandText}
+              <span className="font-bold text-[#0c0c13]">
+                {config.footer.brandText &&
+                !config.footer.brandText.toLowerCase().includes("prima")
+                  ? config.footer.brandText
+                  : "CATARA — Digital Assessment Platform"}
               </span>
             </div>
             <p>
-              © {new Date().getFullYear()} {config.footer.copyrightText}
+              © {new Date().getFullYear()}{" "}
+              {config.footer.copyrightText &&
+              !config.footer.copyrightText.toLowerCase().includes("prima")
+                ? config.footer.copyrightText
+                : "CATARA. Hak cipta dilindungi."}
             </p>
           </div>
         </footer>

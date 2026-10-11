@@ -340,7 +340,7 @@ export function authenticateUser(email: string, password: string): AuthResult {
     return {
       ok: false,
       error:
-        "Akun Anda saat ini dinonaktifkan oleh Administrator. Riwayat ujian Anda tetap tersimpan, silakan hubungi Admin Prima RIB.",
+        "Akun Anda saat ini dinonaktifkan oleh Administrator. Riwayat ujian Anda tetap tersimpan, silakan hubungi Admin CATARA.",
     };
   }
 
@@ -381,6 +381,7 @@ export async function authenticateUserAsync(
   }
 
   const isDefaultAdminEmail =
+    cleanEmail === "admin@catara.id" ||
     cleanEmail === "admin@primarib.id" ||
     cleanEmail === "admin@simulasicat.id";
 
@@ -442,7 +443,7 @@ export async function authenticateUserAsync(
           return {
             ok: false,
             error:
-              "Akun Anda saat ini dinonaktifkan oleh Administrator. Riwayat ujian Anda tetap tersimpan, silakan hubungi Admin Prima RIB.",
+              "Akun Anda saat ini dinonaktifkan oleh Administrator. Riwayat ujian Anda tetap tersimpan, silakan hubungi Admin CATARA.",
           };
         }
 
@@ -504,7 +505,7 @@ export async function authenticateUserAsync(
           return {
             ok: false,
             error:
-              "Akun Anda saat ini dinonaktifkan oleh Administrator. Riwayat ujian Anda tetap tersimpan, silakan hubungi Admin Prima RIB.",
+              "Akun Anda saat ini dinonaktifkan oleh Administrator. Riwayat ujian Anda tetap tersimpan, silakan hubungi Admin CATARA.",
           };
         }
 

@@ -35,7 +35,7 @@ export function FilterPanel({
           <span className="flex items-center gap-2">
             <span>{title}</span>
             {activeCount > 0 && (
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-[#ffc63d] px-1.5 text-xs font-bold text-[#151515]">
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-gradient-to-r from-[#494ae2] to-[#7854ec] px-1.5 text-xs font-bold text-white">
                 {activeCount}
               </span>
             )}
@@ -58,7 +58,7 @@ export function FilterPanel({
       {mobileOpen && (
         <div className="mt-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-xs md:hidden space-y-3">
           <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5">
-            <span className="text-sm font-bold text-[#151515]">{title}</span>
+            <span className="text-sm font-bold text-[#0c0c13]">{title}</span>
             <button
               type="button"
               onClick={() => setMobileOpen(false)}

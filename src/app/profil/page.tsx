@@ -193,7 +193,7 @@ export default function ProfilPage() {
               </div>
               <p className="text-xs text-rose-800">
                 Seluruh riwayat hasil ujian Anda tetap tersimpan dengan aman.
-                Silakan hubungi Administrator Prima Catania untuk informasi
+                Silakan hubungi Administrator CATARA untuk informasi
                 pengaktifan kembali akun Anda.
               </p>
             </div>
@@ -203,16 +203,16 @@ export default function ProfilPage() {
 
       {/* Notifikasi Keanggotaan Kelompok dari Admin */}
       {userGroups.length > 0 && (
-        <div className="mb-6 rounded-2xl border border-[#0b49d0]/25 bg-[#eef4ff]/80 p-4 shadow-xs">
+        <div className="mb-6 rounded-2xl border border-[#494ae2]/25 bg-[#f5f8ff] p-4 shadow-xs">
           <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#0b49d0] text-white">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-white">
               <BellRing className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs sm:text-sm font-bold text-[#0b49d0]">
+              <p className="text-xs sm:text-sm font-bold text-[#494ae2]">
                 Notifikasi Kelompok Belajar
               </p>
-              <p className="mt-0.5 text-xs text-neutral-700 leading-relaxed">
+              <p className="mt-0.5 text-xs text-slate-700 leading-relaxed">
                 Administrator telah menambahkan akun Anda ke dalam kelompok:{" "}
                 <strong>{userGroups.map((g) => g.name).join(", ")}</strong>. Anda
                 memiliki hak akses untuk mengikuti jadwal sesi ujian khusus
@@ -237,18 +237,18 @@ export default function ProfilPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Left Summary Card */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+          <div className="rounded-2xl border border-indigo-100 bg-white p-5 sm:p-6 shadow-xs space-y-4">
             <div className="flex items-center gap-3.5">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#0b49d0] text-xl font-bold text-white">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-xl font-bold text-white shadow-xs">
                 {(user.full_name || "P").charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <h2 className="text-base font-bold text-[#151515] truncate">
+                <h2 className="text-base font-bold text-[#0c0c13] truncate">
                   {user.full_name}
                 </h2>
-                <p className="text-xs text-neutral-500 truncate">{user.email}</p>
+                <p className="text-xs text-slate-500 truncate">{user.email}</p>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  <span className="inline-flex items-center gap-1 rounded-md bg-[#eef4ff] px-2 py-0.5 text-[11px] font-bold text-[#0b49d0] uppercase">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-[#f5f8ff] border border-indigo-100 px-2 py-0.5 text-[11px] font-bold text-[#494ae2] uppercase">
                     <ShieldCheck className="h-3 w-3" />
                     Role: {user.role}
                   </span>
@@ -256,9 +256,9 @@ export default function ProfilPage() {
               </div>
             </div>
 
-            <div className="border-t border-neutral-100 pt-4 space-y-2.5 text-xs">
+            <div className="border-t border-slate-100 pt-4 space-y-2.5 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-neutral-500 flex items-center gap-1.5">
+                <span className="text-slate-500 flex items-center gap-1.5">
                   <Mail className="h-3.5 w-3.5" /> Status Email:
                 </span>
                 {user.email_verified !== false ? (
@@ -277,8 +277,8 @@ export default function ProfilPage() {
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-neutral-500">Terdaftar Sejak:</span>
-                <span className="font-semibold text-[#151515]">
+                <span className="text-slate-500">Terdaftar Sejak:</span>
+                <span className="font-semibold text-[#0c0c13]">
                   {formatDateTimeID(user.created_at)}
                 </span>
               </div>
@@ -286,11 +286,11 @@ export default function ProfilPage() {
           </div>
 
           {/* Group Membership Card */}
-          <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-3">
+          <div className="rounded-2xl border border-indigo-100 bg-white p-5 sm:p-6 shadow-xs space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <UsersRound className="h-4 w-4 text-[#0b49d0]" />
-                <h3 className="text-sm font-bold text-[#151515]">
+                <UsersRound className="h-4 w-4 text-[#494ae2]" />
+                <h3 className="text-sm font-bold text-[#0c0c13]">
                   Keanggotaan Kelompok / Kelas
                 </h3>
               </div>
@@ -303,7 +303,7 @@ export default function ProfilPage() {
               )}
             </div>
             {userGroups.length === 0 ? (
-              <p className="text-xs text-neutral-500 leading-relaxed">
+              <p className="text-xs text-slate-500 leading-relaxed">
                 Anda belum tergabung dalam kelompok khusus. Anda tetap dapat
                 mengikuti seluruh ujian bertipe <strong>Terbuka (Open)</strong>.
               </p>
@@ -312,10 +312,10 @@ export default function ProfilPage() {
                 {userGroups.map((g) => (
                   <li
                     key={g.id}
-                    className="rounded-xl border border-[#0b49d0]/25 bg-[#eef4ff]/60 p-3"
+                    className="rounded-xl border border-[#494ae2]/25 bg-[#f5f8ff] p-3"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-bold text-[#0b49d0]">
+                      <p className="text-xs font-bold text-[#494ae2]">
                         {g.name}
                       </p>
                       <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
@@ -323,7 +323,7 @@ export default function ProfilPage() {
                       </span>
                     </div>
                     {g.description && (
-                      <p className="mt-1 text-[11px] text-neutral-600">
+                      <p className="mt-1 text-[11px] text-slate-600">
                         {g.description}
                       </p>
                     )}
@@ -338,14 +338,14 @@ export default function ProfilPage() {
         <div className="lg:col-span-8">
           <form
             onSubmit={handleSave}
-            className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-7 shadow-xs space-y-5"
+            className="rounded-2xl border border-indigo-100 bg-white p-5 sm:p-7 shadow-xs space-y-5"
           >
-            <div className="border-b border-neutral-100 pb-3">
-              <h2 className="text-base sm:text-lg font-bold text-[#151515] flex items-center gap-2">
-                <UserCheck className="h-5 w-5 text-[#0b49d0]" />
+            <div className="border-b border-slate-100 pb-3">
+              <h2 className="text-base sm:text-lg font-bold text-[#0c0c13] flex items-center gap-2">
+                <UserCheck className="h-5 w-5 text-[#494ae2]" />
                 <span>Perbarui Informasi Peserta</span>
               </h2>
-              <p className="mt-0.5 text-xs text-neutral-600">
+              <p className="mt-0.5 text-xs text-slate-600">
                 Nama lengkap wajib diisi dan digunakan pada laporan hasil ujian
                 serta sertifikat/peringkat simulasi.
               </p>
@@ -399,7 +399,7 @@ export default function ProfilPage() {
                   type="text"
                   value={institution}
                   onChange={(e) => setInstitution(e.target.value)}
-                  placeholder="Contoh: Bimbel Prima RIB / SMA Mitra"
+                  placeholder="Contoh: Lembaga Pendidikan / SMA Mitra"
                   className={inputBaseClasses}
                 />
               </FormField>
@@ -421,10 +421,10 @@ export default function ProfilPage() {
               </FormField>
             </div>
 
-            <div className="flex flex-col-reverse gap-3 border-t border-neutral-100 pt-4 sm:flex-row sm:justify-between sm:items-center">
+            <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:justify-between sm:items-center">
               <Link
                 href="/lupa-password"
-                className="text-xs font-semibold text-[#0b49d0] hover:underline"
+                className="text-xs font-semibold text-[#494ae2] hover:underline"
               >
                 Ingin mengubah kata sandi akun?
               </Link>

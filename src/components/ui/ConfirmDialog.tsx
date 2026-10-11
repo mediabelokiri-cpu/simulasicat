@@ -46,15 +46,15 @@ export function ConfirmDialog({
                 variant === "danger"
                   ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600"
                   : variant === "accent"
-                  ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#ffc63d] text-[#151515]"
-                  : "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eef4ff] text-[#0b49d0]"
+                  ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-white"
+                  : "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f5f8ff] text-[#494ae2]"
               }
             >
               <AlertTriangle className="h-5 w-5" aria-hidden="true" />
             </div>
             <h2
               id="confirm-dialog-title"
-              className="text-lg font-bold text-[#151515]"
+              className="text-lg font-bold text-[#0c0c13]"
             >
               {title}
             </h2>

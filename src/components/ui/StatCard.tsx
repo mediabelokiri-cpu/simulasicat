@@ -19,23 +19,22 @@ export function StatCard({
   icon,
   accent = "blue",
   badge,
-  trend,
-  className,
+   className,
 }: StatCardProps) {
   const accentStyles = {
-    blue: "border-l-4 border-l-[#0b49d0]",
-    yellow: "border-l-4 border-l-[#ffc63d]",
+    blue: "border-l-4 border-l-[#494ae2]",
+    yellow: "border-l-4 border-l-[#7854ec]",
     green: "border-l-4 border-l-emerald-600",
     red: "border-l-4 border-l-red-600",
     neutral: "border-l-4 border-l-neutral-400",
   };
 
   const iconContainerStyles = {
-    blue: "bg-[#eef4ff] text-[#0b49d0]",
-    yellow: "bg-[#ffc63d] text-[#151515]",
+    blue: "bg-[#f5f8ff] text-[#494ae2]",
+    yellow: "bg-[#f5f8ff] text-[#7854ec]",
     green: "bg-emerald-50 text-emerald-700",
     red: "bg-red-50 text-red-700",
-    neutral: "bg-neutral-100 text-[#151515]",
+    neutral: "bg-neutral-100 text-[#0c0c13]",
   };
 
   return (
@@ -51,7 +50,7 @@ export function StatCard({
           <p className="text-xs sm:text-[13px] font-medium text-neutral-600 truncate">
             {title}
           </p>
-          <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-[#151515] tabular-nums tracking-tight">
+          <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-[#0c0c13] tabular-nums tracking-tight">
             {value}
           </p>
         </div>

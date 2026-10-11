@@ -28,7 +28,7 @@ export function PageHeader({
       <div className="min-w-0 flex-1 space-y-1.5">
         {backLink && <div className="mb-1">{backLink}</div>}
         <div className="flex flex-wrap items-center gap-2.5">
-          <h1 className="text-[22px] sm:text-[28px] font-bold tracking-tight text-[#151515] leading-tight">
+          <h1 className="text-[22px] sm:text-[28px] font-bold tracking-tight text-[#0c0c13] leading-tight">
             {title}
           </h1>
           {badge}

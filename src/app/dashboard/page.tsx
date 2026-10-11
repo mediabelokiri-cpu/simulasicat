@@ -237,7 +237,7 @@ export default function UserDashboardPage() {
   } else {
     mobileNotifications.push({
       id: "notif-default-magang",
-      title: "Program Simulasi CAT Prima RIB",
+      title: "CATARA — Digital Assessment Platform",
       subtitle:
         "Persiapan seleksi CPNS, Sekolah Kedinasan & Polri terintegrasi realtime",
       accentColor: "bg-emerald-400",
@@ -261,7 +261,7 @@ export default function UserDashboardPage() {
       <div className="mx-auto max-w-md space-y-6 lg:hidden">
         {/* Screen 1: Onboarding Splash Card (Bisa dibuka/ditutup) */}
         {showOnboardingCard && (
-          <div className="relative overflow-hidden rounded-[32px] bg-[#4338ca] p-5 text-white shadow-[0_20px_50px_rgba(67,56,202,0.35)]">
+          <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#494ae2] via-[#5e4fe7] to-[#7854ec] p-5 text-white shadow-[0_20px_50px_rgba(73,74,226,0.35)]">
             {/* Wavy Top SVG Pattern */}
             <svg
               viewBox="0 0 400 90"
@@ -294,18 +294,18 @@ export default function UserDashboardPage() {
             <div className="relative mx-auto my-4 flex h-44 w-44 items-center justify-center">
               <div className="absolute h-36 w-36 rounded-full bg-indigo-400/20 blur-xl" />
               <div className="relative flex h-36 w-24 flex-col items-center justify-between rounded-[22px] border-4 border-rose-200 bg-white p-2.5 shadow-xl">
-                <div className="flex h-14 w-full items-center justify-center rounded-xl bg-rose-400 text-white shadow-inner">
+                <div className="flex h-14 w-full items-center justify-center rounded-xl bg-gradient-to-br from-rose-400 to-[#7854ec] text-white shadow-inner">
                   <PlayCircle className="h-7 w-7 fill-white/20" />
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="h-3 w-3 rounded-full bg-rose-400" />
-                  <span className="h-3 w-3 rounded-full bg-indigo-900" />
-                  <span className="h-3 w-3 rounded-full bg-amber-400" />
+                  <span className="h-3 w-3 rounded-full bg-[#494ae2]" />
+                  <span className="h-3 w-3 rounded-full bg-[#0c0c13]" />
+                  <span className="h-3 w-3 rounded-full bg-[#7854ec]" />
                 </div>
                 <div className="grid w-full grid-cols-3 gap-1">
-                  <span className="h-3 rounded bg-rose-100" />
-                  <span className="h-3 rounded bg-rose-100" />
-                  <span className="h-3 rounded bg-rose-100" />
+                  <span className="h-3 rounded bg-[#f5f8ff]" />
+                  <span className="h-3 rounded bg-[#f5f8ff]" />
+                  <span className="h-3 rounded bg-[#f5f8ff]" />
                 </div>
               </div>
               {/* Ring accent */}
@@ -313,7 +313,7 @@ export default function UserDashboardPage() {
             </div>
 
             {/* Frosted Bottom Card */}
-            <div className="rounded-[26px] bg-[#5248e8] p-5 text-center shadow-inner space-y-3">
+            <div className="rounded-[26px] bg-white/15 backdrop-blur-md border border-white/20 p-5 text-center shadow-inner space-y-3">
               <div className="flex items-center justify-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
                 <span className="h-2 w-2 rounded-full bg-white" />
@@ -322,9 +322,9 @@ export default function UserDashboardPage() {
               <h2 className="text-base font-extrabold leading-snug text-white">
                 Lebih mudah untuk mengakses simulasi CAT dengan mobile
               </h2>
-              <p className="text-xs text-indigo-100/90 leading-relaxed">
-                Sekarang kamu bisa mengakses latihan &amp; simulasi CAT dengan
-                lebih mudah di Android maupun iOS.
+              <p className="text-xs text-[#f5f8ff]/90 leading-relaxed">
+                Sekarang kamu bisa mengakses CATARA — Digital Assessment Platform
+                dengan lebih mudah di Android maupun iOS.
               </p>
               <button
                 type="button"
@@ -334,7 +334,7 @@ export default function UserDashboardPage() {
                     .getElementById("daftar-sesi-ujian")
                     ?.scrollIntoView({ behavior: "smooth" });
                 }}
-                className="mt-2 w-full rounded-2xl bg-white py-3.5 text-xs font-extrabold text-[#3730a3] shadow-md transition-transform active:scale-98 cursor-pointer"
+                className="mt-2 w-full rounded-2xl bg-white py-3.5 text-xs font-extrabold text-[#494ae2] shadow-md transition-transform active:scale-98 cursor-pointer"
               >
                 Mulai
               </button>
@@ -342,13 +342,13 @@ export default function UserDashboardPage() {
           </div>
         )}
 
-        {/* Screen 2: Hero Kartu Identitas Peserta (Royal Indigo Card) */}
-        <div className="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-[#4338ca] via-[#493fe8] to-[#3730a3] p-5 text-white shadow-[0_16px_36px_rgba(67,56,202,0.26)]">
+        {/* Screen 2: Hero Kartu Identitas Peserta (CATARA Smooth Gradient Card) */}
+        <div className="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-[#494ae2] via-[#5e4fe7] to-[#7854ec] p-5 text-white shadow-[0_16px_36px_rgba(73,74,226,0.28)]">
           <div className="pointer-events-none absolute -right-8 -top-8 h-36 w-36 rounded-full bg-white/10 blur-2xl" />
 
           <div className="relative z-10 flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold tracking-wider text-indigo-200 tabular-nums">
+              <p className="text-xs font-semibold tracking-wider text-white/80 tabular-nums">
                 {participantNumber}
               </p>
               <h2 className="mt-1 truncate text-xl font-extrabold tracking-tight text-white">
@@ -356,7 +356,7 @@ export default function UserDashboardPage() {
               </h2>
 
               <div className="mt-5 space-y-0.5">
-                <p className="text-xs font-medium text-indigo-100">
+                <p className="text-xs font-medium text-white/90">
                   {user.institution ||
                     `Seleksi ${user.target_selection || "CPNS"}`}
                 </p>
@@ -428,7 +428,7 @@ export default function UserDashboardPage() {
                 </svg>
               </button>
 
-              <span className="mt-2 inline-flex items-center rounded-xl bg-white px-3.5 py-1.5 text-xs font-extrabold text-[#3730a3] shadow-sm tabular-nums">
+              <span className="mt-2 inline-flex items-center rounded-xl bg-white px-3.5 py-1.5 text-xs font-extrabold text-[#494ae2] shadow-sm tabular-nums">
                 {readyCount + ongoingCount > 0
                   ? `${readyCount + ongoingCount} Sesi`
                   : "110 Soal"}
@@ -440,13 +440,13 @@ export default function UserDashboardPage() {
         {/* Menu Informasi (Grid 4x2 = 8 Ikon Pastel Modern) */}
         <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-extrabold text-[#1e1b4b]">
+            <h3 className="text-sm font-extrabold text-[#0c0c13]">
               Menu Informasi
             </h3>
             <button
               type="button"
               onClick={() => setShowOnboardingCard((v) => !v)}
-              className="text-[11px] font-bold text-[#4338ca] hover:underline cursor-pointer"
+              className="text-[11px] font-bold text-[#494ae2] hover:underline cursor-pointer"
             >
               Info Mobile
             </button>
@@ -458,7 +458,7 @@ export default function UserDashboardPage() {
                 label: "Jadwal",
                 href: "/ujian",
                 icon: CalendarClock,
-                iconBg: "bg-indigo-100 text-[#4338ca]",
+                iconBg: "bg-indigo-100 text-[#494ae2]",
               },
               {
                 label: "Simulasi",
@@ -482,7 +482,7 @@ export default function UserDashboardPage() {
                 label: "Cat PA",
                 href: "/hasil",
                 icon: PenTool,
-                iconBg: "bg-purple-100 text-purple-600",
+                iconBg: "bg-purple-100 text-[#7854ec]",
               },
               {
                 label: "Soal CAT",
@@ -494,7 +494,7 @@ export default function UserDashboardPage() {
                 label: "App Mobile",
                 href: "/download-app",
                 icon: Smartphone,
-                iconBg: "bg-blue-100 text-[#4338ca]",
+                iconBg: "bg-blue-100 text-[#494ae2]",
               },
               {
                 label: "Lainnya",
@@ -508,14 +508,14 @@ export default function UserDashboardPage() {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="group flex flex-col items-center justify-center gap-2 rounded-2xl border border-indigo-50/90 bg-white p-3 shadow-[0_8px_24px_rgba(67,56,202,0.05)] transition-all hover:-translate-y-0.5 active:scale-95"
+                  className="group flex flex-col items-center justify-center gap-2 rounded-2xl border border-indigo-50/90 bg-white p-3 shadow-[0_8px_24px_rgba(73,74,226,0.05)] transition-all hover:-translate-y-0.5 active:scale-95"
                 >
                   <div
                     className={`flex h-11 w-11 items-center justify-center rounded-2xl ${item.iconBg} transition-transform group-hover:scale-105`}
                   >
                     <Icon className="h-5 w-5" />
                   </div>
-                  <span className="text-[11px] font-bold text-[#1e1b4b] text-center leading-tight">
+                  <span className="text-[11px] font-bold text-[#0c0c13] text-center leading-tight">
                     {item.label}
                   </span>
                 </Link>
@@ -524,15 +524,15 @@ export default function UserDashboardPage() {
           </div>
         </section>
 
-        {/* Notifikasi Mobile (Sesuai Referensi Gambar) */}
+        {/* Notifikasi Mobile */}
         <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-extrabold text-[#1e1b4b]">
+            <h3 className="text-sm font-extrabold text-[#0c0c13]">
               Notifikasi
             </h3>
             <Link
               href="/profil"
-              className="text-xs font-bold text-[#4338ca] hover:underline"
+              className="text-xs font-bold text-[#494ae2] hover:underline"
             >
               Lihat semua
             </Link>
@@ -542,7 +542,7 @@ export default function UserDashboardPage() {
             {visibleMobileNotifs.map((notif) => (
               <div
                 key={notif.id}
-                className="relative flex items-start gap-3 rounded-2xl border border-indigo-50/90 bg-white p-4 shadow-[0_8px_24px_rgba(67,56,202,0.05)]"
+                className="relative flex items-start gap-3 rounded-2xl border border-indigo-50/90 bg-white p-4 shadow-[0_8px_24px_rgba(73,74,226,0.05)]"
               >
                 <span
                   className={`mt-0.5 h-10 w-1 shrink-0 rounded-full ${notif.accentColor}`}
@@ -552,12 +552,12 @@ export default function UserDashboardPage() {
                   {notif.href ? (
                     <Link
                       href={notif.href}
-                      className="block text-xs font-extrabold text-[#1e1b4b] hover:text-[#4338ca]"
+                      className="block text-xs font-extrabold text-[#0c0c13] hover:text-[#494ae2]"
                     >
                       {notif.title}
                     </Link>
                   ) : (
-                    <p className="text-xs font-extrabold text-[#1e1b4b]">
+                    <p className="text-xs font-extrabold text-[#0c0c13]">
                       {notif.title}
                     </p>
                   )}
@@ -583,7 +583,7 @@ export default function UserDashboardPage() {
         {/* Banner Cepat Download App (Android & iOS) */}
         <Link
           href="/download-app"
-          className="flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-[#4338ca] to-[#6366f1] p-4 text-white shadow-[0_10px_24px_rgba(67,56,202,0.22)] transition-transform active:scale-98"
+          className="flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-[#494ae2] to-[#7854ec] p-4 text-white shadow-[0_10px_24px_rgba(73,74,226,0.22)] transition-transform active:scale-98"
         >
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/20">
@@ -593,8 +593,8 @@ export default function UserDashboardPage() {
               <p className="text-xs font-extrabold text-white">
                 Download Aplikasi Mobile (Android &amp; iOS)
               </p>
-              <p className="text-[11px] text-indigo-100">
-                Akses simulasi CAT lebih cepat langsung dari layar utama HP
+              <p className="text-[11px] text-white/90">
+                Akses CATARA lebih cepat langsung dari layar utama HP
               </p>
             </div>
           </div>
@@ -620,7 +620,7 @@ export default function UserDashboardPage() {
               <Link href="/download-app">
                 <Button
                   variant="outline"
-                  leftIcon={<Smartphone className="h-4 w-4 text-[#0b49d0]" />}
+                  leftIcon={<Smartphone className="h-4 w-4 text-[#494ae2]" />}
                 >
                   Download App (Android &amp; iOS)
                 </Button>
@@ -683,18 +683,18 @@ export default function UserDashboardPage() {
 
         {/* Notifikasi Keanggotaan Kelompok */}
         {userGroups.length > 0 && (
-          <div className="mb-6 rounded-2xl border border-[#0b49d0]/25 bg-[#eef4ff]/80 p-4 shadow-xs">
+          <div className="mb-6 rounded-2xl border border-[#494ae2]/25 bg-[#f5f8ff] p-4 shadow-xs">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#0b49d0] text-white">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-white">
                   <UsersRound className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs sm:text-sm font-bold text-[#0b49d0]">
+                  <p className="text-xs sm:text-sm font-bold text-[#494ae2]">
                     Anda Tergabung dalam Kelompok:{" "}
                     {userGroups.map((g) => g.name).join(", ")}
                   </p>
-                  <p className="mt-0.5 text-xs text-neutral-700">
+                  <p className="mt-0.5 text-xs text-slate-700">
                     Akun Anda memiliki akses penuh ke jadwal sesi ujian khusus
                     untuk anggota kelompok ini.
                   </p>
@@ -702,7 +702,7 @@ export default function UserDashboardPage() {
               </div>
               <Link
                 href="/profil"
-                className="shrink-0 text-xs font-bold text-[#0b49d0] hover:underline"
+                className="shrink-0 text-xs font-bold text-[#494ae2] hover:underline"
               >
                 Lihat Profil &rarr;
               </Link>
@@ -710,14 +710,14 @@ export default function UserDashboardPage() {
           </div>
         )}
 
-        {/* Pengumuman Penting Admin (Bab 4.1 PRD) */}
-        <div className="mb-6 flex items-start gap-3 rounded-2xl border border-[#ffc63d] bg-[#fff9e6] p-4 text-xs sm:text-sm text-[#151515]">
-          <Megaphone className="h-5 w-5 shrink-0 text-[#0b49d0] mt-0.5" />
+        {/* Pengumuman Penting Admin */}
+        <div className="mb-6 flex items-start gap-3 rounded-2xl border border-[#494ae2]/25 bg-white p-4 text-xs sm:text-sm text-[#0c0c13] shadow-2xs">
+          <Megaphone className="h-5 w-5 shrink-0 text-[#494ae2] mt-0.5" />
           <div className="flex-1">
             <p className="font-bold">
-              Informasi Pelaksanaan Simulasi CAT Prima RIB:
+              Informasi Pelaksanaan CATARA — Digital Assessment Platform:
             </p>
-            <p className="mt-0.5 text-neutral-700 leading-relaxed">
+            <p className="mt-0.5 text-slate-600 leading-relaxed">
               Timer pengerjaan bersifat individual sejak Anda menekan tombol{" "}
               <strong>Mulai Ujian</strong>. Urutan soal telah diacak per blok
               subtes (TWK, TIU, TKP) dan jawaban Anda tersimpan otomatis di
@@ -775,12 +775,12 @@ export default function UserDashboardPage() {
         id="daftar-sesi-ujian"
         className="mt-7 lg:mt-8 space-y-5 max-w-md mx-auto lg:max-w-none"
       >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between border-b border-neutral-200 pb-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between border-b border-indigo-100 pb-4">
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-[#151515]">
+            <h2 className="text-lg sm:text-xl font-bold text-[#0c0c13]">
               Daftar Sesi Ujian Simulasi
             </h2>
-            <p className="text-xs sm:text-sm text-neutral-600">
+            <p className="text-xs sm:text-sm text-slate-600">
               Filter berdasarkan kategori seleksi CPNS, Sekolah Kedinasan
               (Sekdin), dan Polri.
             </p>
@@ -850,14 +850,14 @@ export default function UserDashboardPage() {
 
       {/* Riwayat Singkat */}
       {userResults.length > 0 && (
-        <section className="mt-8 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+        <section className="mt-8 rounded-2xl border border-indigo-100 bg-white p-5 sm:p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base sm:text-lg font-bold text-[#151515]">
+            <h2 className="text-base sm:text-lg font-bold text-[#0c0c13]">
               Hasil Ujian Terakhir Anda
             </h2>
             <Link
               href="/hasil"
-              className="inline-flex items-center gap-1 text-xs font-bold text-[#0b49d0] hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-bold text-[#494ae2] hover:underline"
             >
               <span>Lihat Semua Riwayat</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -869,13 +869,13 @@ export default function UserDashboardPage() {
               return (
                 <div
                   key={res.id}
-                  className="flex items-center justify-between rounded-xl border border-neutral-200 bg-[#fcfbf7] p-4"
+                  className="flex items-center justify-between rounded-xl border border-indigo-100/80 bg-[#f5f8ff] p-4"
                 >
                   <div>
-                    <p className="text-sm font-bold text-[#151515]">
+                    <p className="text-sm font-bold text-[#0c0c13]">
                       {r?.name || "Sesi Simulasi CAT"}
                     </p>
-                    <p className="text-xs text-neutral-600 tabular-nums mt-0.5">
+                    <p className="text-xs text-slate-600 tabular-nums mt-0.5">
                       Skor Total: <strong>{res.total_score}</strong>
                     </p>
                   </div>

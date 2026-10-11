@@ -212,17 +212,17 @@ export default function AdminDashboardPage() {
       {
         label: `Seleksi CPNS SKD (${cpnsUsers} Peserta)`,
         weight: Math.max(25, cpnsUsers * 10),
-        color: "#0b49d0",
+        color: "#494ae2",
       },
       {
         label: `Sekolah Kedinasan (${sekdinUsers} Peserta)`,
         weight: Math.max(20, sekdinUsers * 10),
-        color: "#f59e0b",
+        color: "#7854ec",
       },
       {
         label: `Bank Soal TWK (${twkQ} Soal)`,
         weight: Math.max(20, twkQ),
-        color: "#ffc63d",
+        color: "#a855f7",
       },
       {
         label: `Bank Soal TIU (${tiuQ} Soal)`,
@@ -401,7 +401,7 @@ export default function AdminDashboardPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `Rekap-Operasional-CAT-${new Date()
+    a.download = `Rekap-Operasional-CATARA-${new Date()
       .toISOString()
       .slice(0, 10)}.csv`;
     a.click();
@@ -415,7 +415,7 @@ export default function AdminDashboardPage() {
   return (
     <AppShell
       role="admin"
-      userName="Admin Prima RIB"
+      userName="Admin CATARA"
       userSubtitle="Panel Administrator"
     >
       <div className="space-y-8 pb-8">
@@ -424,8 +424,8 @@ export default function AdminDashboardPage() {
             ================================================================= */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#151515] flex items-center gap-2">
-              <span>Halo, Admin Prima RIB!</span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0c0c13] flex items-center gap-2">
+              <span>Halo, Admin CATARA!</span>
               <span aria-hidden="true">👋</span>
             </h1>
             <p className="mt-1 text-xs sm:text-sm font-medium text-neutral-500">
@@ -441,7 +441,7 @@ export default function AdminDashboardPage() {
                 setPeriodFilter(e.target.value as "month" | "week" | "all")
               }
               aria-label="Filter Periode"
-              className="rounded-2xl border border-neutral-200/90 bg-white px-4 py-2.5 text-xs sm:text-sm font-bold text-[#151515] shadow-2xs focus:border-[#0b49d0] focus:outline-none cursor-pointer"
+              className="rounded-2xl border border-neutral-200/90 bg-white px-4 py-2.5 text-xs sm:text-sm font-bold text-[#0c0c13] shadow-2xs focus:border-[#494ae2] focus:outline-none cursor-pointer"
             >
               <option value="month">Bulan Ini</option>
               <option value="week">7 Hari Terakhir</option>
@@ -451,7 +451,7 @@ export default function AdminDashboardPage() {
             <Link
               href="/admin/jadwal-sesi"
               title="Jadwal & Kalender Sesi"
-              className="flex h-10 w-10 items-center justify-center rounded-2xl border border-neutral-200/90 bg-white text-[#151515] shadow-2xs transition-colors hover:border-[#0b49d0] hover:text-[#0b49d0]"
+              className="flex h-10 w-10 items-center justify-center rounded-2xl border border-neutral-200/90 bg-white text-[#0c0c13] shadow-2xs transition-colors hover:border-[#494ae2] hover:text-[#494ae2]"
             >
               <CalendarClock className="h-4.5 w-4.5" />
             </Link>
@@ -464,8 +464,8 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
           {/* Kiri: Grid 2x2 Kartu KPI (5 Kolom) */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-5">
-            {/* Kartu 1: Hero Biru Utama (#0b49d0) — Total Peserta */}
-            <div className="relative flex flex-col justify-between overflow-hidden rounded-[28px] bg-[#0b49d0] p-5 text-white shadow-[0_18px_38px_rgba(11,73,208,0.24)]">
+            {/* Kartu 1: Hero Gradasi Utama (#494ae2 -> #7854ec) — Total Peserta */}
+            <div className="relative flex flex-col justify-between overflow-hidden rounded-[28px] bg-gradient-to-br from-[#494ae2] to-[#7854ec] p-5 text-white shadow-[0_18px_38px_rgba(73,74,226,0.26)]">
               {/* Dekorasi Gelombang Halus Pojok Kanan Bawah */}
               <svg
                 viewBox="0 0 200 120"
@@ -492,7 +492,7 @@ export default function AdminDashboardPage() {
                 <Link
                   href="/admin/peserta"
                   title="Kelola Peserta"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#151515] shadow-xs transition-transform hover:scale-105"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#0c0c13] shadow-xs transition-transform hover:scale-105"
                 >
                   <ArrowUpRight className="h-4 w-4" />
                 </Link>
@@ -513,7 +513,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Kartu 2: Putih Bersih — Total Sesi Ujian */}
-            <div className="flex flex-col justify-between rounded-[28px] border border-neutral-200/80 bg-white p-5 shadow-[0_8px_26px_rgba(15,23,42,0.03)]">
+            <div className="flex flex-col justify-between rounded-[28px] border border-neutral-200/80 bg-white p-5 shadow-[0_8px_26px_rgba(12,12,19,0.03)]">
               <div className="flex items-center justify-between">
                 <span className="text-xs sm:text-sm font-semibold text-neutral-500">
                   Total Sesi Ujian
@@ -521,14 +521,14 @@ export default function AdminDashboardPage() {
                 <Link
                   href="/admin/jadwal-sesi"
                   title="Kelola Jadwal & Sesi"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-[#151515] transition-colors hover:bg-[#0b49d0] hover:text-white"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-[#0c0c13] transition-colors hover:bg-[#494ae2] hover:text-white"
                 >
                   <ArrowUpRight className="h-4 w-4" />
                 </Link>
               </div>
 
               <div className="my-4 flex flex-wrap items-baseline justify-between gap-2">
-                <span className="text-3xl font-extrabold tracking-tight text-[#151515] tabular-nums">
+                <span className="text-3xl font-extrabold tracking-tight text-[#0c0c13] tabular-nums">
                   {runs.length}
                 </span>
                 <span
@@ -551,7 +551,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Kartu 3: Putih Bersih — Partisipasi Ujian */}
-            <div className="flex flex-col justify-between rounded-[28px] border border-neutral-200/80 bg-white p-5 shadow-[0_8px_26px_rgba(15,23,42,0.03)]">
+            <div className="flex flex-col justify-between rounded-[28px] border border-neutral-200/80 bg-white p-5 shadow-[0_8px_26px_rgba(12,12,19,0.03)]">
               <div className="flex items-center justify-between">
                 <span className="text-xs sm:text-sm font-semibold text-neutral-500">
                   Total Attempt CAT
@@ -559,21 +559,21 @@ export default function AdminDashboardPage() {
                 <Link
                   href="/admin/monitoring"
                   title="Monitoring Realtime"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-[#151515] transition-colors hover:bg-[#0b49d0] hover:text-white"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-[#0c0c13] transition-colors hover:bg-[#494ae2] hover:text-white"
                 >
                   <ArrowUpRight className="h-4 w-4" />
                 </Link>
               </div>
 
               <div className="my-4 flex flex-wrap items-baseline justify-between gap-2">
-                <span className="text-3xl font-extrabold tracking-tight text-[#151515] tabular-nums">
+                <span className="text-3xl font-extrabold tracking-tight text-[#0c0c13] tabular-nums">
                   {sessions.length}
                 </span>
                 <span
                   className={cn(
                     "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-extrabold",
                     activeSessions.length > 0
-                      ? "bg-[#ffc63d]/35 text-[#151515]"
+                      ? "bg-[#7854ec]/15 text-[#494ae2]"
                       : "bg-red-100 text-red-600"
                   )}
                 >
@@ -589,7 +589,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Kartu 4: Putih Bersih — Rata-Rata Skor & Lulus PG */}
-            <div className="flex flex-col justify-between rounded-[28px] border border-neutral-200/80 bg-white p-5 shadow-[0_8px_26px_rgba(15,23,42,0.03)]">
+            <div className="flex flex-col justify-between rounded-[28px] border border-neutral-200/80 bg-white p-5 shadow-[0_8px_26px_rgba(12,12,19,0.03)]">
               <div className="flex items-center justify-between">
                 <span className="text-xs sm:text-sm font-semibold text-neutral-500">
                   Rata-Rata Skor
@@ -597,14 +597,14 @@ export default function AdminDashboardPage() {
                 <Link
                   href="/admin/hasil"
                   title="Hasil & Analitik"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-[#151515] transition-colors hover:bg-[#0b49d0] hover:text-white"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-[#0c0c13] transition-colors hover:bg-[#494ae2] hover:text-white"
                 >
                   <ArrowUpRight className="h-4 w-4" />
                 </Link>
               </div>
 
               <div className="my-4 flex flex-wrap items-baseline justify-between gap-2">
-                <span className="text-3xl font-extrabold tracking-tight text-[#151515] tabular-nums">
+                <span className="text-3xl font-extrabold tracking-tight text-[#0c0c13] tabular-nums">
                   {avgTotalScore}
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-extrabold text-emerald-700">
@@ -619,10 +619,10 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Kanan: Kartu Grafik Batang ("Statistik Skor & Sesi" — 7 Kolom) */}
-          <div className="flex flex-col justify-between rounded-[28px] border border-neutral-200/80 bg-white p-5 sm:p-6 shadow-[0_8px_26px_rgba(15,23,42,0.03)] lg:col-span-7">
+          <div className="flex flex-col justify-between rounded-[28px] border border-neutral-200/80 bg-white p-5 sm:p-6 shadow-[0_8px_26px_rgba(12,12,19,0.03)] lg:col-span-7">
             <div className="flex items-center justify-between gap-2">
               <div className="flex flex-wrap items-baseline gap-3">
-                <h2 className="text-base sm:text-lg font-extrabold text-[#151515]">
+                <h2 className="text-base sm:text-lg font-extrabold text-[#0c0c13]">
                   Capaian Skor Sesi
                 </h2>
                 <span className="text-xs font-medium text-neutral-400">
@@ -633,7 +633,7 @@ export default function AdminDashboardPage() {
               <Link
                 href="/admin/hasil"
                 title="Buka Analitik Lengkap"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#151515] text-white shadow-xs transition-colors hover:bg-[#0b49d0]"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0c0c13] text-white shadow-xs transition-colors hover:bg-[#494ae2]"
               >
                 <ArrowUpRight className="h-4 w-4" />
               </Link>
@@ -665,13 +665,13 @@ export default function AdminDashboardPage() {
                       key={`${bar.label}-${idx}`}
                       className="group relative flex flex-col items-center"
                     >
-                      {/* Tooltip Nilai Mengambang (Persis seperti $14,867 di referensi) */}
+                      {/* Tooltip Nilai Mengambang */}
                       <div
                         className={cn(
                           "mb-2 rounded-lg px-2 py-0.5 text-[10px] font-extrabold tabular-nums transition-opacity",
                           isHighlighted
-                            ? "bg-neutral-100 text-[#151515] opacity-100 shadow-2xs"
-                            : "bg-[#151515] text-white opacity-0 group-hover:opacity-100"
+                            ? "bg-[#f5f8ff] text-[#0c0c13] opacity-100 shadow-2xs border border-[#494ae2]/20"
+                            : "bg-[#0c0c13] text-white opacity-0 group-hover:opacity-100"
                         )}
                       >
                         {bar.value}
@@ -684,8 +684,8 @@ export default function AdminDashboardPage() {
                           className={cn(
                             "w-full max-w-[38px] rounded-t-2xl rounded-b-lg transition-all duration-300",
                             isHighlighted
-                              ? "bg-[#0b49d0] shadow-[0_8px_20px_rgba(11,73,208,0.3)]"
-                              : "bg-[#0b49d0]/90 group-hover:bg-[#0b49d0]"
+                              ? "bg-gradient-to-t from-[#494ae2] to-[#7854ec] shadow-[0_8px_20px_rgba(73,74,226,0.3)]"
+                              : "bg-gradient-to-t from-[#494ae2]/90 to-[#7854ec]/90 group-hover:from-[#494ae2] group-hover:to-[#7854ec]"
                           )}
                         />
                       </div>
@@ -709,14 +709,14 @@ export default function AdminDashboardPage() {
           {/* Kiri: 2 Kartu Split dengan Tombol Panah Lingkaran di Tengah (6 Kolom) */}
           <div className="relative grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-6">
             {/* Kartu Kiri: Sesi Selesai & Sedang Mengerjakan */}
-            <div className="flex flex-col justify-between rounded-[28px] border border-neutral-200/80 bg-white p-6 shadow-[0_8px_26px_rgba(15,23,42,0.03)] min-h-[210px]">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100 text-[#151515]">
+            <div className="flex flex-col justify-between rounded-[28px] border border-neutral-200/80 bg-white p-6 shadow-[0_8px_26px_rgba(12,12,19,0.03)] min-h-[210px]">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100 text-[#0c0c13]">
                 <Check className="h-5 w-5 stroke-[2.4]" />
               </div>
 
               <div className="mt-8 space-y-1.5">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-extrabold tracking-tight text-[#151515] tabular-nums">
+                  <span className="text-4xl font-extrabold tracking-tight text-[#0c0c13] tabular-nums">
                     {completedSessionsCount}
                   </span>
                   <span className="text-lg font-medium text-neutral-600">
@@ -737,13 +737,13 @@ export default function AdminDashboardPage() {
             <Link
               href="/admin/monitoring"
               title="Buka Monitoring & Peserta"
-              className="hidden sm:flex absolute left-1/2 top-1/2 z-10 h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-[#fcfbf7] bg-[#151515] text-white shadow-lg transition-transform hover:scale-105 hover:bg-[#0b49d0]"
+              className="hidden sm:flex absolute left-1/2 top-1/2 z-10 h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-[#f5f8ff] bg-[#0c0c13] text-white shadow-lg transition-transform hover:scale-105 hover:bg-[#494ae2]"
             >
               <ArrowUpRight className="h-5 w-5" />
             </Link>
 
             {/* Kartu Kanan: Peserta Aktif & Insiden/Nonaktif */}
-            <div className="relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-neutral-200/80 bg-white p-6 shadow-[0_8px_26px_rgba(15,23,42,0.03)] min-h-[210px]">
+            <div className="relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-neutral-200/80 bg-white p-6 shadow-[0_8px_26px_rgba(12,12,19,0.03)] min-h-[210px]">
               {/* Aksen Gelombang Biru Lembut Pojok Kanan Atas (Sesuai Referensi) */}
               <svg
                 viewBox="0 0 180 140"
@@ -753,25 +753,25 @@ export default function AdminDashboardPage() {
               >
                 <path
                   d="M40 -10 C 60 55, 130 65, 190 130"
-                  stroke="#0b49d0"
+                  stroke="#494ae2"
                   strokeWidth="12"
                   strokeLinecap="round"
                 />
                 <path
                   d="M75 -15 C 95 45, 150 55, 200 110"
-                  stroke="#93c5fd"
+                  stroke="#7854ec"
                   strokeWidth="6"
                   strokeLinecap="round"
                 />
               </svg>
 
-              <div className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100 text-[#151515]">
+              <div className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100 text-[#0c0c13]">
                 <User className="h-5 w-5 stroke-[2.2]" />
               </div>
 
               <div className="relative z-10 mt-8 space-y-1.5">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-extrabold tracking-tight text-[#151515] tabular-nums">
+                  <span className="text-4xl font-extrabold tracking-tight text-[#0c0c13] tabular-nums">
                     {activeParticipants.length}
                   </span>
                   <span className="text-lg font-medium text-neutral-600">
@@ -802,10 +802,10 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Kanan: Kartu Grafik Donat ("Distribusi Kategori & Subtes" — 6 Kolom) */}
-          <div className="flex flex-col justify-between rounded-[28px] border border-neutral-200/80 bg-white p-5 sm:p-6 shadow-[0_8px_26px_rgba(15,23,42,0.03)] lg:col-span-6">
+          <div className="flex flex-col justify-between rounded-[28px] border border-neutral-200/80 bg-white p-5 sm:p-6 shadow-[0_8px_26px_rgba(12,12,19,0.03)] lg:col-span-6">
             <div className="flex items-center justify-between gap-2">
               <div className="flex flex-wrap items-baseline gap-3">
-                <h2 className="text-base sm:text-lg font-extrabold text-[#151515]">
+                <h2 className="text-base sm:text-lg font-extrabold text-[#0c0c13]">
                   Distribusi Kategori &amp; Soal
                 </h2>
                 <span className="text-xs font-medium text-neutral-400">
@@ -816,7 +816,7 @@ export default function AdminDashboardPage() {
               <Link
                 href="/admin/bank-soal"
                 title="Kelola Bank Soal"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#151515] text-white shadow-xs transition-colors hover:bg-[#0b49d0]"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0c0c13] text-white shadow-xs transition-colors hover:bg-[#494ae2]"
               >
                 <ArrowUpRight className="h-4 w-4" />
               </Link>
@@ -854,7 +854,7 @@ export default function AdminDashboardPage() {
                   })}
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="text-xl font-extrabold text-[#151515] tabular-nums">
+                  <span className="text-xl font-extrabold text-[#0c0c13] tabular-nums">
                     {questions.length}
                   </span>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
@@ -879,7 +879,7 @@ export default function AdminDashboardPage() {
                         {seg.label}
                       </span>
                     </div>
-                    <span className="font-extrabold text-[#151515] tabular-nums">
+                    <span className="font-extrabold text-[#0c0c13] tabular-nums">
                       {seg.pct}%
                     </span>
                   </li>
@@ -894,10 +894,10 @@ export default function AdminDashboardPage() {
             ================================================================= */}
         <section className="space-y-5 pt-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#151515]">
+            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0c0c13]">
               Daftar Sesi &amp; Aktivitas Ujian
             </h2>
-            <div className="flex items-center gap-2 text-xs font-bold text-[#0b49d0]">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#494ae2]">
               <Link href="/admin/monitoring" className="hover:underline">
                 Monitoring Realtime →
               </Link>
@@ -906,17 +906,17 @@ export default function AdminDashboardPage() {
 
           {/* 4 Kartu Status Ber-Header Pita Warna (Persis New orders / Await / On way / Delivered) */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Kartu Status 1: Header Biru (#0b49d0) */}
-            <div className="overflow-hidden rounded-[24px] border border-neutral-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.03)]">
-              <div className="bg-[#0b49d0] px-5 py-2.5 text-xs font-extrabold text-white">
+            {/* Kartu Status 1: Header Gradasi (#494ae2 -> #7854ec) */}
+            <div className="overflow-hidden rounded-[24px] border border-neutral-200/80 bg-white shadow-[0_8px_24px_rgba(12,12,19,0.03)]">
+              <div className="bg-gradient-to-r from-[#494ae2] to-[#7854ec] px-5 py-2.5 text-xs font-extrabold text-white">
                 Sesi Terjadwal
               </div>
               <div className="p-5 flex items-center justify-between">
-                <span className="text-3xl font-extrabold text-[#151515] tabular-nums">
+                <span className="text-3xl font-extrabold text-[#0c0c13] tabular-nums">
                   {scheduledRuns.length}
                 </span>
                 <div className="text-right">
-                  <span className="inline-block rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-extrabold text-[#0b49d0]">
+                  <span className="inline-block rounded-full bg-[#f5f8ff] px-2.5 py-0.5 text-[11px] font-extrabold text-[#494ae2]">
                     Siap Dibuka
                   </span>
                   <span className="mt-1 block text-[11px] text-neutral-400">
@@ -927,12 +927,12 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Kartu Status 2: Header Coral/Oranye */}
-            <div className="overflow-hidden rounded-[24px] border border-neutral-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.03)]">
+            <div className="overflow-hidden rounded-[24px] border border-neutral-200/80 bg-white shadow-[0_8px_24px_rgba(12,12,19,0.03)]">
               <div className="bg-[#e08b52] px-5 py-2.5 text-xs font-extrabold text-white">
                 Sedang Mengerjakan
               </div>
               <div className="p-5 flex items-center justify-between">
-                <span className="text-3xl font-extrabold text-[#151515] tabular-nums">
+                <span className="text-3xl font-extrabold text-[#0c0c13] tabular-nums">
                   {activeSessions.length + ongoingRuns.length}
                 </span>
                 <div className="text-right">
@@ -946,13 +946,13 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Kartu Status 3: Header Kuning Emas (#ffc63d) */}
-            <div className="overflow-hidden rounded-[24px] border border-neutral-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.03)]">
-              <div className="bg-[#ffc63d] px-5 py-2.5 text-xs font-extrabold text-[#151515]">
+            {/* Kartu Status 3: Header Violet (#7854ec) */}
+            <div className="overflow-hidden rounded-[24px] border border-neutral-200/80 bg-white shadow-[0_8px_24px_rgba(12,12,19,0.03)]">
+              <div className="bg-[#7854ec] px-5 py-2.5 text-xs font-extrabold text-white">
                 Catatan Insiden Sesi
               </div>
               <div className="p-5 flex items-center justify-between">
-                <span className="text-3xl font-extrabold text-[#151515] tabular-nums">
+                <span className="text-3xl font-extrabold text-[#0c0c13] tabular-nums">
                   {openIncidents.length}
                 </span>
                 <div className="text-right">
@@ -974,12 +974,12 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Kartu Status 4: Header Hijau Emerald */}
-            <div className="overflow-hidden rounded-[24px] border border-neutral-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.03)]">
+            <div className="overflow-hidden rounded-[24px] border border-neutral-200/80 bg-white shadow-[0_8px_24px_rgba(12,12,19,0.03)]">
               <div className="bg-[#34c77b] px-5 py-2.5 text-xs font-extrabold text-white">
                 Selesai &amp; Tersimpan
               </div>
               <div className="p-5 flex items-center justify-between">
-                <span className="text-3xl font-extrabold text-[#151515] tabular-nums">
+                <span className="text-3xl font-extrabold text-[#0c0c13] tabular-nums">
                   {completedSessionsCount}
                 </span>
                 <div className="text-right">
@@ -995,7 +995,7 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Toolbar Pencarian, Export, Sort, dan Tombol + Buat Sesi */}
-          <div className="rounded-[28px] border border-neutral-200/80 bg-white p-5 sm:p-6 shadow-[0_8px_26px_rgba(15,23,42,0.03)] space-y-4">
+          <div className="rounded-[28px] border border-neutral-200/80 bg-white p-5 sm:p-6 shadow-[0_8px_26px_rgba(12,12,19,0.03)] space-y-4">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="relative w-full sm:w-64">
@@ -1008,10 +1008,10 @@ export default function AdminDashboardPage() {
                       setCurrentPage(1);
                     }}
                     placeholder="Cari nama, sesi, atau token..."
-                    className="w-full rounded-2xl border border-neutral-200 bg-[#fcfbf7] py-2.5 pl-10 pr-4 text-xs sm:text-sm font-medium text-[#151515] placeholder:text-neutral-400 focus:border-[#0b49d0] focus:bg-white focus:outline-none"
+                    className="w-full rounded-2xl border border-neutral-200 bg-[#f5f8ff] py-2.5 pl-10 pr-4 text-xs sm:text-sm font-medium text-[#0c0c13] placeholder:text-neutral-400 focus:border-[#494ae2] focus:bg-white focus:outline-none"
                   />
                 </div>
-                <span className="text-xs sm:text-sm font-extrabold text-[#151515] tabular-nums">
+                <span className="text-xs sm:text-sm font-extrabold text-[#0c0c13] tabular-nums">
                   {unifiedRows.length}{" "}
                   <span className="font-medium text-neutral-400">
                     data sesi
@@ -1023,7 +1023,7 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={handleExportCsv}
-                  className="inline-flex items-center gap-1.5 rounded-2xl px-3.5 py-2.5 text-xs font-extrabold text-[#0b49d0] hover:bg-blue-50 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-2xl px-3.5 py-2.5 text-xs font-extrabold text-[#494ae2] hover:bg-[#f5f8ff] transition-colors cursor-pointer"
                 >
                   <Download className="h-4 w-4" />
                   <span>Export</span>
@@ -1032,7 +1032,7 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setSortLatest((v) => !v)}
-                  className="inline-flex items-center gap-1.5 rounded-2xl border border-neutral-200 bg-white px-3.5 py-2.5 text-xs font-bold text-[#151515] hover:border-[#0b49d0] transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-2xl border border-neutral-200 bg-white px-3.5 py-2.5 text-xs font-bold text-[#0c0c13] hover:border-[#494ae2] transition-colors cursor-pointer"
                 >
                   <ArrowUpDown className="h-3.5 w-3.5 text-neutral-500" />
                   <span>
@@ -1045,7 +1045,7 @@ export default function AdminDashboardPage() {
 
                 <Link
                   href="/admin/jadwal-sesi"
-                  className="inline-flex items-center gap-1.5 rounded-2xl bg-[#151515] hover:bg-[#0b49d0] px-4 py-2.5 text-xs font-extrabold text-white shadow-xs transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-2xl bg-[#0c0c13] hover:bg-[#494ae2] px-4 py-2.5 text-xs font-extrabold text-white shadow-xs transition-colors"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Tambah Sesi</span>
@@ -1073,7 +1073,7 @@ export default function AdminDashboardPage() {
                       className={cn(
                         "inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer",
                         active
-                          ? "bg-[#0b49d0] text-white"
+                          ? "bg-gradient-to-r from-[#494ae2] to-[#7854ec] text-white"
                           : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
                       )}
                     >
@@ -1101,7 +1101,7 @@ export default function AdminDashboardPage() {
                       className={cn(
                         "inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer",
                         active
-                          ? "bg-[#ffc63d] text-[#151515]"
+                          ? "bg-[#0c0c13] text-white"
                           : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
                       )}
                     >
@@ -1121,7 +1121,7 @@ export default function AdminDashboardPage() {
                       setTableSearch("");
                       setCurrentPage(1);
                     }}
-                    className="px-2 text-xs font-semibold text-neutral-400 hover:text-[#151515] cursor-pointer"
+                    className="px-2 text-xs font-semibold text-neutral-400 hover:text-[#0c0c13] cursor-pointer"
                   >
                     Reset filter
                   </button>
@@ -1131,14 +1131,14 @@ export default function AdminDashboardPage() {
               {/* Navigasi Halaman 1 of N < > */}
               <div className="flex items-center gap-2 text-xs font-semibold text-neutral-500">
                 <span className="tabular-nums">
-                  <strong className="text-[#151515]">{safePage}</strong> dari{" "}
+                  <strong className="text-[#0c0c13]">{safePage}</strong> dari{" "}
                   {totalPages}
                 </span>
                 <button
                   type="button"
                   disabled={safePage <= 1}
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-neutral-200 bg-white text-[#151515] disabled:opacity-40 cursor-pointer"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-neutral-200 bg-white text-[#0c0c13] disabled:opacity-40 cursor-pointer"
                   aria-label="Halaman sebelumnya"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" />
@@ -1149,7 +1149,7 @@ export default function AdminDashboardPage() {
                   onClick={() =>
                     setCurrentPage((p) => Math.min(totalPages, p + 1))
                   }
-                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-neutral-200 bg-white text-[#151515] disabled:opacity-40 cursor-pointer"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-neutral-200 bg-white text-[#0c0c13] disabled:opacity-40 cursor-pointer"
                   aria-label="Halaman berikutnya"
                 >
                   <ChevronRight className="h-3.5 w-3.5" />
@@ -1189,13 +1189,13 @@ export default function AdminDashboardPage() {
                     paginatedRows.map((row) => (
                       <tr
                         key={row.id}
-                        className="group transition-colors hover:bg-[#fcfbf7]"
+                        className="group transition-colors hover:bg-[#f5f8ff]"
                       >
-                        <td className="py-3.5 pl-4 pr-2 font-bold text-[#151515] tabular-nums">
+                        <td className="py-3.5 pl-4 pr-2 font-bold text-[#0c0c13] tabular-nums">
                           {row.code}
                         </td>
                         <td className="py-3.5 px-3">
-                          <p className="font-bold text-[#151515] leading-snug">
+                          <p className="font-bold text-[#0c0c13] leading-snug">
                             {row.customerName}
                           </p>
                           <p className="text-[11px] text-neutral-400 truncate max-w-[220px]">
@@ -1205,7 +1205,7 @@ export default function AdminDashboardPage() {
                         <td className="py-3.5 px-3 font-semibold text-neutral-600">
                           {row.category}
                         </td>
-                        <td className="py-3.5 px-3 font-extrabold text-[#151515] tabular-nums">
+                        <td className="py-3.5 px-3 font-extrabold text-[#0c0c13] tabular-nums">
                           {row.metricText}
                         </td>
                         <td className="py-3.5 px-3 text-neutral-500 tabular-nums">
@@ -1232,7 +1232,7 @@ export default function AdminDashboardPage() {
                         <td className="py-3.5 pl-2 pr-4 text-right">
                           <Link
                             href={row.href}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 hover:text-[#151515]"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 hover:text-[#0c0c13]"
                             title="Lihat Detail"
                           >
                             <MoreHorizontal className="h-4 w-4" />

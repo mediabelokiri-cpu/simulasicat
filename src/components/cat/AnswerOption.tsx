@@ -29,8 +29,8 @@ export function AnswerOption({
       className={cn(
         "group flex w-full min-h-[54px] items-start gap-3.5 rounded-xl border p-3.5 sm:p-4 text-left transition-all cursor-pointer select-none",
         isSelected
-          ? "border-[#0b49d0] bg-[#eef4ff] ring-2 ring-[#0b49d0]/20"
-          : "border-neutral-300 bg-white hover:border-[#0b49d0]/60 hover:bg-neutral-50/70",
+          ? "border-[#494ae2] bg-[#f5f8ff] ring-2 ring-[#494ae2]/20"
+          : "border-neutral-300 bg-white hover:border-[#494ae2]/60 hover:bg-neutral-50/70",
         disabled && "opacity-60 cursor-not-allowed"
       )}
     >
@@ -39,8 +39,8 @@ export function AnswerOption({
         className={cn(
           "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-extrabold transition-colors",
           isSelected
-            ? "bg-[#0b49d0] text-white"
-            : "border border-neutral-300 bg-[#fcfbf7] text-[#151515] group-hover:border-[#0b49d0]"
+            ? "bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-white"
+            : "border border-neutral-300 bg-[#f5f8ff] text-[#0c0c13] group-hover:border-[#494ae2]"
         )}
       >
         {option.key}
@@ -51,7 +51,7 @@ export function AnswerOption({
         <p
           className={cn(
             "text-sm sm:text-base leading-relaxed break-words",
-            isSelected ? "font-bold text-[#151515]" : "font-normal text-[#151515]"
+            isSelected ? "font-bold text-[#0c0c13]" : "font-normal text-[#0c0c13]"
           )}
         >
           {option.text}
@@ -79,7 +79,7 @@ export function AnswerOption({
 
       {/* Indikator Terpilih */}
       {isSelected && (
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#0b49d0] text-white mt-1">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-white mt-1">
           <Check className="h-3.5 w-3.5" aria-hidden="true" />
         </span>
       )}

@@ -440,7 +440,7 @@ export default function ManajemenUjianPage() {
   return (
     <AppShell
       role="admin"
-      userName="Admin Prima RIB"
+      userName="Admin CATARA"
       userSubtitle="Manajemen Ujian"
     >
       <PageHeader
@@ -550,9 +550,9 @@ export default function ManajemenUjianPage() {
             header: "Definisi Ujian",
             render: (row) => (
               <div className="space-y-1">
-                <p className="font-bold text-[#151515]">{row.title}</p>
+                <p className="font-bold text-[#0c0c13]">{row.title}</p>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
-                  <span className="rounded bg-[#eef4ff] px-2 py-0.5 font-bold text-[#0b49d0]">
+                  <span className="rounded bg-[#f5f8ff] px-2 py-0.5 font-bold text-[#494ae2]">
                     {INITIAL_CATEGORIES.find((c) => c.id === row.category_id)
                       ?.name || row.category_id}
                   </span>
@@ -577,7 +577,7 @@ export default function ManajemenUjianPage() {
                   {secsToShow.map((sc) => (
                     <span
                       key={sc.section_key}
-                      className="rounded-lg border border-neutral-200 bg-[#fcfbf7] px-2 py-1 text-xs font-semibold text-[#151515] tabular-nums"
+                      className="rounded-lg border border-neutral-200 bg-[#f5f8ff] px-2 py-1 text-xs font-semibold text-[#0c0c13] tabular-nums"
                     >
                       {sc.section_key}: {sc.question_count} Soal (PG{" "}
                       {sc.passing_grade})
@@ -592,7 +592,7 @@ export default function ManajemenUjianPage() {
             header: "Durasi & Akses",
             render: (row) => (
               <div className="space-y-1 text-xs">
-                <p className="font-bold text-[#151515] tabular-nums">
+                <p className="font-bold text-[#0c0c13] tabular-nums">
                   {formatDuration(row.duration_minutes)}
                 </p>
                 <span className="inline-flex items-center gap-1 text-neutral-600">
@@ -753,7 +753,7 @@ export default function ManajemenUjianPage() {
           >
             <div className="flex items-start justify-between border-b border-neutral-100 pb-4">
               <div>
-                <h2 className="text-lg sm:text-xl font-bold text-[#151515]">
+                <h2 className="text-lg sm:text-xl font-bold text-[#0c0c13]">
                   {editingExam
                     ? `Konfigurasi Ujian: ${editingExam.title}`
                     : "Buat Definisi Ujian Baru"}
@@ -786,7 +786,7 @@ export default function ManajemenUjianPage() {
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Contoh: Tryout SKD CPNS Prima RIB Batch 2"
+                  placeholder="Contoh: Tryout SKD CPNS CATARA Batch 2"
                   className={inputBaseClasses}
                 />
               </FormField>

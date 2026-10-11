@@ -1,5 +1,5 @@
 /**
- * LIVE SCORE REAL-TIME ENGINE — SIMULASI CAT PRIMA RIB
+ * LIVE SCORE REAL-TIME ENGINE — CATARA DIGITAL ASSESSMENT PLATFORM
  *
  * Mengimplementasikan:
  * 1. Perhitungan skor sementara (provisional) dan skor final berbasis server/snapshot
@@ -104,7 +104,7 @@ export const DEFAULT_LIVE_SCORE_SETTINGS: LiveScorePublicationSettings = {
   },
   sectionTitle: "Live Score Real-Time Simulasi CAT",
   sectionSubtitle:
-    "Pantauan skor dan peringkat peserta secara langsung dari server penilaian resmi Prima RIB.",
+    "Pantauan skor dan peringkat peserta secara langsung dari server penilaian resmi CATARA.",
   maxRows: 25,
   updatedBy: null,
   updatedAt: "2026-10-10T00:00:00.000Z",
@@ -1396,7 +1396,7 @@ export function getSanitizedPublicLiveScoreBoard(options: {
       maxRows: settings.maxRows,
       updatedAt: settings.updatedAt,
     },
-    examTitle: board.exam?.title || "Simulasi CAT Prima RIB",
+    examTitle: board.exam?.title || "Simulasi CAT CATARA",
     runName: board.run.name,
     runId: board.run.id,
     passingGradeConfigured: board.passingGradeConfigured,

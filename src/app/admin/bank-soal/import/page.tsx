@@ -420,7 +420,7 @@ export default function ImportSoalPage() {
                 scoring_mode: scoringMode,
                 question_text: pq.prompt,
                 image_url: item.raw.prompt_image || null,
-                explanation: pq.explanation || "Pembahasan resmi Prima RIB.",
+                explanation: pq.explanation || "Pembahasan resmi CATARA.",
                 source_ref: pq.question_code || null,
                 is_active: targetStatus === "active",
               })
@@ -490,16 +490,16 @@ export default function ImportSoalPage() {
   return (
     <AppShell
       role="admin"
-      userName="Admin Prima RIB"
+      userName="Admin CATARA"
       userSubtitle="Impor Excel Bank Soal"
     >
       <PageHeader
         title="Import Bank Soal dari Excel (.xlsx / .csv)"
-        description="Unggah file Excel (.xlsx) atau CSV sesuai struktur tabel Prima RIB. Sistem otomatis memvalidasi setiap baris dan memecahnya menjadi data soal (questions) beserta 5 opsi jawaban (question_options)."
+        description="Unggah file Excel (.xlsx) atau CSV sesuai struktur tabel CATARA. Sistem otomatis memvalidasi setiap baris dan memecahnya menjadi data soal (questions) beserta 5 opsi jawaban (question_options)."
         backLink={
           <Link
             href="/admin/bank-soal"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0b49d0] hover:underline"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#494ae2] hover:underline"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             <span>Kembali ke Bank Soal</span>
@@ -517,7 +517,7 @@ export default function ImportSoalPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="lg:col-span-5 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5">
-            <FileSpreadsheet className="h-5 w-5 text-[#0b49d0]" />
+            <FileSpreadsheet className="h-5 w-5 text-[#494ae2]" />
             <h2 className="text-base font-bold text-[#151515]">
               1. Unduh Template Tabel Excel (.XLSX)
             </h2>

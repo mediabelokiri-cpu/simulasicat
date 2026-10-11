@@ -300,7 +300,7 @@ export default function CatExamRoomPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#fcfbf7] flex items-center justify-center p-6">
+      <div className="min-h-screen bg-[#f5f8ff] flex items-center justify-center p-6">
         <LoadingState message="Menyiapkan Ruang Ujian CAT & menyinkronkan waktu server..." />
       </div>
     );
@@ -308,7 +308,7 @@ export default function CatExamRoomPage() {
 
   if (errorMsg || !session || !activeQuestion) {
     return (
-      <div className="min-h-screen bg-[#fcfbf7] flex items-center justify-center p-6">
+      <div className="min-h-screen bg-[#f5f8ff] flex items-center justify-center p-6">
         <div className="max-w-md w-full">
           <ErrorState
             title="Tidak Dapat Membuka Ruang Ujian"
@@ -328,23 +328,28 @@ export default function CatExamRoomPage() {
   const flaggedCount = questions.filter((q) => q.is_flagged).length;
 
   return (
-    <div className="min-h-screen bg-[#fcfbf7] flex flex-col">
-      {/* Header Sticky Mode Fokus Ruang Ujian CAT (Background Biru #0b49d0) */}
-      <header className="sticky top-0 z-30 border-b border-white/15 bg-[#0b49d0] text-white shadow-sm">
+    <div className="min-h-screen bg-[#f5f8ff] flex flex-col">
+      {/* Header Sticky Mode Fokus Ruang Ujian CAT (Gradasi #494ae2 -> #7854ec) */}
+      <header className="sticky top-0 z-30 border-b border-white/15 bg-gradient-to-r from-[#494ae2] to-[#7854ec] text-white shadow-sm">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
           {/* Identitas Ujian & Peserta */}
           <div className="flex items-center gap-3 min-w-0">
             <img
-              src="/logo1.png"
-              alt="Logo Prima RIB"
-              className="h-10 w-10 shrink-0 rounded-xl border border-white/25 object-contain shadow-xs"
+              src="/logoheadermobile.png"
+              alt="Logo CATARA"
+              className="h-9 w-auto max-w-[115px] shrink-0 object-contain sm:hidden"
+            />
+            <img
+              src="/logoheaderfooterhomepage.png"
+              alt="Logo CATARA"
+              className="hidden h-9 w-auto max-w-[140px] shrink-0 object-contain sm:block"
             />
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h1 className="truncate text-sm sm:text-base font-extrabold text-white">
                   {exam?.title || "Simulasi SKD CPNS"}
                 </h1>
-                <span className="hidden md:inline-flex items-center gap-1 rounded-md bg-white/15 px-2 py-0.5 text-[11px] font-bold text-[#ffc63d] border border-white/20">
+                <span className="hidden md:inline-flex items-center gap-1 rounded-md bg-white/15 px-2 py-0.5 text-[11px] font-bold text-white border border-white/20">
                   <ShieldCheck className="h-3 w-3" />
                   Sesi Terkunci Server
                 </span>
@@ -377,7 +382,7 @@ export default function CatExamRoomPage() {
               type="button"
               onClick={() => setSubmitModalOpen(true)}
               disabled={isSubmitting}
-              className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl bg-[#ffc63d] px-3.5 py-2 text-xs sm:text-sm font-extrabold text-[#151515] shadow-xs hover:bg-[#f2b829] transition-colors cursor-pointer"
+              className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl bg-white px-3.5 py-2 text-xs sm:text-sm font-extrabold text-[#494ae2] shadow-xs hover:bg-[#f5f8ff] transition-colors cursor-pointer"
             >
               <Send className="h-3.5 w-3.5" />
               <span>Selesai & Kirim</span>
@@ -387,8 +392,8 @@ export default function CatExamRoomPage() {
 
         {/* Peringatan Jika Sesi Dijeda Admin */}
         {(session.status === "paused" || run?.status === "paused") && (
-          <div className="bg-[#fff9e6] border-t border-[#ffc63d] px-4 py-2 text-center text-xs font-bold text-[#151515] flex items-center justify-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-700" />
+          <div className="bg-[#f5f8ff] border-t border-[#494ae2]/20 px-4 py-2 text-center text-xs font-bold text-[#0c0c13] flex items-center justify-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-[#494ae2]" />
             <span>
               Sesi ujian sedang dijeda sementara oleh Admin untuk pemulihan
               gangguan. Waktu batas akhir Anda akan disesuaikan secara otomatis.
@@ -426,7 +431,7 @@ export default function CatExamRoomPage() {
             type="button"
             onClick={() => handleNavigateQuestion(currentNumber - 1)}
             disabled={currentNumber <= 1}
-            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-neutral-300 bg-white px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-[#151515] hover:bg-neutral-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-neutral-300 bg-white px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-[#0c0c13] hover:bg-neutral-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
           >
             <ChevronLeft className="h-4 w-4 shrink-0" />
             <span>Sebelumnya</span>
@@ -437,8 +442,8 @@ export default function CatExamRoomPage() {
             onClick={handleToggleFlag}
             className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border px-3.5 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer ${
               activeQuestion.is_flagged
-                ? "border-[#d89c14] bg-[#ffc63d] text-[#151515]"
-                : "border-neutral-300 bg-[#fcfbf7] text-[#151515] hover:border-[#ffc63d]"
+                ? "border-[#7854ec] bg-[#7854ec] text-white"
+                : "border-neutral-300 bg-[#f5f8ff] text-[#0c0c13] hover:border-[#7854ec]"
             }`}
           >
             <Flag className="h-4 w-4 shrink-0" />
@@ -449,7 +454,7 @@ export default function CatExamRoomPage() {
             <button
               type="button"
               onClick={() => handleNavigateQuestion(currentNumber + 1)}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[#0b49d0] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-white hover:bg-[#093bb0] transition-colors cursor-pointer"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#494ae2] to-[#7854ec] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-white hover:opacity-95 transition-opacity cursor-pointer"
             >
               <span>Berikutnya</span>
               <ChevronRight className="h-4 w-4 shrink-0" />
@@ -479,7 +484,7 @@ export default function CatExamRoomPage() {
         {/* 5. Panel Bantuan Pintasan Keyboard */}
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white/80 px-4 py-2.5 text-xs text-neutral-600">
           <div className="hidden sm:flex items-center gap-2">
-            <Keyboard className="h-4 w-4 text-[#0b49d0]" />
+            <Keyboard className="h-4 w-4 text-[#494ae2]" />
             <span>
               Pintasan Keyboard: Tekan{" "}
               <kbd className="rounded border border-neutral-300 bg-neutral-100 px-1.5 py-0.5 font-mono text-[11px] font-bold">
@@ -500,7 +505,7 @@ export default function CatExamRoomPage() {
           <div className="flex items-center gap-2 ml-auto">
             <Link
               href="/dashboard"
-              className="text-[11px] font-semibold text-[#0b49d0] hover:underline"
+              className="text-[11px] font-semibold text-[#494ae2] hover:underline"
             >
               Kembali ke Dashboard
             </Link>

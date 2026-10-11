@@ -1,5 +1,5 @@
 /**
- * SERVER-SIDE SCORING ENGINE — SIMULASI CAT PRIMA RIB
+ * SERVER-SIDE SCORING ENGINE — CATARA DIGITAL ASSESSMENT PLATFORM
  * Sesuai Bab 8.6 & Bab 9.1–9.4 PRD Final v1.0
  *
  * Prinsip Keamanan & Integritas:
@@ -176,7 +176,7 @@ export function finalizeAndScoreExamSession(
     section_scores: sectionScores,
     thresholds_met: thresholdsMet,
     result_snapshot: {
-      exam_title: exam?.title || "Simulasi CAT Prima RIB",
+      exam_title: exam?.title || "Simulasi CAT CATARA",
       run_name: run?.name || "Sesi Ujian",
       scoring_preset: scoringConfig.preset_name,
       submit_trigger: trigger,
