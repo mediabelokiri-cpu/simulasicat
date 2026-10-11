@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ShieldCheck,
   CheckCircle2,
@@ -19,6 +20,7 @@ import {
   Activity,
 } from "lucide-react";
 import { Button, StatusBadge, inputBaseClasses } from "@/components/ui";
+import { MobileWelcomeScreen } from "@/components/auth/MobileWelcomeScreen";
 import {
   getCurrentUserClient,
   getStoredProfiles,
@@ -42,6 +44,7 @@ import { ExamRow, ExamRunRow, ProfileRow, ResultRow } from "@/types/database";
 import { cn, formatDateTimeID } from "@/lib/utils";
 
 export default function LandingPage() {
+  const router = useRouter();
   const [config, setConfig] = useState<HomepageConfig>(DEFAULT_HOMEPAGE_CONFIG);
   const [activeUser, setActiveUser] = useState<ProfileRow | null>(null);
   const [results, setResults] = useState<ResultRow[]>([]);
@@ -547,8 +550,26 @@ export default function LandingPage() {
     return null;
   }
 
+  function handleStartMobileApp() {
+    try {
+      window.sessionStorage.setItem("prima_mobile_onboarding_done", "1");
+    } catch {
+      // ignore storage errors
+    }
+    router.push("/login");
+  }
+
   return (
-    <div className="min-h-screen bg-[#fcfbf7] text-[#151515] flex flex-col">
+    <>
+      {/* Layar Onboarding Mobile saat URL/Aplikasi dibuka di Mobile sebelum Login/Register */}
+      {!activeUser && <MobileWelcomeScreen onStart={handleStartMobileApp} />}
+
+      <div
+        className={cn(
+          "min-h-screen bg-[#fcfbf7] text-[#151515] flex-col",
+          !activeUser ? "hidden lg:flex" : "flex"
+        )}
+      >
       {/* Banner Pengumuman Opsional */}
       {config.announcement.enabled && (
         <div className="bg-[#ffc63d] text-[#151515] border-b border-[#e5ad28] px-4 py-2.5 text-xs sm:text-sm">
@@ -697,6 +718,7 @@ export default function LandingPage() {
           </div>
         </footer>
       )}
-    </div>
+      </div>
+    </>
   );
 }
