@@ -601,15 +601,15 @@ export default function LandingPage() {
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 shrink-0">
             <img
               src={config.header.logoUrl || "/logo1.png"}
-              alt={config.header.brandName}
+              alt="Simulasi CAT"
               className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-xl object-contain"
             />
             <div className="min-w-0">
-              <span className="block text-sm sm:text-base font-extrabold tracking-tight text-white whitespace-nowrap leading-tight">
-                {config.header.brandName}
-              </span>
-              <span className="block text-[10px] sm:text-[11px] font-medium text-white/80 whitespace-nowrap leading-tight">
-                {config.header.brandSubtitle}
+              <span className="block text-base sm:text-lg font-extrabold tracking-tight text-white whitespace-nowrap leading-tight">
+                {config.header.brandName &&
+                config.header.brandName !== "Prima RIB"
+                  ? config.header.brandName
+                  : "Simulasi CAT"}
               </span>
             </div>
           </div>

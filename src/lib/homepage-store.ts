@@ -85,13 +85,13 @@ export interface HomepageConfig {
   updatedAt: string;
 }
 
-export const HOMEPAGE_STORAGE_KEY = "prima_cat_homepage_config_v2_prod";
+export const HOMEPAGE_STORAGE_KEY = "prima_cat_homepage_config_v3_prod";
 
 export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
   sectionOrder: ["hero", "categories", "leaderboard"],
   header: {
     brandName: "Simulasi CAT",
-    brandSubtitle: "Sistem Simulasi CAT",
+    brandSubtitle: "",
     logoUrl: "/logo1.png",
     loginButtonLabel: "Masuk",
     registerButtonLabel: "Daftar Peserta",
