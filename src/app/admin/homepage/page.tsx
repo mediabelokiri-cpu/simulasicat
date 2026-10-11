@@ -1002,7 +1002,7 @@ export default function AdminHomepagePage() {
                 <div className="space-y-4">
                   <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-[#f5f8ff] p-3 flex justify-center">
                     <img
-                      src={config.hero.heroImageUrl || "/hero-prima-rib.png"}
+                      src={config.hero.heroImageUrl || "/gambarsectionhero.png"}
                       alt={config.hero.heroImageAlt || "Preview Gambar Hero"}
                       className="max-h-64 w-auto rounded-2xl object-contain"
                     />
@@ -1011,12 +1011,12 @@ export default function AdminHomepagePage() {
                   <FormField
                     id="hero-img-url"
                     label="Path / URL Gambar Hero"
-                    hint="Default: /hero-prima-rib.png"
+                    hint="Default: /gambarsectionhero.png"
                   >
                     <input
                       id="hero-img-url"
                       type="text"
-                      value={config.hero.heroImageUrl || "/hero-prima-rib.png"}
+                      value={config.hero.heroImageUrl || "/gambarsectionhero.png"}
                       onChange={(e) =>
                         setConfig((prev) => ({
                           ...prev,

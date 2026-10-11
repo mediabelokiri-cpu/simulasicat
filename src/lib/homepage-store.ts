@@ -85,7 +85,7 @@ export interface HomepageConfig {
   updatedAt: string;
 }
 
-export const HOMEPAGE_STORAGE_KEY = "catara_homepage_config_v4_prod";
+export const HOMEPAGE_STORAGE_KEY = "catara_homepage_config_v5_prod";
 
 export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
   sectionOrder: ["hero", "categories", "leaderboard"],
@@ -121,10 +121,10 @@ export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
       { value: "Real-Time", label: "Monitoring Ujian" },
       { value: "Terukur", label: "Analisis & Evaluasi" },
     ],
-    rightDisplayMode: "card",
-    heroImageUrl: "/logoheaderfooterhomepage.png",
+    rightDisplayMode: "image",
+    heroImageUrl: "/gambarsectionhero.png",
     heroImageAlt: "CATARA — Digital Assessment Platform",
-    heroImageWidth: 340,
+    heroImageWidth: 420,
     securityCardTitle: "CATARA — Digital Assessment Platform",
     securityCardSubtitle: "Solusi Evaluasi & Seleksi Profesional",
     securityCardBadge: "Terintegrasi",

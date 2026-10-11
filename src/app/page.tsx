@@ -281,13 +281,13 @@ export default function LandingPage() {
                 </div>
               ) : (
                 <img
-                  src={config.hero.heroImageUrl || "/hero-prima-rib.png"}
+                  src={config.hero.heroImageUrl || "/gambarsectionhero.png"}
                   alt={
                     config.hero.heroImageAlt ||
                     "CATARA — Digital Assessment Platform"
                   }
                   style={{
-                    maxWidth: `${config.hero.heroImageWidth || 380}px`,
+                    maxWidth: `${config.hero.heroImageWidth || 420}px`,
                   }}
                   className="h-auto w-full object-contain select-none"
                 />
