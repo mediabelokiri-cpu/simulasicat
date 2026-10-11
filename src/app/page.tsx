@@ -744,19 +744,24 @@ export default function LandingPage() {
                   alt="CATARA — Digital Assessment Platform"
                   className="h-7 w-7 rounded-md object-contain"
                 />
-                <span className="font-extrabold text-[#0c0c13]">
-                  {config.footer.brandText &&
-                  !config.footer.brandText.toLowerCase().includes("prima")
-                    ? config.footer.brandText
-                    : "CATARA — Digital Assessment Platform"}
+                <span className="text-[#0c0c13]">
+                  <span className="font-extrabold">CATARA</span>{" "}
+                  <span className="font-normal">
+                    — Digital Assessment Platform
+                  </span>
                 </span>
               </div>
               <p>
-                © {new Date().getFullYear()}{" "}
-                {config.footer.copyrightText &&
-                !config.footer.copyrightText.toLowerCase().includes("prima")
-                  ? config.footer.copyrightText
-                  : "CATARA. Hak cipta dilindungi."}
+                © 2026 CATARA | Dikembangkan oleh{" "}
+                <a
+                  href="https://labide.site/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-[#494ae2] hover:underline"
+                >
+                  LABIDE
+                </a>
+                . Seluruh hak cipta dilindungi.
               </p>
             </div>
           </footer>

@@ -194,7 +194,7 @@ export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
     enabled: true,
     brandText: "CATARA — Digital Assessment Platform",
     copyrightText:
-      "CATARA — Digital Assessment Platform. Seluruh hak cipta dilindungi.",
+      "CATARA | Dikembangkan oleh LABIDE. Seluruh hak cipta dilindungi.",
   },
   updatedAt: "2026-10-11T12:00:00Z",
 };
