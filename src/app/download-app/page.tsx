@@ -510,7 +510,7 @@ export default function DownloadAppPage() {
                       Selamat datang di,
                     </p>
                     <h3 className="text-lg font-extrabold tracking-tight text-[#312e81]">
-                      Prima RIB CAT.
+                      Simulasi CAT
                     </h3>
                   </div>
                 </div>

@@ -145,7 +145,7 @@ export function AuthSplitLayout({
                 Selamat datang di,
               </p>
               <span className="text-lg font-extrabold tracking-tight text-[#312e81]">
-                Prima RIB CAT.
+                Simulasi CAT
               </span>
             </div>
           </button>

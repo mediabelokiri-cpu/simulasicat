@@ -272,7 +272,7 @@ export function Topbar({
 
   const mobilePageHeading =
     pathname === "/dashboard"
-      ? { greeting: "Selamat datang di,", title: "Prima RIB CAT." }
+      ? { greeting: "Selamat datang di,", title: "Simulasi CAT" }
       : pathname.startsWith("/hasil")
       ? { greeting: null, title: "Hasil Studi & CAT" }
       : pathname.startsWith("/ujian")
@@ -281,7 +281,7 @@ export function Topbar({
       ? { greeting: null, title: "Download Aplikasi" }
       : pathname.startsWith("/profil")
       ? { greeting: null, title: "Profil Peserta" }
-      : { greeting: "Selamat datang di,", title: "Prima RIB CAT." };
+      : { greeting: "Selamat datang di,", title: "Simulasi CAT" };
 
   if (role === "admin") {
     return (
