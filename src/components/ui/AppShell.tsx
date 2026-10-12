@@ -248,6 +248,18 @@ export function Topbar({
   const router = useRouter();
   const [quickSearch, setQuickSearch] = useState("");
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [todayFormatted, setTodayFormatted] = useState<string>("");
+
+  useEffect(() => {
+    setTodayFormatted(
+      new Intl.DateTimeFormat("id-ID", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }).format(new Date())
+    );
+  }, []);
 
   useEffect(() => {
     const syncAvatar = () => {
@@ -262,13 +274,6 @@ export function Topbar({
       window.removeEventListener("storage", syncAvatar);
     };
   }, [pathname]);
-
-  const todayFormatted = new Intl.DateTimeFormat("id-ID", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date());
 
   function handleQuickSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -340,9 +345,14 @@ export function Topbar({
               />
             </form>
 
-            <span className="hidden md:inline-flex items-center text-xs sm:text-sm font-bold text-[#494ae2] whitespace-nowrap">
-              Hari ini, {todayFormatted}
-            </span>
+            {todayFormatted && (
+              <span
+                suppressHydrationWarning
+                className="hidden md:inline-flex items-center text-xs sm:text-sm font-bold text-[#494ae2] whitespace-nowrap"
+              >
+                Hari ini, {todayFormatted}
+              </span>
+            )}
           </div>
 
           {/* Kanan: Ikon Pengaturan, Notifikasi/Insiden & Avatar Admin */}

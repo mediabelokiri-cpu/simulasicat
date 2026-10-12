@@ -28,6 +28,7 @@ import {
   getCurrentUserClient,
   setCurrentUserClient,
   updateProfileClient,
+  saveUserAvatarInstant,
   syncProfilesFromSupabase,
 } from "@/lib/auth";
 import {
@@ -74,6 +75,9 @@ export default function ProfilPage() {
 
     const refreshUserAndGroups = (current: ProfileRow) => {
       setUser(current);
+      if (current.avatar_url !== undefined) {
+        setAvatarUrl(current.avatar_url || null);
+      }
       setUserGroups(getUserEnrolledGroups(current));
       setDeactivationNotice(getUserDeactivationNotice(current));
     };
@@ -131,21 +135,39 @@ export default function ProfilPage() {
         canvas.width = size;
         canvas.height = size;
         const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          setAvatarUrl(dataUrl);
-          return;
-        }
-        const minSide = Math.min(img.width, img.height);
-        const sx = (img.width - minSide) / 2;
-        const sy = (img.height - minSide) / 2;
-        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
-        const compressed = canvas.toDataURL("image/jpeg", 0.88);
-        setAvatarUrl(compressed);
+        const finalAvatar = (() => {
+          if (!ctx) return dataUrl;
+          const minSide = Math.min(img.width, img.height);
+          const sx = (img.width - minSide) / 2;
+          const sy = (img.height - minSide) / 2;
+          ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+          return canvas.toDataURL("image/jpeg", 0.88);
+        })();
+
+        setAvatarUrl(finalAvatar);
+        const saved = saveUserAvatarInstant(user, finalAvatar);
+        setUser(saved);
+        setToast({
+          type: "success",
+          title: "Foto Profil Berhasil Disimpan",
+          desc: "Foto profil Anda telah diperbarui secara otomatis.",
+        });
       };
       img.src = dataUrl;
     };
     reader.readAsDataURL(file);
     e.target.value = "";
+  }
+
+  function handleRemoveAvatar() {
+    setAvatarUrl(null);
+    const saved = saveUserAvatarInstant(user, null);
+    setUser(saved);
+    setToast({
+      type: "success",
+      title: "Foto Profil Dihapus",
+      desc: "Foto profil telah dikembalikan ke avatar inisial.",
+    });
   }
 
   function handleSave(e: React.FormEvent) {
@@ -470,7 +492,7 @@ export default function ProfilPage() {
                       type="button"
                       size="sm"
                       variant="ghost"
-                      onClick={() => setAvatarUrl(null)}
+                      onClick={handleRemoveAvatar}
                       leftIcon={<Trash2 className="h-3.5 w-3.5 text-rose-600" />}
                       className="text-xs font-semibold text-rose-600 hover:bg-rose-50"
                     >

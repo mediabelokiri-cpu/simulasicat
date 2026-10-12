@@ -7,12 +7,63 @@ import {
 
 export const AUTH_STORAGE_KEY = "prima_cat_active_user_v2_prod";
 export const PROFILES_STORAGE_KEY = "prima_cat_profiles_v2_prod";
+export const AVATARS_STORAGE_KEY = "catara_user_avatars_v1";
 
 export interface AuthResult {
   ok: boolean;
   error?: string;
   user?: ProfileRow;
   redirectTo?: string;
+}
+
+export function getUserAvatarMap(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(AVATARS_STORAGE_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+
+export function saveUserAvatarEntry(
+  userId: string | undefined | null,
+  email: string | undefined | null,
+  avatarUrl: string | null
+): void {
+  if (typeof window === "undefined") return;
+  try {
+    const map = getUserAvatarMap();
+    const idKey = userId ? String(userId).trim() : "";
+    const emailKey = email ? String(email).trim().toLowerCase() : "";
+
+    if (avatarUrl) {
+      if (idKey) map[idKey] = avatarUrl;
+      if (emailKey) map[emailKey] = avatarUrl;
+    } else {
+      if (idKey) delete map[idKey];
+      if (emailKey) delete map[emailKey];
+    }
+    window.localStorage.setItem(AVATARS_STORAGE_KEY, JSON.stringify(map));
+  } catch {
+    // ignore storage quota errors
+  }
+}
+
+function attachStoredAvatar(
+  profile: ProfileRow,
+  avatarMap?: Record<string, string>
+): ProfileRow {
+  const map = avatarMap ?? getUserAvatarMap();
+  const emailKey = String(profile.email || "").trim().toLowerCase();
+  const idKey = String(profile.id || "").trim();
+  const resolvedAvatar =
+    map[emailKey] ?? map[idKey] ?? profile.avatar_url ?? null;
+  return {
+    ...profile,
+    avatar_url: resolvedAvatar,
+  };
 }
 
 export function getStoredProfiles(): ProfileRow[] {
@@ -26,22 +77,28 @@ export function getStoredProfiles(): ProfileRow[] {
       window.localStorage.removeItem("prima_cat_active_user_v1");
     }
 
+    const avatarMap = getUserAvatarMap();
     const raw = window.localStorage.getItem(PROFILES_STORAGE_KEY);
     if (!raw) {
+      const initialWithAvatars = INITIAL_PROFILES.map((p) =>
+        attachStoredAvatar(p, avatarMap)
+      );
       window.localStorage.setItem(
         PROFILES_STORAGE_KEY,
-        JSON.stringify(INITIAL_PROFILES)
+        JSON.stringify(initialWithAvatars)
       );
-      return INITIAL_PROFILES;
+      return initialWithAvatars;
     }
-    const parsed = (JSON.parse(raw) as ProfileRow[]).filter(
-      (p) =>
-        !String(p.email || "")
-          .toLowerCase()
-          .endsWith("@internal.primarib.id") &&
-        p.full_name !== "__SYSTEM_STORE__" &&
-        p.full_name !== "__DELETED_USER__"
-    );
+    const parsed = (JSON.parse(raw) as ProfileRow[])
+      .filter(
+        (p) =>
+          !String(p.email || "")
+            .toLowerCase()
+            .endsWith("@internal.primarib.id") &&
+          p.full_name !== "__SYSTEM_STORE__" &&
+          p.full_name !== "__DELETED_USER__"
+      )
+      .map((p) => attachStoredAvatar(p, avatarMap));
     let modified = false;
     for (const initProfile of INITIAL_PROFILES) {
       if (
@@ -49,7 +106,7 @@ export function getStoredProfiles(): ProfileRow[] {
           (p) => p.email.toLowerCase() === initProfile.email.toLowerCase()
         )
       ) {
-        parsed.push(initProfile);
+        parsed.push(attachStoredAvatar(initProfile, avatarMap));
         modified = true;
       }
     }
@@ -64,7 +121,9 @@ export function getStoredProfiles(): ProfileRow[] {
 
 export function saveStoredProfiles(profiles: ProfileRow[]): void {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(profiles));
+  const avatarMap = getUserAvatarMap();
+  const enriched = profiles.map((p) => attachStoredAvatar(p, avatarMap));
+  window.localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(enriched));
 }
 
 function generateUuid(): string {
@@ -274,6 +333,7 @@ export function getCurrentUserClient(): ProfileRow | null {
     const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as ProfileRow;
+    const avatarMap = getUserAvatarMap();
     // Sinkronkan dengan daftar profil terbaru berdasarkan ID maupun email
     const stored = getStoredProfiles();
     const latest =
@@ -282,13 +342,16 @@ export function getCurrentUserClient(): ProfileRow | null {
         (p) =>
           p.email.toLowerCase() === String(parsed.email || "").toLowerCase()
       );
+    const resolved = attachStoredAvatar(latest ?? parsed, avatarMap);
     if (
       latest &&
-      (latest.id !== parsed.id || latest.is_active !== parsed.is_active)
+      (latest.id !== parsed.id ||
+        latest.is_active !== parsed.is_active ||
+        resolved.avatar_url !== parsed.avatar_url)
     ) {
-      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(latest));
+      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(resolved));
     }
-    return latest ?? parsed;
+    return resolved;
   } catch {
     return null;
   }
@@ -308,7 +371,8 @@ export function setCurrentUserClient(user: ProfileRow | null): void {
     }
     return;
   }
-  window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+  const enriched = attachStoredAvatar(user);
+  window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(enriched));
   document.cookie = `prima_cat_role=${user.role}; path=/; max-age=86400; SameSite=Lax`;
   document.cookie = `prima_cat_active=${user.is_active ? "1" : "0"}; path=/; max-age=86400; SameSite=Lax`;
 }
@@ -770,6 +834,39 @@ export function registerPublicUser(input: {
   };
 }
 
+export function saveUserAvatarInstant(
+  user: ProfileRow,
+  avatarUrl: string | null
+): ProfileRow {
+  saveUserAvatarEntry(user.id, user.email, avatarUrl);
+  const profiles = getStoredProfiles();
+  const emailLower = String(user.email || "").toLowerCase();
+  const idx = profiles.findIndex(
+    (p) => p.id === user.id || p.email.toLowerCase() === emailLower
+  );
+
+  const updatedUser: ProfileRow = {
+    ...(idx !== -1 ? profiles[idx] : user),
+    avatar_url: avatarUrl,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (idx !== -1) {
+    profiles[idx] = updatedUser;
+  } else {
+    profiles.push(updatedUser);
+  }
+
+  saveStoredProfiles(profiles);
+  setCurrentUserClient(updatedUser);
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("prima-profiles-synced"));
+  }
+
+  return updatedUser;
+}
+
 export function updateProfileClient(
   userId: string,
   patch: Pick<
@@ -783,11 +880,27 @@ export function updateProfileClient(
     return { ok: false, error: "Nama lengkap wajib diisi minimal 3 karakter." };
   }
 
+  const activeUser = getCurrentUserClient();
+  const activeEmail = String(activeUser?.email || "").toLowerCase();
   const profiles = getStoredProfiles();
-  const idx = profiles.findIndex((p) => p.id === userId);
+  let idx = profiles.findIndex((p) => p.id === userId);
+  if (idx === -1 && activeEmail) {
+    idx = profiles.findIndex((p) => p.email.toLowerCase() === activeEmail);
+  }
+  if (idx === -1 && activeUser) {
+    profiles.push(activeUser);
+    idx = profiles.length - 1;
+  }
   if (idx === -1) {
     return { ok: false, error: "Profil pengguna tidak ditemukan." };
   }
+
+  const nextAvatar =
+    patch.avatar_url !== undefined
+      ? patch.avatar_url
+      : profiles[idx].avatar_url ?? null;
+
+  saveUserAvatarEntry(profiles[idx].id, profiles[idx].email, nextAvatar);
 
   const updatedUser: ProfileRow = {
     ...profiles[idx],
@@ -795,10 +908,7 @@ export function updateProfileClient(
     phone: patch.phone?.trim() || null,
     institution: patch.institution?.trim() || null,
     target_selection: patch.target_selection || null,
-    avatar_url:
-      patch.avatar_url !== undefined
-        ? patch.avatar_url
-        : profiles[idx].avatar_url ?? null,
+    avatar_url: nextAvatar,
     updated_at: new Date().toISOString(),
   };
 
@@ -821,7 +931,7 @@ export function updateProfileClient(
         target_selection: updatedUser.target_selection,
         updated_at: updatedUser.updated_at,
       })
-      .eq("id", userId);
+      .eq("id", updatedUser.id);
   }
 
   return { ok: true, user: updatedUser };
