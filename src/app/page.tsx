@@ -18,6 +18,8 @@ import {
   Megaphone,
   SlidersHorizontal,
   Activity,
+  Sparkles,
+  BarChart3,
 } from "lucide-react";
 import { Button, StatusBadge, inputBaseClasses } from "@/components/ui";
 import { MobileWelcomeScreen } from "@/components/auth/MobileWelcomeScreen";
@@ -280,17 +282,87 @@ export default function LandingPage() {
                   </ul>
                 </div>
               ) : (
-                <img
-                  src={config.hero.heroImageUrl || "/gambarsectionhero.png"}
-                  alt={
-                    config.hero.heroImageAlt ||
-                    "CATARA — Digital Assessment Platform"
-                  }
-                  style={{
-                    maxWidth: `${config.hero.heroImageWidth || 420}px`,
-                  }}
-                  className="h-auto w-full object-contain select-none"
-                />
+                <div className="relative flex items-center justify-center py-2">
+                  {/* Soft Indigo-Violet Glow Aura di Belakang Gambar */}
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute h-72 w-72 rounded-full bg-gradient-to-br from-[#494ae2]/15 to-[#7854ec]/20 blur-3xl"
+                  />
+
+                  {/* Badge Melayang 1: Kiri Atas — Simulasi CAT */}
+                  <div className="animate-catara-float-1 absolute top-4 -left-2 sm:-left-4 z-20 flex items-center gap-2.5 rounded-2xl border border-indigo-100 bg-white/95 px-3.5 py-2 text-[#0c0c13] shadow-[0_12px_30px_rgba(73,74,226,0.16)] backdrop-blur-md">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-white shadow-xs">
+                      <Sparkles className="h-4 w-4" />
+                    </span>
+                    <div className="text-left leading-tight">
+                      <p className="text-xs font-extrabold text-[#0c0c13]">
+                        Simulasi CAT
+                      </p>
+                      <p className="text-[10px] font-medium text-slate-500">
+                        Sistem Terintegrasi
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Badge Melayang 2: Kanan Atas — Live Score Real-Time */}
+                  <div className="animate-catara-float-2 absolute top-10 -right-2 sm:-right-4 z-20 flex items-center gap-2.5 rounded-2xl border border-indigo-100 bg-white/95 px-3.5 py-2 text-[#0c0c13] shadow-[0_12px_30px_rgba(73,74,226,0.16)] backdrop-blur-md">
+                    <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-xs">
+                      <Activity className="h-4 w-4" />
+                      <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-300 animate-ping" />
+                    </span>
+                    <div className="text-left leading-tight">
+                      <p className="text-xs font-extrabold text-[#0c0c13]">
+                        Live Score
+                      </p>
+                      <p className="text-[10px] font-semibold text-emerald-600">
+                        Monitoring Real-Time
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Gambar Hero Utama */}
+                  <img
+                    src={config.hero.heroImageUrl || "/gambarsectionhero.png"}
+                    alt={
+                      config.hero.heroImageAlt ||
+                      "CATARA — Digital Assessment Platform"
+                    }
+                    style={{
+                      maxWidth: `${config.hero.heroImageWidth || 440}px`,
+                    }}
+                    className="relative z-10 h-auto w-full object-contain drop-shadow-[0_20px_38px_rgba(73,74,226,0.18)] select-none"
+                  />
+
+                  {/* Badge Melayang 3: Kiri Bawah — Analisis Hasil */}
+                  <div className="animate-catara-float-3 absolute bottom-5 -left-2 sm:-left-4 z-20 flex items-center gap-2.5 rounded-2xl border border-indigo-100 bg-white/95 px-3.5 py-2 text-[#0c0c13] shadow-[0_12px_30px_rgba(73,74,226,0.16)] backdrop-blur-md">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#7854ec] text-white shadow-xs">
+                      <BarChart3 className="h-4 w-4" />
+                    </span>
+                    <div className="text-left leading-tight">
+                      <p className="text-xs font-extrabold text-[#0c0c13]">
+                        Analisis Hasil
+                      </p>
+                      <p className="text-[10px] font-medium text-slate-500">
+                        Passing Grade &amp; Evaluasi
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Badge Melayang 4: Kanan Bawah — Autosave Server */}
+                  <div className="animate-catara-float-4 absolute bottom-7 -right-2 sm:-right-4 z-20 flex items-center gap-2.5 rounded-2xl border border-indigo-100 bg-white/95 px-3.5 py-2 text-[#0c0c13] shadow-[0_12px_30px_rgba(73,74,226,0.16)] backdrop-blur-md">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#494ae2] text-white shadow-xs">
+                      <ShieldCheck className="h-4 w-4" />
+                    </span>
+                    <div className="text-left leading-tight">
+                      <p className="text-xs font-extrabold text-[#0c0c13]">
+                        Autosave Server
+                      </p>
+                      <p className="text-[10px] font-medium text-slate-500">
+                        Aman &amp; Terukur
+                      </p>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
