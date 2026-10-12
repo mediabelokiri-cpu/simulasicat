@@ -30,7 +30,11 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getCurrentUserClient, setCurrentUserClient } from "@/lib/auth";
+import {
+  getCurrentUserClient,
+  setCurrentUserClient,
+  syncProfilesFromSupabase,
+} from "@/lib/auth";
 
 export interface NavItem {
   label: string;
@@ -267,6 +271,9 @@ export function Topbar({
       setUserAvatar(active?.avatar_url || null);
     };
     syncAvatar();
+    void syncProfilesFromSupabase().then(() => {
+      syncAvatar();
+    });
     window.addEventListener("prima-profiles-synced", syncAvatar);
     window.addEventListener("storage", syncAvatar);
     return () => {

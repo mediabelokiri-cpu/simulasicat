@@ -7,9 +7,12 @@ import {
 
 export const AUTH_STORAGE_KEY = "prima_cat_active_user_v2_prod";
 export const PROFILES_STORAGE_KEY = "prima_cat_profiles_v2_prod";
-export const AVATARS_STORAGE_KEY = "catara_user_avatars_v1";
-const AVATAR_STORE_UUID = "00000000-0000-4000-8000-000000000117";
-const AVATAR_STORE_EMAIL = "store:catara_user_avatars_v1@internal.primarib.id";
+export const AVATARS_STORAGE_KEY = "prima_cat_user_avatars_v2_prod";
+const LEGACY_AVATARS_STORAGE_KEY = "catara_user_avatars_v1";
+const AVATARS_UPDATED_AT_KEY = "prima_cat_user_avatars_updated_at_v2";
+export const AVATAR_STORE_UUID = "00000000-0000-4000-8000-000000000117";
+export const AVATAR_STORE_EMAIL =
+  "store:catara_user_avatars_v1@internal.primarib.id";
 
 export interface AuthResult {
   ok: boolean;
@@ -21,9 +24,80 @@ export interface AuthResult {
 export function getUserAvatarMap(): Record<string, string> {
   if (typeof window === "undefined") return {};
   try {
+    let map: Record<string, string> = {};
+    const legacyRaw = window.localStorage.getItem(LEGACY_AVATARS_STORAGE_KEY);
+    if (legacyRaw) {
+      try {
+        const parsedLegacy = JSON.parse(legacyRaw);
+        if (parsedLegacy && typeof parsedLegacy === "object") {
+          map = { ...(parsedLegacy as Record<string, string>) };
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     const raw = window.localStorage.getItem(AVATARS_STORAGE_KEY);
-    if (!raw) return {};
-    return JSON.parse(raw) as Record<string, string>;
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") {
+          map = { ...map, ...(parsed as Record<string, string>) };
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    // Panen (harvest) avatar_url yang sudah ada di sesi aktif atau daftar profil lokal
+    // agar foto yang diunggah sebelum pembaruan langsung ikut tersinkron ke Supabase
+    let harvested = false;
+    const harvestProfile = (p: Partial<ProfileRow> | null | undefined) => {
+      if (!p || !p.avatar_url || p.avatar_url === "__REMOVED__") return;
+      const idKey = p.id ? String(p.id).trim() : "";
+      const emailKey = p.email ? String(p.email).trim().toLowerCase() : "";
+      if (idKey && !map[idKey]) {
+        map[idKey] = p.avatar_url;
+        harvested = true;
+      }
+      if (emailKey && !map[emailKey]) {
+        map[emailKey] = p.avatar_url;
+        harvested = true;
+      }
+    };
+
+    try {
+      const activeRaw = window.localStorage.getItem(AUTH_STORAGE_KEY);
+      if (activeRaw) {
+        harvestProfile(JSON.parse(activeRaw) as Partial<ProfileRow>);
+      }
+    } catch {
+      // ignore
+    }
+
+    try {
+      const profilesRaw = window.localStorage.getItem(PROFILES_STORAGE_KEY);
+      if (profilesRaw) {
+        const list = JSON.parse(profilesRaw) as Array<Partial<ProfileRow>>;
+        if (Array.isArray(list)) {
+          for (const item of list) {
+            harvestProfile(item);
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    if (harvested || (legacyRaw && !raw)) {
+      try {
+        window.localStorage.setItem(AVATARS_STORAGE_KEY, JSON.stringify(map));
+      } catch {
+        // ignore
+      }
+    }
+
+    return map;
   } catch {
     return {};
   }
@@ -33,9 +107,9 @@ export async function pushAvatarMapToSupabase(
   map: Record<string, string>
 ): Promise<void> {
   if (!isSupabaseConfigured()) return;
+  const now = new Date().toISOString();
   try {
     const supabase = createSupabaseBrowserClient();
-    const now = new Date().toISOString();
     await supabase.from("profiles").upsert(
       {
         id: AVATAR_STORE_UUID,
@@ -53,6 +127,14 @@ export async function pushAvatarMapToSupabase(
     );
   } catch {
     // ignore network errors
+  }
+
+  if (typeof window !== "undefined") {
+    void fetch("/api/profiles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ avatarMap: map }),
+    }).catch(() => {});
   }
 }
 
@@ -75,6 +157,7 @@ export function saveUserAvatarEntry(
       if (emailKey) map[emailKey] = "__REMOVED__";
     }
     window.localStorage.setItem(AVATARS_STORAGE_KEY, JSON.stringify(map));
+    window.localStorage.setItem(AVATARS_UPDATED_AT_KEY, String(Date.now()));
     void pushAvatarMapToSupabase(map);
   } catch {
     // ignore storage quota errors
@@ -250,17 +333,59 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
     // ignore
   }
 
+  // 2. Fallback / tambahan melalui endpoint server /api/profiles
+  if (
+    (fetchedRows.length === 0 || !hasRemoteAvatarRow) &&
+    typeof window !== "undefined"
+  ) {
+    try {
+      const res = await fetch("/api/profiles", { cache: "no-store" });
+      if (res.ok) {
+        const json = (await res.json()) as {
+          profiles?: ProfileRow[];
+          avatars?: Record<string, string>;
+        };
+        if (fetchedRows.length === 0 && Array.isArray(json.profiles)) {
+          fetchedRows.push(...json.profiles);
+        }
+        if (
+          !hasRemoteAvatarRow &&
+          json.avatars &&
+          typeof json.avatars === "object"
+        ) {
+          remoteAvatarMap = {
+            ...remoteAvatarMap,
+            ...json.avatars,
+          };
+          if (Object.keys(json.avatars).length > 0) {
+            hasRemoteAvatarRow = true;
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   // Sinkronkan dua arah peta avatar pengguna (Laptop <-> HP via Supabase)
   if (typeof window !== "undefined") {
     const localAvatarMap = getUserAvatarMap();
-    const mergedAvatarMap: Record<string, string> = {
-      ...localAvatarMap,
-      ...remoteAvatarMap,
-    };
+    const lastWriteRaw = window.localStorage.getItem(AVATARS_UPDATED_AT_KEY);
+    const localWriteRecent =
+      lastWriteRaw && Date.now() - Number(lastWriteRaw) < 20000;
+
+    const mergedAvatarMap: Record<string, string> = localWriteRecent
+      ? { ...remoteAvatarMap, ...localAvatarMap }
+      : { ...localAvatarMap, ...remoteAvatarMap };
+
     let needPushAvatars =
       !hasRemoteAvatarRow && Object.keys(localAvatarMap).length > 0;
     for (const [k, v] of Object.entries(localAvatarMap)) {
-      if (v && !remoteAvatarMap[k]) {
+      if (
+        v &&
+        (!remoteAvatarMap[k] ||
+          (localWriteRecent && remoteAvatarMap[k] !== v))
+      ) {
         mergedAvatarMap[k] = v;
         needPushAvatars = true;
       }
@@ -274,22 +399,7 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
       // ignore
     }
     if (needPushAvatars) {
-      void pushAvatarMapToSupabase(mergedAvatarMap);
-    }
-  }
-
-  // 2. Fallback / tambahan melalui endpoint server /api/profiles
-  if (fetchedRows.length === 0 && typeof window !== "undefined") {
-    try {
-      const res = await fetch("/api/profiles", { cache: "no-store" });
-      if (res.ok) {
-        const json = (await res.json()) as { profiles?: ProfileRow[] };
-        if (Array.isArray(json.profiles)) {
-          fetchedRows.push(...json.profiles);
-        }
-      }
-    } catch {
-      // ignore
+      await pushAvatarMapToSupabase(mergedAvatarMap);
     }
   }
 

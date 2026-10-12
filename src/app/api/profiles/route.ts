@@ -8,9 +8,12 @@ import { ProfileRow, UserRole } from "@/types/database";
 
 export const dynamic = "force-dynamic";
 
+const AVATAR_STORE_UUID = "00000000-0000-4000-8000-000000000117";
+const AVATAR_STORE_EMAIL = "store:catara_user_avatars_v1@internal.primarib.id";
+
 export async function GET() {
   if (!isSupabaseConfigured()) {
-    return NextResponse.json({ profiles: [] });
+    return NextResponse.json({ profiles: [], avatars: {} });
   }
 
   try {
@@ -27,7 +30,23 @@ export async function GET() {
       .order("created_at", { ascending: false });
 
     if (error || !data) {
-      return NextResponse.json({ profiles: [] });
+      return NextResponse.json({ profiles: [], avatars: {} });
+    }
+
+    let avatars: Record<string, string> = {};
+    for (const row of data as Array<Record<string, unknown>>) {
+      if (String(row.email || "").toLowerCase() === AVATAR_STORE_EMAIL) {
+        if (row.institution) {
+          try {
+            const parsed = JSON.parse(String(row.institution));
+            if (parsed && typeof parsed === "object") {
+              avatars = parsed as Record<string, string>;
+            }
+          } catch {
+            // ignore
+          }
+        }
+      }
     }
 
     const now = new Date().toISOString();
@@ -40,25 +59,32 @@ export async function GET() {
           row.full_name !== "__SYSTEM_STORE__" &&
           row.full_name !== "__DELETED_USER__"
       )
-      .map((row: Record<string, unknown>) => ({
-        id: String(row.id),
-        full_name: String(row.full_name || "Peserta"),
-        email: String(row.email || "").toLowerCase(),
-        role: (row.role === "admin" ? "admin" : "user") as UserRole,
-        is_active: row.is_active !== false,
-        phone: row.phone ? String(row.phone) : null,
-        institution: row.institution ? String(row.institution) : null,
-        target_selection: row.target_selection
-          ? String(row.target_selection)
-          : "CPNS",
-        email_verified: Boolean(row.email_verified ?? true),
-        created_at: row.created_at ? String(row.created_at) : now,
-        updated_at: row.updated_at ? String(row.updated_at) : now,
-      }));
+      .map((row: Record<string, unknown>) => {
+        const emailLower = String(row.email || "").toLowerCase();
+        const idStr = String(row.id);
+        const rawAvatar = avatars[emailLower] ?? avatars[idStr] ?? null;
+        return {
+          id: idStr,
+          full_name: String(row.full_name || "Peserta"),
+          email: emailLower,
+          role: (row.role === "admin" ? "admin" : "user") as UserRole,
+          is_active: row.is_active !== false,
+          phone: row.phone ? String(row.phone) : null,
+          institution: row.institution ? String(row.institution) : null,
+          target_selection: row.target_selection
+            ? String(row.target_selection)
+            : "CPNS",
+          avatar_url:
+            rawAvatar && rawAvatar !== "__REMOVED__" ? rawAvatar : null,
+          email_verified: Boolean(row.email_verified ?? true),
+          created_at: row.created_at ? String(row.created_at) : now,
+          updated_at: row.updated_at ? String(row.updated_at) : now,
+        };
+      });
 
-    return NextResponse.json({ profiles });
+    return NextResponse.json({ profiles, avatars });
   } catch {
-    return NextResponse.json({ profiles: [] });
+    return NextResponse.json({ profiles: [], avatars: {} });
   }
 }
 
@@ -109,10 +135,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = (await request.json()) as Partial<ProfileRow>;
-    if (!body.email || !body.full_name) {
-      return NextResponse.json({ ok: false }, { status: 400 });
-    }
+    const body = (await request.json()) as Partial<ProfileRow> & {
+      avatarMap?: Record<string, string>;
+    };
 
     const hasServiceKey = Boolean(
       process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY
@@ -122,6 +147,30 @@ export async function POST(request: Request) {
       : await createServerSupabaseClient();
 
     const now = new Date().toISOString();
+
+    if (body.avatarMap && typeof body.avatarMap === "object") {
+      const { error: avatarError } = await supabase.from("profiles").upsert(
+        {
+          id: AVATAR_STORE_UUID,
+          full_name: "__SYSTEM_STORE__",
+          email: AVATAR_STORE_EMAIL,
+          role: "admin",
+          is_active: false,
+          phone: "AVATAR_SYNC",
+          institution: JSON.stringify(body.avatarMap),
+          target_selection: "SYSTEM",
+          email_verified: true,
+          updated_at: now,
+        },
+        { onConflict: "email" }
+      );
+      return NextResponse.json({ ok: !avatarError });
+    }
+
+    if (!body.email || !body.full_name) {
+      return NextResponse.json({ ok: false }, { status: 400 });
+    }
+
     const cleanEmail = String(body.email).trim().toLowerCase();
     const isUuid =
       typeof body.id === "string" &&
