@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -12,6 +12,8 @@ import {
   LogOut,
   AlertTriangle,
   BellRing,
+  Camera,
+  Trash2,
 } from "lucide-react";
 import {
   AppShell,
@@ -39,11 +41,13 @@ import { formatDateTimeID } from "@/lib/utils";
 
 export default function ProfilPage() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [user, setUser] = useState<ProfileRow>(EMPTY_USER_FALLBACK);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [institution, setInstitution] = useState("");
   const [targetSelection, setTargetSelection] = useState("CPNS");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [userGroups, setUserGroups] = useState<GroupRow[]>([]);
   const [deactivationNotice, setDeactivationNotice] = useState<{
     reason: string;
@@ -66,6 +70,7 @@ export default function ProfilPage() {
     setPhone(active.phone || "");
     setInstitution(active.institution || "");
     setTargetSelection(active.target_selection || "CPNS");
+    setAvatarUrl(active.avatar_url || null);
 
     const refreshUserAndGroups = (current: ProfileRow) => {
       setUser(current);
@@ -102,6 +107,47 @@ export default function ProfilPage() {
     };
   }, [router]);
 
+  function handleAvatarFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setToast({
+        type: "error",
+        title: "Format File Tidak Didukung",
+        desc: "Silakan pilih file gambar berformat JPG, PNG, atau WEBP.",
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      const img = new Image();
+      img.onload = () => {
+        // Center-crop persegi & kompresi 256x256 px agar ringan dan tajam
+        const size = 256;
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          setAvatarUrl(dataUrl);
+          return;
+        }
+        const minSide = Math.min(img.width, img.height);
+        const sx = (img.width - minSide) / 2;
+        const sy = (img.height - minSide) / 2;
+        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+        const compressed = canvas.toDataURL("image/jpeg", 0.88);
+        setAvatarUrl(compressed);
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  }
+
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
     const res = updateProfileClient(user.id, {
@@ -109,6 +155,7 @@ export default function ProfilPage() {
       phone,
       institution,
       target_selection: targetSelection,
+      avatar_url: avatarUrl,
     });
 
     if (!res.ok || !res.user) {
@@ -124,7 +171,7 @@ export default function ProfilPage() {
     setToast({
       type: "success",
       title: "Profil Berhasil Diperbarui",
-      desc: "Perubahan data profil Anda telah disimpan.",
+      desc: "Perubahan data dan foto profil Anda telah disimpan.",
     });
   }
 
@@ -239,8 +286,16 @@ export default function ProfilPage() {
         <div className="lg:col-span-4 space-y-6">
           <div className="rounded-2xl border border-indigo-100 bg-white p-5 sm:p-6 shadow-xs space-y-4">
             <div className="flex items-center gap-3.5">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-xl font-bold text-white shadow-xs">
-                {(user.full_name || "P").charAt(0).toUpperCase()}
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-indigo-100 bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-xl font-bold text-white shadow-xs">
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={user.full_name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span>{(user.full_name || "P").charAt(0).toUpperCase()}</span>
+                )}
               </div>
               <div className="min-w-0">
                 <h2 className="text-base font-bold text-[#0c0c13] truncate">
@@ -349,6 +404,81 @@ export default function ProfilPage() {
                 Nama lengkap wajib diisi dan digunakan pada laporan hasil ujian
                 serta sertifikat/peringkat simulasi.
               </p>
+            </div>
+
+            {/* Panel Upload Foto Profil di Dalam Card Perbarui Informasi Peserta */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-2xl border border-indigo-100/90 bg-[#f5f8ff] p-4">
+              <div className="relative mx-auto sm:mx-0 shrink-0">
+                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-2xl font-extrabold text-white shadow-[0_6px_18px_rgba(73,74,226,0.22)] ring-2 ring-[#494ae2]/20">
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={fullName || user.full_name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span>
+                      {(fullName || user.full_name || "P")
+                        .charAt(0)
+                        .toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Ganti Foto Profil"
+                  aria-label="Ganti Foto Profil"
+                  className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#494ae2] text-white shadow-xs hover:bg-[#3f40cc] cursor-pointer"
+                >
+                  <Camera className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              <div className="flex-1 text-center sm:text-left space-y-2">
+                <div>
+                  <p className="text-sm font-extrabold text-[#0c0c13]">
+                    Foto Profil Peserta
+                  </p>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Format JPG, PNG, atau WEBP. Foto otomatis dipotong melingkar
+                    dan ditampilkan pada header aplikasi.
+                  </p>
+                </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleAvatarFileChange}
+                  className="hidden"
+                />
+
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-0.5">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    leftIcon={<Camera className="h-3.5 w-3.5 text-[#494ae2]" />}
+                    className="text-xs font-bold text-[#494ae2] border-indigo-200 hover:bg-white"
+                  >
+                    Unggah Foto Profil
+                  </Button>
+                  {avatarUrl && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setAvatarUrl(null)}
+                      leftIcon={<Trash2 className="h-3.5 w-3.5 text-rose-600" />}
+                      className="text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                    >
+                      Hapus Foto
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -30,7 +30,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { setCurrentUserClient } from "@/lib/auth";
+import { getCurrentUserClient, setCurrentUserClient } from "@/lib/auth";
 
 export interface NavItem {
   label: string;
@@ -247,6 +247,21 @@ export function Topbar({
   const pathname = usePathname();
   const router = useRouter();
   const [quickSearch, setQuickSearch] = useState("");
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+
+  useEffect(() => {
+    const syncAvatar = () => {
+      const active = getCurrentUserClient();
+      setUserAvatar(active?.avatar_url || null);
+    };
+    syncAvatar();
+    window.addEventListener("prima-profiles-synced", syncAvatar);
+    window.addEventListener("storage", syncAvatar);
+    return () => {
+      window.removeEventListener("prima-profiles-synced", syncAvatar);
+      window.removeEventListener("storage", syncAvatar);
+    };
+  }, [pathname]);
 
   const todayFormatted = new Intl.DateTimeFormat("id-ID", {
     weekday: "short",
@@ -400,16 +415,20 @@ export function Topbar({
 
             <div className="flex items-center gap-2">
               <Link
-                href={
-                  pathname.startsWith("/download-app")
-                    ? "/dashboard"
-                    : "/download-app"
-                }
-                title="Aplikasi Mobile & Menu Cepat"
-                aria-label="Aplikasi Mobile & Menu Cepat"
-                className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#494ae2] border border-indigo-100 shadow-2xs transition-transform active:scale-95"
+                href="/profil"
+                title="Profil Saya"
+                aria-label="Profil Saya"
+                className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-sm font-extrabold text-white shadow-[0_4px_12px_rgba(73,74,226,0.24)] ring-2 ring-[#494ae2]/20 transition-transform active:scale-95"
               >
-                <LayoutGrid className="h-5 w-5" />
+                {userAvatar ? (
+                  <img
+                    src={userAvatar}
+                    alt={userName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span>{userName.charAt(0).toUpperCase()}</span>
+                )}
               </Link>
             </div>
           </div>
@@ -491,10 +510,18 @@ export function Topbar({
             </div>
             <Link
               href="/profil"
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#494ae2] font-extrabold shadow-xs"
+              className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white/80 bg-white text-[#494ae2] font-extrabold shadow-xs"
               title="Profil & Pengaturan"
             >
-              {userName.charAt(0).toUpperCase()}
+              {userAvatar ? (
+                <img
+                  src={userAvatar}
+                  alt={userName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span>{userName.charAt(0).toUpperCase()}</span>
+              )}
             </Link>
           </div>
         </div>

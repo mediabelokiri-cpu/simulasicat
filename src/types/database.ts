@@ -149,6 +149,7 @@ export interface ProfileRow {
   phone: string | null;
   institution: string | null;
   target_selection: string | null;
+  avatar_url?: string | null;
   email_verified?: boolean;
   created_at: string;
   updated_at: string;

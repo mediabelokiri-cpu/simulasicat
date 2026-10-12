@@ -229,6 +229,10 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
       institution: remote.institution || existing?.institution || null,
       target_selection:
         remote.target_selection || existing?.target_selection || "CPNS",
+      avatar_url:
+        remote.avatar_url !== undefined && remote.avatar_url !== null
+          ? remote.avatar_url
+          : existing?.avatar_url ?? null,
     });
   }
 
@@ -771,7 +775,9 @@ export function updateProfileClient(
   patch: Pick<
     ProfileRow,
     "full_name" | "phone" | "institution" | "target_selection"
-  >
+  > & {
+    avatar_url?: string | null;
+  }
 ): AuthResult {
   if (!patch.full_name || patch.full_name.trim().length < 3) {
     return { ok: false, error: "Nama lengkap wajib diisi minimal 3 karakter." };
@@ -789,12 +795,20 @@ export function updateProfileClient(
     phone: patch.phone?.trim() || null,
     institution: patch.institution?.trim() || null,
     target_selection: patch.target_selection || null,
+    avatar_url:
+      patch.avatar_url !== undefined
+        ? patch.avatar_url
+        : profiles[idx].avatar_url ?? null,
     updated_at: new Date().toISOString(),
   };
 
   profiles[idx] = updatedUser;
   saveStoredProfiles(profiles);
   setCurrentUserClient(updatedUser);
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("prima-profiles-synced"));
+  }
 
   if (isSupabaseConfigured()) {
     const supabase = createSupabaseBrowserClient();
