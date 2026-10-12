@@ -187,6 +187,20 @@ export function AuthSplitLayout({
             </div>
 
             {footer && <div className="text-center text-sm">{footer}</div>}
+
+            {/* Copyright di Laman Login & Register Mobile */}
+            <p className="pt-3 pb-2 text-center text-[11px] leading-relaxed text-slate-500 lg:hidden">
+              © 2026 CATARA | Dikembangkan oleh{" "}
+              <a
+                href="https://labide.site/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-[#494ae2] hover:underline"
+              >
+                LABIDE
+              </a>
+              . Seluruh hak cipta dilindungi.
+            </p>
           </div>
         </main>
       </div>
