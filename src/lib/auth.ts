@@ -107,6 +107,7 @@ export async function pushAvatarMapToSupabase(
   map: Record<string, string>
 ): Promise<void> {
   if (!isSupabaseConfigured()) return;
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return;
   const now = new Date().toISOString();
   try {
     const supabase = createSupabaseBrowserClient();
@@ -260,6 +261,9 @@ function isValidUuid(val: string): boolean {
   );
 }
 
+let activeProfilesSyncPromise: Promise<ProfileRow[]> | null = null;
+let lastProfilesSyncFinishedAt = 0;
+
 /**
  * Mengambil seluruh profil pengguna dari tabel Supabase `public.profiles`
  * dan menggabungkannya dengan cache lokal, sekaligus mendorong (push) akun lokal
@@ -270,252 +274,287 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
   if (!isSupabaseConfigured()) {
     return localProfiles;
   }
-
-  const fetchedRows: ProfileRow[] = [];
-  const deletedEmails = new Set<string>();
-  const now = new Date().toISOString();
-  let remoteAvatarMap: Record<string, string> = {};
-  let hasRemoteAvatarRow = false;
-
-  // 1. Query langsung melalui browser Supabase client
-  try {
-    const supabase = createSupabaseBrowserClient();
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (!error && Array.isArray(data)) {
-      for (const row of data) {
-        const emailStr = String(row.email || "").toLowerCase();
-        if (emailStr === AVATAR_STORE_EMAIL) {
-          hasRemoteAvatarRow = true;
-          if (row.institution) {
-            try {
-              const parsedAvatars = JSON.parse(String(row.institution));
-              if (parsedAvatars && typeof parsedAvatars === "object") {
-                remoteAvatarMap = parsedAvatars as Record<string, string>;
-              }
-            } catch {
-              // ignore invalid json
-            }
-          }
-          continue;
-        }
-        if (
-          emailStr.endsWith("@internal.primarib.id") ||
-          row.full_name === "__SYSTEM_STORE__"
-        ) {
-          continue;
-        }
-        if (row.full_name === "__DELETED_USER__") {
-          deletedEmails.add(emailStr);
-          continue;
-        }
-        fetchedRows.push({
-          id: String(row.id),
-          full_name: String(row.full_name || "Peserta"),
-          email: emailStr,
-          role: (row.role === "admin" ? "admin" : "user") as UserRole,
-          is_active: row.is_active !== false,
-          phone: row.phone ? String(row.phone) : null,
-          institution: row.institution ? String(row.institution) : null,
-          target_selection: row.target_selection
-            ? String(row.target_selection)
-            : "CPNS",
-          email_verified: Boolean(row.email_verified ?? true),
-          created_at: row.created_at ? String(row.created_at) : now,
-          updated_at: row.updated_at ? String(row.updated_at) : now,
-        });
-      }
-    }
-  } catch {
-    // ignore
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    return localProfiles;
   }
-
-  // 2. Fallback / tambahan melalui endpoint server /api/profiles
   if (
-    (fetchedRows.length === 0 || !hasRemoteAvatarRow) &&
-    typeof window !== "undefined"
+    typeof document !== "undefined" &&
+    document.visibilityState === "hidden" &&
+    lastProfilesSyncFinishedAt > 0
   ) {
-    try {
-      const res = await fetch("/api/profiles", { cache: "no-store" });
-      if (res.ok) {
-        const json = (await res.json()) as {
-          profiles?: ProfileRow[];
-          avatars?: Record<string, string>;
-        };
-        if (fetchedRows.length === 0 && Array.isArray(json.profiles)) {
-          fetchedRows.push(...json.profiles);
-        }
-        if (
-          !hasRemoteAvatarRow &&
-          json.avatars &&
-          typeof json.avatars === "object"
-        ) {
-          remoteAvatarMap = {
-            ...remoteAvatarMap,
-            ...json.avatars,
-          };
-          if (Object.keys(json.avatars).length > 0) {
-            hasRemoteAvatarRow = true;
-          }
-        }
-      }
-    } catch {
-      // ignore
-    }
+    return localProfiles;
   }
-
-  // Sinkronkan dua arah peta avatar pengguna (Laptop <-> HP via Supabase)
-  if (typeof window !== "undefined") {
-    const localAvatarMap = getUserAvatarMap();
-    const lastWriteRaw = window.localStorage.getItem(AVATARS_UPDATED_AT_KEY);
-    const localWriteRecent =
-      lastWriteRaw && Date.now() - Number(lastWriteRaw) < 20000;
-
-    const mergedAvatarMap: Record<string, string> = localWriteRecent
-      ? { ...remoteAvatarMap, ...localAvatarMap }
-      : { ...localAvatarMap, ...remoteAvatarMap };
-
-    let needPushAvatars =
-      !hasRemoteAvatarRow && Object.keys(localAvatarMap).length > 0;
-    for (const [k, v] of Object.entries(localAvatarMap)) {
-      if (
-        v &&
-        (!remoteAvatarMap[k] ||
-          (localWriteRecent && remoteAvatarMap[k] !== v))
-      ) {
-        mergedAvatarMap[k] = v;
-        needPushAvatars = true;
-      }
-    }
-    try {
-      window.localStorage.setItem(
-        AVATARS_STORAGE_KEY,
-        JSON.stringify(mergedAvatarMap)
-      );
-    } catch {
-      // ignore
-    }
-    if (needPushAvatars) {
-      await pushAvatarMapToSupabase(mergedAvatarMap);
-    }
+  if (activeProfilesSyncPromise) {
+    return activeProfilesSyncPromise;
   }
-
-  // 3. Push akun peserta lokal (role === 'user') yang belum tercatat di Supabase public.profiles
-  const remoteEmails = new Set(fetchedRows.map((r) => r.email.toLowerCase()));
-  const unsyncedLocalUsers = localProfiles.filter(
-    (lp) =>
-      lp.role === "user" &&
-      !remoteEmails.has(lp.email.toLowerCase()) &&
-      !deletedEmails.has(lp.email.toLowerCase())
-  );
-
-  if (unsyncedLocalUsers.length > 0) {
-    try {
-      const supabase = createSupabaseBrowserClient();
-      for (const localUser of unsyncedLocalUsers) {
-        const validId = isValidUuid(localUser.id)
-          ? localUser.id
-          : generateUuid();
-        const payload = {
-          id: validId,
-          full_name: localUser.full_name,
-          email: localUser.email.toLowerCase(),
-          role: "user" as UserRole,
-          is_active: localUser.is_active !== false,
-          phone: localUser.phone ?? null,
-          institution: localUser.institution ?? null,
-          target_selection: localUser.target_selection || "CPNS",
-          email_verified: true,
-          created_at: localUser.created_at || now,
-          updated_at: now,
-        };
-        const { data: upserted, error: upsertErr } = await supabase
-          .from("profiles")
-          .upsert(payload, { onConflict: "email" })
-          .select("*")
-          .maybeSingle();
-
-        if (!upsertErr && upserted) {
-          fetchedRows.push({
-            ...payload,
-            id: String(upserted.id || validId),
-          });
-        } else {
-          fetchedRows.push(payload);
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  if (fetchedRows.length === 0 && deletedEmails.size === 0) {
+  if (Date.now() - lastProfilesSyncFinishedAt < 1500) {
     return localProfiles;
   }
 
-  // Gabungkan fetchedRows (dari Supabase) dengan localProfiles berdasarkan email
-  const currentAvatarMap = getUserAvatarMap();
-  const mergedByEmail = new Map<string, ProfileRow>();
-  for (const lp of localProfiles) {
-    if (!deletedEmails.has(lp.email.toLowerCase())) {
-      mergedByEmail.set(
-        lp.email.toLowerCase(),
-        attachStoredAvatar(lp, currentAvatarMap)
-      );
-    }
-  }
-  for (const remote of fetchedRows) {
-    const emailKey = remote.email.toLowerCase();
-    if (deletedEmails.has(emailKey)) continue;
-    const existing = mergedByEmail.get(emailKey);
-    const combined: ProfileRow = {
-      ...existing,
-      ...remote,
-      institution: remote.institution || existing?.institution || null,
-      target_selection:
-        remote.target_selection || existing?.target_selection || "CPNS",
-      avatar_url:
-        remote.avatar_url !== undefined && remote.avatar_url !== null
-          ? remote.avatar_url
-          : existing?.avatar_url ?? null,
-    };
-    mergedByEmail.set(emailKey, attachStoredAvatar(combined, currentAvatarMap));
-  }
-
-  const finalProfiles = Array.from(mergedByEmail.values());
-  saveStoredProfiles(finalProfiles);
-
-  // Perbarui atau hapus sesi pengguna aktif jika terdampak perubahan/penghapusan dari Admin
-  if (typeof window !== "undefined") {
+  activeProfilesSyncPromise = (async () => {
     try {
-      const activeRaw = window.localStorage.getItem(AUTH_STORAGE_KEY);
-      if (activeRaw) {
-        const activeParsed = JSON.parse(activeRaw) as ProfileRow;
-        const activeEmail = String(activeParsed.email || "").toLowerCase();
-        if (deletedEmails.has(activeEmail)) {
-          setCurrentUserClient(null);
-        } else {
-          const syncedSelf =
-            finalProfiles.find((p) => p.id === activeParsed.id) ||
-            finalProfiles.find((p) => p.email.toLowerCase() === activeEmail);
-          if (syncedSelf) {
-            window.localStorage.setItem(
-              AUTH_STORAGE_KEY,
-              JSON.stringify(syncedSelf)
-            );
-            window.dispatchEvent(new CustomEvent("prima-profiles-synced"));
+      const fetchedRows: ProfileRow[] = [];
+      const deletedEmails = new Set<string>();
+      const now = new Date().toISOString();
+      let remoteAvatarMap: Record<string, string> = {};
+      let hasRemoteAvatarRow = false;
+
+      // 1. Query langsung melalui browser Supabase client (kecualikan baris store:prima_cat_% agar ringan)
+      try {
+        const supabase = createSupabaseBrowserClient();
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .not("email", "like", "store:prima_cat_%")
+          .order("created_at", { ascending: false });
+
+        if (!error && Array.isArray(data)) {
+          for (const row of data) {
+            const emailStr = String(row.email || "").toLowerCase();
+            if (emailStr === AVATAR_STORE_EMAIL) {
+              hasRemoteAvatarRow = true;
+              if (row.institution) {
+                try {
+                  const parsedAvatars = JSON.parse(String(row.institution));
+                  if (parsedAvatars && typeof parsedAvatars === "object") {
+                    remoteAvatarMap = parsedAvatars as Record<string, string>;
+                  }
+                } catch {
+                  // ignore invalid json
+                }
+              }
+              continue;
+            }
+            if (
+              emailStr.endsWith("@internal.primarib.id") ||
+              row.full_name === "__SYSTEM_STORE__"
+            ) {
+              continue;
+            }
+            if (row.full_name === "__DELETED_USER__") {
+              deletedEmails.add(emailStr);
+              continue;
+            }
+            fetchedRows.push({
+              id: String(row.id),
+              full_name: String(row.full_name || "Peserta"),
+              email: emailStr,
+              role: (row.role === "admin" ? "admin" : "user") as UserRole,
+              is_active: row.is_active !== false,
+              phone: row.phone ? String(row.phone) : null,
+              institution: row.institution ? String(row.institution) : null,
+              target_selection: row.target_selection
+                ? String(row.target_selection)
+                : "CPNS",
+              email_verified: Boolean(row.email_verified ?? true),
+              created_at: row.created_at ? String(row.created_at) : now,
+              updated_at: row.updated_at ? String(row.updated_at) : now,
+            });
           }
         }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
-    }
-  }
 
-  return finalProfiles;
+      // 2. Fallback / tambahan melalui endpoint server /api/profiles
+      if (
+        (fetchedRows.length === 0 || !hasRemoteAvatarRow) &&
+        typeof window !== "undefined"
+      ) {
+        try {
+          const res = await fetch("/api/profiles", { cache: "no-store" });
+          if (res.ok) {
+            const json = (await res.json()) as {
+              profiles?: ProfileRow[];
+              avatars?: Record<string, string>;
+            };
+            if (fetchedRows.length === 0 && Array.isArray(json.profiles)) {
+              fetchedRows.push(...json.profiles);
+            }
+            if (
+              !hasRemoteAvatarRow &&
+              json.avatars &&
+              typeof json.avatars === "object"
+            ) {
+              remoteAvatarMap = {
+                ...remoteAvatarMap,
+                ...json.avatars,
+              };
+              if (Object.keys(json.avatars).length > 0) {
+                hasRemoteAvatarRow = true;
+              }
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      // Sinkronkan dua arah peta avatar pengguna (Laptop <-> HP via Supabase)
+      if (typeof window !== "undefined") {
+        const localAvatarMap = getUserAvatarMap();
+        const lastWriteRaw = window.localStorage.getItem(
+          AVATARS_UPDATED_AT_KEY
+        );
+        const localWriteRecent =
+          lastWriteRaw && Date.now() - Number(lastWriteRaw) < 20000;
+
+        const mergedAvatarMap: Record<string, string> = localWriteRecent
+          ? { ...remoteAvatarMap, ...localAvatarMap }
+          : { ...localAvatarMap, ...remoteAvatarMap };
+
+        let needPushAvatars =
+          !hasRemoteAvatarRow && Object.keys(localAvatarMap).length > 0;
+        for (const [k, v] of Object.entries(localAvatarMap)) {
+          if (
+            v &&
+            (!remoteAvatarMap[k] ||
+              (localWriteRecent && remoteAvatarMap[k] !== v))
+          ) {
+            mergedAvatarMap[k] = v;
+            needPushAvatars = true;
+          }
+        }
+        try {
+          window.localStorage.setItem(
+            AVATARS_STORAGE_KEY,
+            JSON.stringify(mergedAvatarMap)
+          );
+        } catch {
+          // ignore
+        }
+        if (needPushAvatars) {
+          await pushAvatarMapToSupabase(mergedAvatarMap);
+        }
+      }
+
+      // 3. Push akun peserta lokal (role === 'user') yang belum tercatat di Supabase public.profiles
+      const remoteEmails = new Set(
+        fetchedRows.map((r) => r.email.toLowerCase())
+      );
+      const unsyncedLocalUsers = localProfiles.filter(
+        (lp) =>
+          lp.role === "user" &&
+          !remoteEmails.has(lp.email.toLowerCase()) &&
+          !deletedEmails.has(lp.email.toLowerCase())
+      );
+
+      if (unsyncedLocalUsers.length > 0) {
+        try {
+          const supabase = createSupabaseBrowserClient();
+          for (const localUser of unsyncedLocalUsers) {
+            const validId = isValidUuid(localUser.id)
+              ? localUser.id
+              : generateUuid();
+            const payload = {
+              id: validId,
+              full_name: localUser.full_name,
+              email: localUser.email.toLowerCase(),
+              role: "user" as UserRole,
+              is_active: localUser.is_active !== false,
+              phone: localUser.phone ?? null,
+              institution: localUser.institution ?? null,
+              target_selection: localUser.target_selection || "CPNS",
+              email_verified: true,
+              created_at: localUser.created_at || now,
+              updated_at: now,
+            };
+            const { data: upserted, error: upsertErr } = await supabase
+              .from("profiles")
+              .upsert(payload, { onConflict: "email" })
+              .select("*")
+              .maybeSingle();
+
+            if (!upsertErr && upserted) {
+              fetchedRows.push({
+                ...payload,
+                id: String(upserted.id || validId),
+              });
+            } else {
+              fetchedRows.push(payload);
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      if (fetchedRows.length === 0 && deletedEmails.size === 0) {
+        return localProfiles;
+      }
+
+      // Gabungkan fetchedRows (dari Supabase) dengan localProfiles berdasarkan email
+      const currentAvatarMap = getUserAvatarMap();
+      const mergedByEmail = new Map<string, ProfileRow>();
+      for (const lp of localProfiles) {
+        if (!deletedEmails.has(lp.email.toLowerCase())) {
+          mergedByEmail.set(
+            lp.email.toLowerCase(),
+            attachStoredAvatar(lp, currentAvatarMap)
+          );
+        }
+      }
+      for (const remote of fetchedRows) {
+        const emailKey = remote.email.toLowerCase();
+        if (deletedEmails.has(emailKey)) continue;
+        const existing = mergedByEmail.get(emailKey);
+        const combined: ProfileRow = {
+          ...existing,
+          ...remote,
+          institution: remote.institution || existing?.institution || null,
+          target_selection:
+            remote.target_selection || existing?.target_selection || "CPNS",
+          avatar_url:
+            remote.avatar_url !== undefined && remote.avatar_url !== null
+              ? remote.avatar_url
+              : existing?.avatar_url ?? null,
+        };
+        mergedByEmail.set(
+          emailKey,
+          attachStoredAvatar(combined, currentAvatarMap)
+        );
+      }
+
+      const finalProfiles = Array.from(mergedByEmail.values());
+      saveStoredProfiles(finalProfiles);
+
+      // Perbarui atau hapus sesi pengguna aktif jika terdampak perubahan/penghapusan dari Admin
+      if (typeof window !== "undefined") {
+        try {
+          const activeRaw = window.localStorage.getItem(AUTH_STORAGE_KEY);
+          if (activeRaw) {
+            const activeParsed = JSON.parse(activeRaw) as ProfileRow;
+            const activeEmail = String(activeParsed.email || "").toLowerCase();
+            if (deletedEmails.has(activeEmail)) {
+              setCurrentUserClient(null);
+            } else {
+              const syncedSelf =
+                finalProfiles.find((p) => p.id === activeParsed.id) ||
+                finalProfiles.find(
+                  (p) => p.email.toLowerCase() === activeEmail
+                );
+              if (syncedSelf) {
+                window.localStorage.setItem(
+                  AUTH_STORAGE_KEY,
+                  JSON.stringify(syncedSelf)
+                );
+                window.dispatchEvent(new CustomEvent("prima-profiles-synced"));
+              }
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      return finalProfiles;
+    } finally {
+      lastProfilesSyncFinishedAt = Date.now();
+      activeProfilesSyncPromise = null;
+    }
+  })();
+
+  return activeProfilesSyncPromise;
 }
 
 export function getCurrentUserClient(): ProfileRow | null {

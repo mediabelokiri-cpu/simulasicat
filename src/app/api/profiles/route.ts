@@ -27,6 +27,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
+      .not("email", "like", "store:prima_cat_%")
       .order("created_at", { ascending: false });
 
     if (error || !data) {

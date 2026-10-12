@@ -136,6 +136,9 @@ function pickNewerRecord(
   return remoteItem;
 }
 
+let activeAdminStoreSyncPromise: Promise<boolean> | null = null;
+let lastAdminStoreSyncFinishedAt = 0;
+
 export async function pushStoreKeyToSupabase(
   storageKey: string,
   data: unknown,
@@ -143,6 +146,7 @@ export async function pushStoreKeyToSupabase(
   customResetToken?: string
 ): Promise<void> {
   if (!isSupabaseConfigured()) return;
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return;
   const storeUuid = STORE_KEY_UUIDS[storageKey];
   if (!storeUuid) return;
   try {
@@ -192,17 +196,34 @@ export async function syncAdminStoreFromSupabase(): Promise<boolean> {
   if (typeof window === "undefined" || !isSupabaseConfigured()) {
     return false;
   }
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    return false;
+  }
+  if (
+    typeof document !== "undefined" &&
+    document.visibilityState === "hidden" &&
+    lastAdminStoreSyncFinishedAt > 0
+  ) {
+    return false;
+  }
+  if (activeAdminStoreSyncPromise) {
+    return activeAdminStoreSyncPromise;
+  }
+  if (Date.now() - lastAdminStoreSyncFinishedAt < 1500) {
+    return false;
+  }
 
-  try {
-    const supabase = createSupabaseBrowserClient();
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("email, phone, institution, updated_at")
-      .like("email", "store:%@internal.primarib.id");
+  activeAdminStoreSyncPromise = (async () => {
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("email, phone, institution, updated_at")
+        .like("email", "store:prima_cat_%@internal.primarib.id");
 
-    if (error || !Array.isArray(data)) {
-      return false;
-    }
+      if (error || !Array.isArray(data)) {
+        return false;
+      }
 
     const remoteMap = new Map<
       string,
@@ -363,13 +384,19 @@ export async function syncAdminStoreFromSupabase(): Promise<boolean> {
       }
     }
 
-    if (anyUpdated) {
-      window.dispatchEvent(new CustomEvent("prima-store-synced"));
+      if (anyUpdated) {
+        window.dispatchEvent(new CustomEvent("prima-store-synced"));
+      }
+      return anyUpdated;
+    } catch {
+      return false;
+    } finally {
+      lastAdminStoreSyncFinishedAt = Date.now();
+      activeAdminStoreSyncPromise = null;
     }
-    return anyUpdated;
-  } catch {
-    return false;
-  }
+  })();
+
+  return activeAdminStoreSyncPromise;
 }
 
 const LEGACY_V1_PURGED_FLAG = "prima_cat_v1_dummy_purged";
