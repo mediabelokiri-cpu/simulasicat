@@ -8,6 +8,8 @@ import {
 export const AUTH_STORAGE_KEY = "prima_cat_active_user_v2_prod";
 export const PROFILES_STORAGE_KEY = "prima_cat_profiles_v2_prod";
 export const AVATARS_STORAGE_KEY = "catara_user_avatars_v1";
+const AVATAR_STORE_UUID = "00000000-0000-4000-8000-000000000117";
+const AVATAR_STORE_EMAIL = "store:catara_user_avatars_v1@internal.primarib.id";
 
 export interface AuthResult {
   ok: boolean;
@@ -27,6 +29,33 @@ export function getUserAvatarMap(): Record<string, string> {
   }
 }
 
+export async function pushAvatarMapToSupabase(
+  map: Record<string, string>
+): Promise<void> {
+  if (!isSupabaseConfigured()) return;
+  try {
+    const supabase = createSupabaseBrowserClient();
+    const now = new Date().toISOString();
+    await supabase.from("profiles").upsert(
+      {
+        id: AVATAR_STORE_UUID,
+        full_name: "__SYSTEM_STORE__",
+        email: AVATAR_STORE_EMAIL,
+        role: "admin",
+        is_active: false,
+        phone: "AVATAR_SYNC",
+        institution: JSON.stringify(map),
+        target_selection: "SYSTEM",
+        email_verified: true,
+        updated_at: now,
+      },
+      { onConflict: "email" }
+    );
+  } catch {
+    // ignore network errors
+  }
+}
+
 export function saveUserAvatarEntry(
   userId: string | undefined | null,
   email: string | undefined | null,
@@ -42,10 +71,11 @@ export function saveUserAvatarEntry(
       if (idKey) map[idKey] = avatarUrl;
       if (emailKey) map[emailKey] = avatarUrl;
     } else {
-      if (idKey) delete map[idKey];
-      if (emailKey) delete map[emailKey];
+      if (idKey) map[idKey] = "__REMOVED__";
+      if (emailKey) map[emailKey] = "__REMOVED__";
     }
     window.localStorage.setItem(AVATARS_STORAGE_KEY, JSON.stringify(map));
+    void pushAvatarMapToSupabase(map);
   } catch {
     // ignore storage quota errors
   }
@@ -58,8 +88,9 @@ function attachStoredAvatar(
   const map = avatarMap ?? getUserAvatarMap();
   const emailKey = String(profile.email || "").trim().toLowerCase();
   const idKey = String(profile.id || "").trim();
+  const rawAvatar = map[emailKey] ?? map[idKey] ?? profile.avatar_url ?? null;
   const resolvedAvatar =
-    map[emailKey] ?? map[idKey] ?? profile.avatar_url ?? null;
+    rawAvatar && rawAvatar !== "__REMOVED__" ? rawAvatar : null;
   return {
     ...profile,
     avatar_url: resolvedAvatar,
@@ -160,6 +191,8 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
   const fetchedRows: ProfileRow[] = [];
   const deletedEmails = new Set<string>();
   const now = new Date().toISOString();
+  let remoteAvatarMap: Record<string, string> = {};
+  let hasRemoteAvatarRow = false;
 
   // 1. Query langsung melalui browser Supabase client
   try {
@@ -172,6 +205,20 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
     if (!error && Array.isArray(data)) {
       for (const row of data) {
         const emailStr = String(row.email || "").toLowerCase();
+        if (emailStr === AVATAR_STORE_EMAIL) {
+          hasRemoteAvatarRow = true;
+          if (row.institution) {
+            try {
+              const parsedAvatars = JSON.parse(String(row.institution));
+              if (parsedAvatars && typeof parsedAvatars === "object") {
+                remoteAvatarMap = parsedAvatars as Record<string, string>;
+              }
+            } catch {
+              // ignore invalid json
+            }
+          }
+          continue;
+        }
         if (
           emailStr.endsWith("@internal.primarib.id") ||
           row.full_name === "__SYSTEM_STORE__"
@@ -201,6 +248,34 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
     }
   } catch {
     // ignore
+  }
+
+  // Sinkronkan dua arah peta avatar pengguna (Laptop <-> HP via Supabase)
+  if (typeof window !== "undefined") {
+    const localAvatarMap = getUserAvatarMap();
+    const mergedAvatarMap: Record<string, string> = {
+      ...localAvatarMap,
+      ...remoteAvatarMap,
+    };
+    let needPushAvatars =
+      !hasRemoteAvatarRow && Object.keys(localAvatarMap).length > 0;
+    for (const [k, v] of Object.entries(localAvatarMap)) {
+      if (v && !remoteAvatarMap[k]) {
+        mergedAvatarMap[k] = v;
+        needPushAvatars = true;
+      }
+    }
+    try {
+      window.localStorage.setItem(
+        AVATARS_STORAGE_KEY,
+        JSON.stringify(mergedAvatarMap)
+      );
+    } catch {
+      // ignore
+    }
+    if (needPushAvatars) {
+      void pushAvatarMapToSupabase(mergedAvatarMap);
+    }
   }
 
   // 2. Fallback / tambahan melalui endpoint server /api/profiles
@@ -272,17 +347,21 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
   }
 
   // Gabungkan fetchedRows (dari Supabase) dengan localProfiles berdasarkan email
+  const currentAvatarMap = getUserAvatarMap();
   const mergedByEmail = new Map<string, ProfileRow>();
   for (const lp of localProfiles) {
     if (!deletedEmails.has(lp.email.toLowerCase())) {
-      mergedByEmail.set(lp.email.toLowerCase(), lp);
+      mergedByEmail.set(
+        lp.email.toLowerCase(),
+        attachStoredAvatar(lp, currentAvatarMap)
+      );
     }
   }
   for (const remote of fetchedRows) {
     const emailKey = remote.email.toLowerCase();
     if (deletedEmails.has(emailKey)) continue;
     const existing = mergedByEmail.get(emailKey);
-    mergedByEmail.set(emailKey, {
+    const combined: ProfileRow = {
       ...existing,
       ...remote,
       institution: remote.institution || existing?.institution || null,
@@ -292,7 +371,8 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
         remote.avatar_url !== undefined && remote.avatar_url !== null
           ? remote.avatar_url
           : existing?.avatar_url ?? null,
-    });
+    };
+    mergedByEmail.set(emailKey, attachStoredAvatar(combined, currentAvatarMap));
   }
 
   const finalProfiles = Array.from(mergedByEmail.values());
@@ -316,6 +396,7 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
               AUTH_STORAGE_KEY,
               JSON.stringify(syncedSelf)
             );
+            window.dispatchEvent(new CustomEvent("prima-profiles-synced"));
           }
         }
       }
