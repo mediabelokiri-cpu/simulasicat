@@ -211,6 +211,29 @@ export async function POST(request: Request) {
       payload.id = body.id;
     }
 
+    if (
+      hasServiceKey &&
+      (body as Record<string, unknown>).password &&
+      typeof (body as Record<string, unknown>).password === "string"
+    ) {
+      try {
+        const { data: authCreated } = await supabase.auth.admin.createUser({
+          email: cleanEmail,
+          password: String((body as Record<string, unknown>).password),
+          email_confirm: true,
+          user_metadata: {
+            full_name: String(body.full_name).trim(),
+            role: payload.role,
+          },
+        });
+        if (authCreated?.user?.id) {
+          payload.id = authCreated.user.id;
+        }
+      } catch {
+        // Lanjutkan upsert ke public.profiles
+      }
+    }
+
     const { data, error } = await supabase
       .from("profiles")
       .upsert(payload, { onConflict: "email" })

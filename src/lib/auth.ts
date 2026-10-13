@@ -694,11 +694,6 @@ export async function authenticateUserAsync(
     cleanEmail === "admin@primarib.id" ||
     cleanEmail === "admin@simulasicat.id";
 
-  const isDefaultOperatorEmail =
-    cleanEmail === "operator@catara.id" ||
-    cleanEmail === "operator@primarib.id" ||
-    cleanEmail === "operator@simulasicat.id";
-
   if (isSupabaseConfigured()) {
     try {
       const supabase = createSupabaseBrowserClient();
@@ -723,8 +718,6 @@ export async function authenticateUserAsync(
               email: dbProfile.email,
               role: isDefaultAdminEmail
                 ? ("admin" as UserRole)
-                : isDefaultOperatorEmail
-                ? ("operator" as UserRole)
                 : ((dbProfile.role as UserRole) || "user"),
               is_active: dbProfile.is_active ?? true,
               phone: dbProfile.phone ?? null,
@@ -742,9 +735,7 @@ export async function authenticateUserAsync(
               email: cleanEmail,
               role: isDefaultAdminEmail
                 ? ("admin" as UserRole)
-                : isDefaultOperatorEmail
-                ? ("operator" as UserRole)
-                : ("user" as UserRole),
+                : ((data.user.user_metadata?.role as UserRole) || "user"),
               is_active: true,
               phone: null,
               institution:
@@ -805,8 +796,6 @@ export async function authenticateUserAsync(
           email: String(remoteByEmail.email || cleanEmail).toLowerCase(),
           role: isDefaultAdminEmail
             ? ("admin" as UserRole)
-            : isDefaultOperatorEmail
-            ? ("operator" as UserRole)
             : ((remoteByEmail.role as UserRole) || "user"),
           is_active: remoteByEmail.is_active !== false,
           phone: remoteByEmail.phone ? String(remoteByEmail.phone) : null,

@@ -13,6 +13,8 @@ import {
   RefreshCw,
   Trash2,
   BookOpen,
+  UserPlus,
+  Lock,
 } from "lucide-react";
 import {
   AppShell,
@@ -46,13 +48,17 @@ import {
   appendAuditLog,
 } from "@/lib/admin-store";
 import {
+  createSupabaseBrowserClient,
+  isSupabaseConfigured,
+} from "@/lib/supabase/client";
+import {
   ProfileRow,
   GroupRow,
   GroupMemberRow,
   ResultRow,
   ExamRunRow,
 } from "@/types/database";
-import { formatDateTimeID } from "@/lib/utils";
+import { cn, formatDateTimeID } from "@/lib/utils";
 
 export default function ManajemenPesertaPage() {
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
@@ -77,6 +83,27 @@ export default function ManajemenPesertaPage() {
     title: string;
     desc: string;
   } | null>(null);
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createForm, setCreateForm] = useState<{
+    fullName: string;
+    email: string;
+    password: string;
+    role: "user" | "operator";
+    targetSelection: string;
+    institution: string;
+    phone: string;
+  }>({
+    fullName: "",
+    email: "",
+    password: "",
+    role: "operator",
+    targetSelection: "Operator Bank Soal",
+    institution: "",
+    phone: "",
+  });
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState("");
 
   useEffect(() => {
     const refreshLocal = () => {
@@ -283,6 +310,130 @@ export default function ManajemenPesertaPage() {
     });
   }
 
+  async function handleCreateUser(e: React.FormEvent) {
+    e.preventDefault();
+    setCreateError("");
+
+    const fullName = createForm.fullName.trim();
+    const cleanEmail = createForm.email.trim().toLowerCase();
+    const password = createForm.password.trim();
+
+    if (fullName.length < 3) {
+      setCreateError("Nama lengkap minimal terdiri dari 3 karakter.");
+      return;
+    }
+    if (!cleanEmail.includes("@") || !cleanEmail.includes(".")) {
+      setCreateError("Format alamat email tidak valid.");
+      return;
+    }
+    if (password.length < 6) {
+      setCreateError("Kata sandi minimal 6 karakter demi keamanan akun.");
+      return;
+    }
+
+    const stored = getStoredProfiles();
+    if (stored.some((p) => p.email.toLowerCase() === cleanEmail)) {
+      setCreateError("Alamat email ini sudah terdaftar di sistem. Gunakan email lain.");
+      return;
+    }
+
+    setCreateLoading(true);
+
+    const now = new Date().toISOString();
+    const newId = `usr-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
+    const newProfile: ProfileRow = {
+      id: newId,
+      full_name: fullName,
+      email: cleanEmail,
+      role: createForm.role,
+      is_active: true,
+      phone: createForm.phone.trim() || null,
+      institution: createForm.institution.trim() || null,
+      target_selection:
+        createForm.role === "operator"
+          ? "Operator Bank Soal"
+          : createForm.targetSelection || "CPNS",
+      email_verified: true,
+      created_at: now,
+      updated_at: now,
+    };
+
+    // 1. Simpan ke local state & local storage
+    const nextList = [newProfile, ...stored];
+    saveStoredProfiles(nextList);
+    setProfiles(nextList);
+
+    // 2. Simpan ke Supabase via API route
+    try {
+      await fetch("/api/profiles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...newProfile,
+          password: password,
+        }),
+      });
+    } catch {
+      // Local fallback tersimpan
+    }
+
+    // 3. Simpan ke Supabase Browser Client jika configured
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createSupabaseBrowserClient();
+        await supabase.auth.signUp({
+          email: cleanEmail,
+          password: password,
+          options: {
+            data: {
+              full_name: fullName,
+              role: createForm.role,
+            },
+          },
+        });
+        await supabase
+          .from("profiles")
+          .upsert(newProfile, { onConflict: "email" });
+      } catch {
+        // ignore
+      }
+    }
+
+    appendAuditLog({
+      action: "ADMIN_CREATE_USER",
+      entity_type: "profiles",
+      entity_id: newId,
+      reason: `Admin membuat akun baru ${cleanEmail} dengan peran ${
+        createForm.role === "operator" ? "Operator Bank Soal" : "Peserta"
+      }`,
+      details: {
+        email: cleanEmail,
+        role: createForm.role,
+        full_name: fullName,
+      },
+    });
+
+    setToast({
+      type: "success",
+      title: "Akun Pengguna Berhasil Dibuat",
+      desc: `Akun ${fullName} (${cleanEmail}) berhasil didaftarkan sebagai "${
+        createForm.role === "operator" ? "Operator Bank Soal" : "Peserta"
+      }". Akun dapat langsung digunakan untuk login.`,
+    });
+
+    setShowCreateModal(false);
+    setCreateForm({
+      fullName: "",
+      email: "",
+      password: "",
+      role: "operator",
+      targetSelection: "Operator Bank Soal",
+      institution: "",
+      phone: "",
+    });
+    setCreateLoading(false);
+  }
+
   function handleAddUserToGroup(userId: string, groupId: string) {
     if (!groupId) return;
     if (
@@ -349,19 +500,32 @@ export default function ManajemenPesertaPage() {
           />
         }
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleManualSync}
-            disabled={isSyncing}
-            leftIcon={
-              <RefreshCw
-                className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
-              />
-            }
-          >
-            {isSyncing ? "Menyinkronkan..." : "Sinkronkan Data Peserta"}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleManualSync}
+              disabled={isSyncing}
+              leftIcon={
+                <RefreshCw
+                  className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
+                />
+              }
+            >
+              {isSyncing ? "Menyinkronkan..." : "Sinkronkan Data"}
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                setCreateError("");
+                setShowCreateModal(true);
+              }}
+              leftIcon={<Plus className="h-4 w-4" />}
+            >
+              Tambah Pengguna Baru
+            </Button>
+          </div>
         }
       />
 
@@ -917,6 +1081,256 @@ export default function ManajemenPesertaPage() {
                 Tutup
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Tambah Pengguna Baru (Peserta / Operator) */}
+      {showCreateModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="tambah-pengguna-title"
+        >
+          <div className="my-8 w-full max-w-lg rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xl space-y-5">
+            <div className="flex items-start justify-between gap-3 border-b border-neutral-100 pb-3">
+              <div>
+                <h2
+                  id="tambah-pengguna-title"
+                  className="text-lg font-bold text-[#151515] flex items-center gap-2"
+                >
+                  <UserPlus className="h-5 w-5 text-[#494ae2]" />
+                  <span>Tambah Pengguna Baru</span>
+                </h2>
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  Buat akun baru untuk Operator Bank Soal atau Peserta Ujian.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100"
+                aria-label="Tutup form"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {createError && (
+              <div className="rounded-xl border border-red-300 bg-red-50 p-3 text-xs font-semibold text-red-800">
+                {createError}
+              </div>
+            )}
+
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              <FormField id="new-user-fullname" label="Nama Lengkap" required>
+                <input
+                  id="new-user-fullname"
+                  type="text"
+                  required
+                  placeholder="Contoh: Budi Santoso"
+                  value={createForm.fullName}
+                  onChange={(e) =>
+                    setCreateForm({ ...createForm, fullName: e.target.value })
+                  }
+                  className={inputBaseClasses}
+                />
+              </FormField>
+
+              <FormField id="new-user-email" label="Alamat Email" required>
+                <input
+                  id="new-user-email"
+                  type="email"
+                  required
+                  placeholder="Contoh: operator1@catara.id"
+                  value={createForm.email}
+                  onChange={(e) =>
+                    setCreateForm({ ...createForm, email: e.target.value })
+                  }
+                  className={inputBaseClasses}
+                />
+              </FormField>
+
+              <FormField
+                id="new-user-password"
+                label="Kata Sandi (Password)"
+                required
+                hint="Minimal 6 karakter untuk login"
+              >
+                <input
+                  id="new-user-password"
+                  type="password"
+                  required
+                  placeholder="Minimal 6 karakter"
+                  value={createForm.password}
+                  onChange={(e) =>
+                    setCreateForm({ ...createForm, password: e.target.value })
+                  }
+                  className={inputBaseClasses}
+                />
+              </FormField>
+
+              <FormField id="new-user-role" label="Pilihan Peran (Hak Akses)" required>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <label
+                    onClick={() =>
+                      setCreateForm({
+                        ...createForm,
+                        role: "operator",
+                        targetSelection: "Operator Bank Soal",
+                      })
+                    }
+                    className={cn(
+                      "flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-all",
+                      createForm.role === "operator"
+                        ? "border-[#494ae2] bg-indigo-50/70 ring-1 ring-[#494ae2]"
+                        : "border-neutral-200 bg-white hover:bg-neutral-50"
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="role-select"
+                      checked={createForm.role === "operator"}
+                      onChange={() =>
+                        setCreateForm({
+                          ...createForm,
+                          role: "operator",
+                          targetSelection: "Operator Bank Soal",
+                        })
+                      }
+                      className="mt-0.5 text-[#494ae2] focus:ring-[#494ae2]"
+                    />
+                    <div>
+                      <p className="text-xs font-bold text-[#151515] flex items-center gap-1.5">
+                        <BookOpen className="h-3.5 w-3.5 text-[#494ae2]" />
+                        <span>Operator Soal</span>
+                      </p>
+                      <p className="text-[11px] text-neutral-500 mt-0.5 leading-snug">
+                        Khusus input &amp; kelola Bank Soal
+                      </p>
+                    </div>
+                  </label>
+
+                  <label
+                    onClick={() =>
+                      setCreateForm({
+                        ...createForm,
+                        role: "user",
+                        targetSelection:
+                          createForm.targetSelection === "Operator Bank Soal"
+                            ? "CPNS"
+                            : createForm.targetSelection,
+                      })
+                    }
+                    className={cn(
+                      "flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-all",
+                      createForm.role === "user"
+                        ? "border-[#494ae2] bg-indigo-50/70 ring-1 ring-[#494ae2]"
+                        : "border-neutral-200 bg-white hover:bg-neutral-50"
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="role-select"
+                      checked={createForm.role === "user"}
+                      onChange={() =>
+                        setCreateForm({
+                          ...createForm,
+                          role: "user",
+                          targetSelection:
+                            createForm.targetSelection === "Operator Bank Soal"
+                              ? "CPNS"
+                              : createForm.targetSelection,
+                        })
+                      }
+                      className="mt-0.5 text-[#494ae2] focus:ring-[#494ae2]"
+                    />
+                    <div>
+                      <p className="text-xs font-bold text-[#151515] flex items-center gap-1.5">
+                        <UserCheck className="h-3.5 w-3.5 text-emerald-600" />
+                        <span>Peserta Ujian</span>
+                      </p>
+                      <p className="text-[11px] text-neutral-500 mt-0.5 leading-snug">
+                        Akses ujian &amp; dashboard simulasi
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              </FormField>
+
+              {createForm.role === "user" ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <FormField id="new-user-target" label="Target Seleksi">
+                    <select
+                      id="new-user-target"
+                      value={createForm.targetSelection}
+                      onChange={(e) =>
+                        setCreateForm({
+                          ...createForm,
+                          targetSelection: e.target.value,
+                        })
+                      }
+                      className={inputBaseClasses}
+                    >
+                      <option value="CPNS">CPNS</option>
+                      <option value="Sekdin">Sekolah Kedinasan</option>
+                      <option value="Polri">Polri</option>
+                    </select>
+                  </FormField>
+                  <FormField id="new-user-inst" label="Institusi (Opsional)">
+                    <input
+                      id="new-user-inst"
+                      type="text"
+                      placeholder="Contoh: Univ / Instansi"
+                      value={createForm.institution}
+                      onChange={(e) =>
+                        setCreateForm({
+                          ...createForm,
+                          institution: e.target.value,
+                        })
+                      }
+                      className={inputBaseClasses}
+                    />
+                  </FormField>
+                </div>
+              ) : (
+                <FormField id="new-user-inst-op" label="Instansi / Divisi (Opsional)">
+                  <input
+                    id="new-user-inst-op"
+                    type="text"
+                    placeholder="Contoh: Tim Penyusun Soal CATARA"
+                    value={createForm.institution}
+                    onChange={(e) =>
+                      setCreateForm({
+                        ...createForm,
+                        institution: e.target.value,
+                      })
+                    }
+                    className={inputBaseClasses}
+                  />
+                </FormField>
+              )}
+
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-neutral-100">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowCreateModal(false)}
+                  disabled={createLoading}
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={createLoading}
+                  leftIcon={<Plus className="h-4 w-4" />}
+                >
+                  {createLoading ? "Menyimpan Akun..." : "Buat Akun Sekarang"}
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}

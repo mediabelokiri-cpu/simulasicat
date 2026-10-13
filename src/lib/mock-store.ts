@@ -137,32 +137,6 @@ export const INITIAL_PROFILES: ProfileRow[] = [
     created_at: "2026-10-01T08:00:00Z",
     updated_at: "2026-10-01T08:00:00Z",
   },
-  {
-    id: "usr-operator-01",
-    full_name: "Operator Bank Soal",
-    email: "operator@catara.id",
-    role: "operator",
-    is_active: true,
-    phone: null,
-    institution: "Tim Soal CATARA",
-    target_selection: "Operator Bank Soal",
-    email_verified: true,
-    created_at: "2026-10-01T08:00:00Z",
-    updated_at: "2026-10-01T08:00:00Z",
-  },
-  {
-    id: "usr-operator-02",
-    full_name: "Operator Bank Soal",
-    email: "operator@simulasicat.id",
-    role: "operator",
-    is_active: true,
-    phone: null,
-    institution: "Tim Soal CATARA",
-    target_selection: "Operator Bank Soal",
-    email_verified: true,
-    created_at: "2026-10-01T08:00:00Z",
-    updated_at: "2026-10-01T08:00:00Z",
-  },
 ];
 
 // 3–19. SELURUH TABEL TRANSAKSIONAL KOSONG (0 DATA DUMMY / DEMO)
