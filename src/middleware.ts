@@ -25,6 +25,18 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(userDash);
   }
 
+  // Proteksi role Operator: Hanya boleh mengakses tab menu Bank Soal (/admin/bank-soal)
+  if (roleCookie === "operator") {
+    if (
+      pathname.startsWith("/dashboard") ||
+      pathname.startsWith("/ujian") ||
+      (pathname.startsWith("/admin") && !pathname.startsWith("/admin/bank-soal"))
+    ) {
+      const bankSoalUrl = new URL("/admin/bank-soal", request.url);
+      return NextResponse.redirect(bankSoalUrl);
+    }
+  }
+
   return response;
 }
 

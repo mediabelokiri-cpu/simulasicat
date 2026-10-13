@@ -3,7 +3,7 @@
  * Mengacu 100% pada dokumen SIMULASI CAT - RANCANGAN ERD.docx & PRD Final v1.0
  */
 
-export type UserRole = "admin" | "user";
+export type UserRole = "admin" | "user" | "operator";
 
 export type SimulationCategorySlug = "cpns" | "sekdin" | "polri";
 

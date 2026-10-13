@@ -12,6 +12,7 @@ import {
   Plus,
   RefreshCw,
   Trash2,
+  BookOpen,
 } from "lucide-react";
 import {
   AppShell,
@@ -64,6 +65,7 @@ export default function ManajemenPesertaPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "INACTIVE">("ALL");
   const [targetFilter, setTargetFilter] = useState("ALL");
+  const [roleFilter, setRoleFilter] = useState<"ALL" | "user" | "operator">("ALL");
 
   const [selectedUser, setSelectedUser] = useState<ProfileRow | null>(null);
   const [toggleTarget, setToggleTarget] = useState<ProfileRow | null>(null);
@@ -126,7 +128,7 @@ export default function ManajemenPesertaPage() {
     }
   }
 
-  const participants = profiles.filter((p) => p.role === "user");
+  const participants = profiles.filter((p) => p.role === "user" || p.role === "operator");
 
   const filteredParticipants = participants.filter((p) => {
     const matchesSearch =
@@ -140,7 +142,9 @@ export default function ManajemenPesertaPage() {
     const matchesTarget =
       targetFilter === "ALL" ||
       (p.target_selection || "").toLowerCase().includes(targetFilter.toLowerCase());
-    return matchesSearch && matchesStatus && matchesTarget;
+    const matchesRole =
+      roleFilter === "ALL" || p.role === roleFilter;
+    return matchesSearch && matchesStatus && matchesTarget && matchesRole;
   });
 
   function getUserGroups(userOrId: ProfileRow | string): GroupRow[] {
@@ -244,6 +248,41 @@ export default function ManajemenPesertaPage() {
     });
   }
 
+  function handleChangeUserRole(user: ProfileRow, newRole: "user" | "operator") {
+    const all = getStoredProfiles();
+    const idx = all.findIndex((p) => p.id === user.id);
+    if (idx === -1) return;
+    all[idx] = {
+      ...all[idx],
+      role: newRole,
+      updated_at: new Date().toISOString(),
+    };
+    saveStoredProfiles(all);
+    setProfiles(all);
+    setSelectedUser(all[idx]);
+    void fetch("/api/profiles", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: user.id,
+        email: user.email,
+        role: newRole,
+      }),
+    }).catch(() => {});
+    appendAuditLog({
+      action: "CHANGE_USER_ROLE",
+      entity_type: "profiles",
+      entity_id: user.id,
+      reason: `Perubahan hak akses akun ${user.email} menjadi ${newRole === "operator" ? "Operator Bank Soal" : "Peserta"}`,
+      details: { email: user.email, old_role: user.role, new_role: newRole },
+    });
+    setToast({
+      type: "success",
+      title: "Hak Akses Diperbarui",
+      desc: `Akun ${user.full_name} kini berstatus "${newRole === "operator" ? "Operator Bank Soal" : "Peserta"}".`,
+    });
+  }
+
   function handleAddUserToGroup(userId: string, groupId: string) {
     if (!groupId) return;
     if (
@@ -290,7 +329,9 @@ export default function ManajemenPesertaPage() {
   }
 
   const activeFilterCount =
-    (statusFilter !== "ALL" ? 1 : 0) + (targetFilter !== "ALL" ? 1 : 0);
+    (statusFilter !== "ALL" ? 1 : 0) +
+    (targetFilter !== "ALL" ? 1 : 0) +
+    (roleFilter !== "ALL" ? 1 : 0);
 
   return (
     <AppShell
@@ -304,7 +345,7 @@ export default function ManajemenPesertaPage() {
         badge={
           <StatusBadge
             variant="ongoing"
-            label={`${participants.length} Peserta Terdaftar`}
+            label={`${participants.length} Total Pengguna`}
           />
         }
         actions={
@@ -350,10 +391,30 @@ export default function ManajemenPesertaPage() {
             onReset={() => {
               setStatusFilter("ALL");
               setTargetFilter("ALL");
+              setRoleFilter("ALL");
             }}
             title="Filter Peserta"
           >
-            <div className="w-full md:w-44">
+            <div className="w-full md:w-36">
+              <FormField id="filter-role" label="Peran Akun">
+                <select
+                  id="filter-role"
+                  value={roleFilter}
+                  onChange={(e) =>
+                    setRoleFilter(
+                      e.target.value as "ALL" | "user" | "operator"
+                    )
+                  }
+                  className={inputBaseClasses}
+                >
+                  <option value="ALL">Semua Peran</option>
+                  <option value="user">Peserta</option>
+                  <option value="operator">Operator Soal</option>
+                </select>
+              </FormField>
+            </div>
+
+            <div className="w-full md:w-36">
               <FormField id="filter-status" label="Status Akun">
                 <select
                   id="filter-status"
@@ -372,7 +433,7 @@ export default function ManajemenPesertaPage() {
               </FormField>
             </div>
 
-            <div className="w-full md:w-48">
+            <div className="w-full md:w-40">
               <FormField id="filter-target" label="Target Seleksi">
                 <select
                   id="filter-target"
@@ -403,7 +464,14 @@ export default function ManajemenPesertaPage() {
             header: "Identitas Peserta",
             render: (row) => (
               <div>
-                <p className="font-bold text-[#151515]">{row.full_name}</p>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <p className="font-bold text-[#151515]">{row.full_name}</p>
+                  {row.role === "operator" && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-[#494ae2]">
+                      <BookOpen className="h-2.5 w-2.5" /> Operator Soal
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-neutral-500">{row.email}</p>
               </div>
             ),
@@ -512,7 +580,16 @@ export default function ManajemenPesertaPage() {
           const uGroups = getUserGroups(row);
           return (
             <MobileRecordCard
-              title={row.full_name}
+              title={
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span>{row.full_name}</span>
+                  {row.role === "operator" && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-[#494ae2]">
+                      <BookOpen className="h-2.5 w-2.5" /> Operator Soal
+                    </span>
+                  )}
+                </div>
+              }
               subtitle={row.email}
               badge={
                 row.is_active ? (
@@ -660,6 +737,54 @@ export default function ManajemenPesertaPage() {
                     Verifikasi Manual (Admin)
                   </Button>
                 )}
+              </div>
+
+              <div className="sm:col-span-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-t border-neutral-200/70 pt-2.5">
+                <div>
+                  <span className="text-xs text-neutral-500 block">
+                    Hak Akses Akun:
+                  </span>
+                  <span className="text-xs font-bold text-[#151515] flex items-center gap-1.5 mt-0.5">
+                    {selectedUser.role === "operator" ? (
+                      <>
+                        <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-[#494ae2]">
+                          <BookOpen className="h-3 w-3" /> Operator Bank Soal
+                        </span>
+                        <span className="text-[11px] text-neutral-500 font-normal">
+                          (Hanya akses menu Bank Soal)
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="inline-flex items-center rounded-full border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600">
+                          Peserta Ujian Biasa
+                        </span>
+                        <span className="text-[11px] text-neutral-500 font-normal">
+                          (Akses portal ujian & dashboard)
+                        </span>
+                      </>
+                    )}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    handleChangeUserRole(
+                      selectedUser,
+                      selectedUser.role === "operator" ? "user" : "operator"
+                    )
+                  }
+                  className={
+                    selectedUser.role === "operator"
+                      ? "border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+                      : "border-indigo-200 text-[#494ae2] bg-indigo-50/60 hover:bg-indigo-100/70 font-bold"
+                  }
+                >
+                  {selectedUser.role === "operator"
+                    ? "Ubah Menjadi Peserta Biasa"
+                    : "Jadikan Operator Bank Soal"}
+                </Button>
               </div>
             </dl>
 

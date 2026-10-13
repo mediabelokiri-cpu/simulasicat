@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Users,
   CalendarClock,
@@ -19,7 +20,11 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { AppShell } from "@/components/ui";
-import { getStoredProfiles, syncProfilesFromSupabase } from "@/lib/auth";
+import {
+  getStoredProfiles,
+  syncProfilesFromSupabase,
+  getCurrentUserClient,
+} from "@/lib/auth";
 import {
   getExams,
   getExamRuns,
@@ -41,6 +46,7 @@ import {
 } from "@/types/database";
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [exams, setExams] = useState<ExamRow[]>([]);
   const [runs, setRuns] = useState<ExamRunRow[]>([]);
@@ -61,6 +67,12 @@ export default function AdminDashboardPage() {
   const pageSize = 7;
 
   useEffect(() => {
+    const user = getCurrentUserClient();
+    if (user?.role === "operator") {
+      router.replace("/admin/bank-soal");
+      return;
+    }
+
     const refreshFromLocal = () => {
       setProfiles(getStoredProfiles());
       setExams(getExams());

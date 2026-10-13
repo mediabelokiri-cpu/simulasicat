@@ -35,6 +35,7 @@ import {
   setCurrentUserClient,
   syncProfilesFromSupabase,
 } from "@/lib/auth";
+import { UserRole } from "@/types/database";
 
 export interface NavItem {
   label: string;
@@ -58,6 +59,10 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: "Pengaturan", href: "/admin/pengaturan", icon: Settings },
 ];
 
+export const OPERATOR_NAV_ITEMS: NavItem[] = [
+  { label: "Bank Soal", href: "/admin/bank-soal", icon: BookOpen },
+];
+
 export const USER_NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: Home },
   { label: "Daftar Ujian", href: "/ujian", icon: ClipboardList },
@@ -69,6 +74,7 @@ export const USER_NAV_ITEMS: NavItem[] = [
 interface AdminSidebarProps {
   pathname: string;
   collapsed?: boolean;
+  role?: UserRole;
   onToggleCollapse?: () => void;
   onNavigate?: () => void;
 }
@@ -76,6 +82,7 @@ interface AdminSidebarProps {
 export function AdminSidebar({
   pathname,
   collapsed = false,
+  role = "admin",
   onToggleCollapse,
   onNavigate,
 }: AdminSidebarProps) {
@@ -83,6 +90,10 @@ export function AdminSidebar({
     setCurrentUserClient(null);
     onNavigate?.();
   }
+
+  const isOperator = role === "operator";
+  const navItems = isOperator ? OPERATOR_NAV_ITEMS : ADMIN_NAV_ITEMS;
+  const brandHref = isOperator ? "/admin/bank-soal" : "/admin";
 
   return (
     <aside
@@ -98,7 +109,7 @@ export function AdminSidebar({
           collapsed ? "justify-center px-2 gap-1" : "justify-between px-5"
         )}
       >
-        <Link href="/admin" className="flex items-center gap-2.5 min-w-0">
+        <Link href={brandHref} className="flex items-center gap-2.5 min-w-0">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white p-1.5 shadow-xs">
             <img
               src="/logoheaderfooterhomepage.png"
@@ -112,7 +123,7 @@ export function AdminSidebar({
                 CATARA
               </span>
               <span className="block text-[10px] font-medium text-white/80 truncate leading-tight">
-                Digital Assessment
+                {isOperator ? "Operator Bank Soal" : "Digital Assessment"}
               </span>
             </div>
           )}
@@ -139,8 +150,17 @@ export function AdminSidebar({
       {!collapsed && (
         <div className="px-4 pt-4 pb-2">
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 backdrop-blur-xs border border-white/20 px-2.5 py-1 text-xs font-bold text-white">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            PANEL ADMINISTRATOR
+            {isOperator ? (
+              <>
+                <BookOpen className="h-3.5 w-3.5 text-amber-300" />
+                PANEL OPERATOR
+              </>
+            ) : (
+              <>
+                <ShieldCheck className="h-3.5 w-3.5" />
+                PANEL ADMINISTRATOR
+              </>
+            )}
           </span>
         </div>
       )}
@@ -151,9 +171,9 @@ export function AdminSidebar({
           "flex-1 space-y-1.5 overflow-y-auto py-3",
           collapsed ? "px-2.5 flex flex-col items-center" : "px-3"
         )}
-        aria-label="Menu Admin"
+        aria-label={isOperator ? "Menu Operator" : "Menu Admin"}
       >
-        {ADMIN_NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
             item.href === "/admin"
@@ -236,7 +256,7 @@ export function AdminSidebar({
 }
 
 interface TopbarProps {
-  role: "admin" | "user";
+  role: UserRole;
   userName?: string;
   userSubtitle?: string;
   onOpenMobileMenu: () => void;
@@ -244,8 +264,8 @@ interface TopbarProps {
 
 export function Topbar({
   role,
-  userName = "Peserta CATARA",
-  userSubtitle = "Akses Terverifikasi",
+  userName = "Pengguna CATARA",
+  userSubtitle,
   onOpenMobileMenu,
 }: TopbarProps) {
   const pathname = usePathname();
@@ -286,6 +306,10 @@ export function Topbar({
     e.preventDefault();
     const q = quickSearch.trim().toLowerCase();
     if (!q) return;
+    if (role === "operator") {
+      router.push("/admin/bank-soal");
+      return;
+    }
     if (
       q.includes("soal") ||
       q.includes("twk") ||
@@ -321,9 +345,16 @@ export function Topbar({
       ? { greeting: null, title: "Download Aplikasi" }
       : pathname.startsWith("/profil")
       ? { greeting: null, title: "Profil Peserta" }
+      : pathname.startsWith("/admin/bank-soal")
+      ? { greeting: null, title: "Bank Soal CATARA" }
       : { greeting: "Selamat datang di,", title: "CATARA" };
 
-  if (role === "admin") {
+  if (role === "admin" || role === "operator") {
+    const isOperator = role === "operator";
+    const resolvedSubtitle =
+      userSubtitle ||
+      (isOperator ? "Operator Bank Soal" : "Akses Administrator");
+
     return (
       <header className="sticky top-0 z-30 border-b border-indigo-100/80 bg-[#f5f8ff]/95 backdrop-blur-md">
         <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -347,7 +378,11 @@ export function Topbar({
                 type="search"
                 value={quickSearch}
                 onChange={(e) => setQuickSearch(e.target.value)}
-                placeholder="Cari peserta, sesi, atau soal..."
+                placeholder={
+                  isOperator
+                    ? "Cari butir soal di Bank Soal..."
+                    : "Cari peserta, sesi, atau soal..."
+                }
                 className="w-full rounded-2xl border border-neutral-200/90 bg-white py-2.5 pl-10 pr-4 text-xs sm:text-sm font-medium text-[#0c0c13] placeholder:text-neutral-400 shadow-2xs focus:border-[#494ae2] focus:outline-none"
               />
             </form>
@@ -362,31 +397,34 @@ export function Topbar({
             )}
           </div>
 
-          {/* Kanan: Ikon Pengaturan, Notifikasi/Insiden & Avatar Admin */}
+          {/* Kanan: Ikon Pengaturan / Info Operator */}
           <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
-            <Link
-              href="/admin/pengaturan"
-              title="Pengaturan Sistem"
-              aria-label="Pengaturan Sistem"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200/90 bg-white text-[#0c0c13] shadow-2xs transition-colors hover:border-[#494ae2] hover:text-[#494ae2]"
-            >
-              <Settings className="h-4.5 w-4.5" />
-            </Link>
+            {!isOperator && (
+              <>
+                <Link
+                  href="/admin/pengaturan"
+                  title="Pengaturan Sistem"
+                  aria-label="Pengaturan Sistem"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200/90 bg-white text-[#0c0c13] shadow-2xs transition-colors hover:border-[#494ae2] hover:text-[#494ae2]"
+                >
+                  <Settings className="h-4.5 w-4.5" />
+                </Link>
 
-            <Link
-              href="/admin/insiden"
-              title="Catatan Insiden & Notifikasi"
-              aria-label="Catatan Insiden & Notifikasi"
-              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200/90 bg-white text-[#0c0c13] shadow-2xs transition-colors hover:border-[#494ae2] hover:text-[#494ae2]"
-            >
-              <Bell className="h-4.5 w-4.5" />
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#7854ec] ring-2 ring-white" />
-            </Link>
+                <Link
+                  href="/admin/insiden"
+                  title="Catatan Insiden & Notifikasi"
+                  aria-label="Catatan Insiden & Notifikasi"
+                  className="relative flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200/90 bg-white text-[#0c0c13] shadow-2xs transition-colors hover:border-[#494ae2] hover:text-[#494ae2]"
+                >
+                  <Bell className="h-4.5 w-4.5" />
+                  <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#7854ec] ring-2 ring-white" />
+                </Link>
+              </>
+            )}
 
-            <Link
-              href="/admin/pengaturan"
-              className="flex items-center gap-2.5 rounded-full border border-neutral-200/90 bg-white py-1 pl-1 pr-3 shadow-2xs transition-colors hover:border-[#494ae2]"
-              title="Profil Administrator"
+            <div
+              className="flex items-center gap-2.5 rounded-full border border-neutral-200/90 bg-white py-1 pl-1 pr-3 shadow-2xs"
+              title={isOperator ? "Akun Operator Bank Soal" : "Profil Administrator"}
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#494ae2] to-[#7854ec] text-xs font-extrabold text-white">
                 {userName.charAt(0).toUpperCase()}
@@ -396,15 +434,16 @@ export function Topbar({
                   {userName}
                 </p>
                 <p className="text-[10px] font-medium text-neutral-500 leading-tight">
-                  {userSubtitle}
+                  {resolvedSubtitle}
                 </p>
               </div>
-            </Link>
+            </div>
           </div>
         </div>
       </header>
     );
   }
+
 
   return (
     <>
@@ -550,7 +589,7 @@ export function Topbar({
 interface MobileNavigationProps {
   open: boolean;
   onClose: () => void;
-  role: "admin" | "user";
+  role: UserRole;
   pathname: string;
 }
 
@@ -620,15 +659,18 @@ export function MobileNavigation({
     );
   }
 
-  // Untuk Admin di Mobile: Drawer Samping
+  // Untuk Admin & Operator di Mobile: Drawer Samping
   if (!open) return null;
+
+  const isOperator = role === "operator";
+  const navItems = isOperator ? OPERATOR_NAV_ITEMS : ADMIN_NAV_ITEMS;
 
   return (
     <div
       className="fixed inset-0 z-50 flex lg:hidden"
       role="dialog"
       aria-modal="true"
-      aria-label="Menu navigasi mobile admin"
+      aria-label={isOperator ? "Menu navigasi operator" : "Menu navigasi admin"}
     >
       <div
         className="fixed inset-0 bg-black/50"
@@ -646,7 +688,7 @@ export function MobileNavigation({
               />
             </div>
             <span className="text-base font-extrabold tracking-tight text-white">
-              CATARA
+              {isOperator ? "CATARA Operator" : "CATARA"}
             </span>
           </div>
           <button
@@ -660,7 +702,7 @@ export function MobileNavigation({
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-          {ADMIN_NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
             const isActive =
               item.href === "/admin"
@@ -705,7 +747,7 @@ export function MobileNavigation({
 }
 
 interface AppShellProps {
-  role: "admin" | "user";
+  role: UserRole;
   userName?: string;
   userSubtitle?: string;
   children: React.ReactNode;
@@ -723,8 +765,8 @@ export function AppShell({
 
   return (
     <div className="min-h-screen bg-[#f5f8ff] text-[#0c0c13] flex flex-col lg:flex-row">
-      {/* Desktop Admin Sidebar */}
-      {role === "admin" && (
+      {/* Desktop Admin & Operator Sidebar */}
+      {(role === "admin" || role === "operator") && (
         <div
           className={cn(
             "hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:block transition-all duration-200",
@@ -734,12 +776,13 @@ export function AppShell({
           <AdminSidebar
             pathname={pathname}
             collapsed={sidebarCollapsed}
+            role={role}
             onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
           />
         </div>
       )}
 
-      {/* Navigasi Mobile: Bottom Footer Bar untuk User, Drawer untuk Admin */}
+      {/* Navigasi Mobile: Bottom Footer Bar untuk User, Drawer untuk Admin & Operator */}
       <MobileNavigation
         open={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
@@ -751,7 +794,8 @@ export function AppShell({
       <div
         className={cn(
           "flex flex-1 flex-col min-w-0 transition-all duration-200",
-          role === "admin" && (sidebarCollapsed ? "lg:pl-20" : "lg:pl-64")
+          (role === "admin" || role === "operator") &&
+            (sidebarCollapsed ? "lg:pl-20" : "lg:pl-64")
         )}
       >
         <Topbar

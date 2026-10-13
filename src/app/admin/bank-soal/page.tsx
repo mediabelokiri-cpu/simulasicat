@@ -40,8 +40,10 @@ import {
 } from "@/lib/supabase/client";
 import { QuestionRow, QuestionStatus } from "@/types/database";
 import { formatDateTimeID } from "@/lib/utils";
+import { AuthUser, getCurrentUserClient } from "@/lib/auth";
 
 export default function BankSoalPage() {
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
@@ -61,6 +63,7 @@ export default function BankSoalPage() {
   } | null>(null);
 
   useEffect(() => {
+    setCurrentUser(getCurrentUserClient());
     setQuestions(getQuestions());
     void syncAdminStoreFromSupabase().then(() => {
       setQuestions(getQuestions());
@@ -293,30 +296,45 @@ export default function BankSoalPage() {
     (institutionFilter !== "ALL" ? 1 : 0) +
     (statusFilter !== "ALL" ? 1 : 0);
 
+  const isOperator = currentUser?.role === "operator";
+
   return (
     <AppShell
-      role="admin"
-      userName="Admin CATARA"
-      userSubtitle="Manajemen Bank Soal"
+      role={isOperator ? "operator" : "admin"}
+      userName={
+        currentUser?.full_name ||
+        (isOperator ? "Operator CATARA" : "Admin CATARA")
+      }
+      userSubtitle={
+        isOperator ? "Operator Bank Soal" : "Manajemen Bank Soal"
+      }
     >
       <PageHeader
         title="Manajemen Bank Soal"
         description="Kelola bank soal CPNS, Sekolah Kedinasan (Sekdin), dan Polri melalui input manual maupun Import Tabel Excel (.xlsx / .csv) yang terhubung ke Supabase."
         badge={
-          <StatusBadge
-            variant="featured"
-            label={`${questions.length} Total Soal`}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge
+              variant="featured"
+              label={`${questions.length} Total Soal`}
+            />
+            {isOperator && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50/80 px-2.5 py-0.5 text-xs font-bold text-[#494ae2]">
+                Panel Operator
+              </span>
+            )}
+          </div>
         }
         actions={
-          <div className="flex flex-wrap gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
             {questions.length > 0 && (
               <Button
-                variant="danger"
+                variant="outline"
                 onClick={() => setShowDeleteAllConfirm(true)}
-                leftIcon={<Trash2 className="h-4 w-4" />}
+                leftIcon={<Trash2 className="h-4 w-4 text-red-500" />}
+                className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors"
               >
-                Hapus Keseluruhan Soal ({questions.length})
+                Hapus Semua ({questions.length})
               </Button>
             )}
             {pendingReviewCount > 0 && (
@@ -324,16 +342,18 @@ export default function BankSoalPage() {
                 variant="outline"
                 onClick={handleActivateAllPendingQuestions}
                 leftIcon={<CheckCircle2 className="h-4 w-4 text-emerald-600" />}
+                className="border-emerald-200 text-emerald-700 bg-emerald-50/60 hover:bg-emerald-100/70 transition-colors"
               >
                 Aktifkan Semua ({pendingReviewCount})
               </Button>
             )}
             <Link href="/admin/bank-soal/import">
               <Button
-                variant="accent"
-                leftIcon={<FileSpreadsheet className="h-4 w-4" />}
+                variant="outline"
+                leftIcon={<FileSpreadsheet className="h-4 w-4 text-[#494ae2]" />}
+                className="border-indigo-200 text-[#494ae2] bg-indigo-50/50 hover:bg-indigo-100/70 transition-colors"
               >
-                Import Soal Excel (.xlsx / .csv)
+                Import Excel (.xlsx)
               </Button>
             </Link>
             <Link href="/admin/bank-soal/tambah">

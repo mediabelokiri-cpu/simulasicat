@@ -68,7 +68,11 @@ export async function GET() {
           id: idStr,
           full_name: String(row.full_name || "Peserta"),
           email: emailLower,
-          role: (row.role === "admin" ? "admin" : "user") as UserRole,
+          role: (row.role === "admin"
+            ? "admin"
+            : row.role === "operator"
+            ? "operator"
+            : "user") as UserRole,
           is_active: row.is_active !== false,
           phone: row.phone ? String(row.phone) : null,
           institution: row.institution ? String(row.institution) : null,
@@ -118,6 +122,14 @@ export async function PATCH(request: Request) {
     if (body.institution !== undefined) patch.institution = body.institution;
     if (body.target_selection !== undefined)
       patch.target_selection = body.target_selection;
+
+    if (
+      body.role === "admin" ||
+      body.role === "operator" ||
+      body.role === "user"
+    ) {
+      patch.role = body.role;
+    }
 
     const query = supabase.from("profiles").update(patch);
     const { error } = body.id
@@ -182,7 +194,12 @@ export async function POST(request: Request) {
     const payload: Record<string, unknown> = {
       full_name: String(body.full_name).trim(),
       email: cleanEmail,
-      role: body.role === "admin" ? "admin" : "user",
+      role:
+        body.role === "admin"
+          ? "admin"
+          : body.role === "operator"
+          ? "operator"
+          : "user",
       is_active: body.is_active !== false,
       phone: body.phone ?? null,
       institution: body.institution ?? null,

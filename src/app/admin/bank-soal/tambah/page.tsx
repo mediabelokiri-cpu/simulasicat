@@ -35,6 +35,7 @@ import {
   QuestionType,
   TkpScoresMap,
 } from "@/types/database";
+import { AuthUser, getCurrentUserClient } from "@/lib/auth";
 
 const OPTION_KEYS: OptionKey[] = ["A", "B", "C", "D", "E"];
 
@@ -43,6 +44,7 @@ function QuestionEditorInner() {
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
 
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [existingQuestions, setExistingQuestions] = useState<QuestionRow[]>([]);
   const [questionCode, setQuestionCode] = useState("TIU002");
   const [categoryId, setCategoryId] = useState("cat-cpns");
@@ -72,6 +74,7 @@ function QuestionEditorInner() {
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
+    setCurrentUser(getCurrentUserClient());
     const all = getQuestions();
     setExistingQuestions(all);
 
@@ -235,11 +238,18 @@ function QuestionEditorInner() {
     }, 900);
   }
 
+  const isOperator = currentUser?.role === "operator";
+
   return (
     <AppShell
-      role="admin"
-      userName="Admin CATARA"
-      userSubtitle="Editor Bank Soal"
+      role={isOperator ? "operator" : "admin"}
+      userName={
+        currentUser?.full_name ||
+        (isOperator ? "Operator CATARA" : "Admin CATARA")
+      }
+      userSubtitle={
+        isOperator ? "Operator Bank Soal" : "Editor Bank Soal"
+      }
     >
       <PageHeader
         title={editId ? "Edit Butir Soal" : "Tambah Soal Baru"}

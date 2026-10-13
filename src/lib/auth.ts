@@ -21,6 +21,8 @@ export interface AuthResult {
   redirectTo?: string;
 }
 
+export type AuthUser = ProfileRow;
+
 export function getUserAvatarMap(): Record<string, string> {
   if (typeof window === "undefined") return {};
   try {
@@ -339,7 +341,11 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
               id: String(row.id),
               full_name: String(row.full_name || "Peserta"),
               email: emailStr,
-              role: (row.role === "admin" ? "admin" : "user") as UserRole,
+              role: (row.role === "admin"
+                ? "admin"
+                : row.role === "operator"
+                ? "operator"
+                : "user") as UserRole,
               is_active: row.is_active !== false,
               phone: row.phone ? String(row.phone) : null,
               institution: row.institution ? String(row.institution) : null,
@@ -654,13 +660,18 @@ export function authenticateUser(email: string, password: string): AuthResult {
   return {
     ok: true,
     user: matched,
-    redirectTo: matched.role === "admin" ? "/admin" : "/dashboard",
+    redirectTo:
+      matched.role === "admin"
+        ? "/admin"
+        : matched.role === "operator"
+        ? "/admin/bank-soal"
+        : "/dashboard",
   };
 }
 
 /**
  * Validasi Login Asinkron (Utama untuk Supabase Auth + Tabel public.profiles)
- * Memungkinkan akun yang dibuat di Supabase Dashboard (termasuk Admin) maupun
+ * Memungkinkan akun yang dibuat di Supabase Dashboard (termasuk Admin & Operator) maupun
  * akun peserta lintas perangkat masuk menggunakan kredensial Supabase Auth atau public.profiles.
  */
 export async function authenticateUserAsync(
@@ -682,6 +693,11 @@ export async function authenticateUserAsync(
     cleanEmail === "admin@catara.id" ||
     cleanEmail === "admin@primarib.id" ||
     cleanEmail === "admin@simulasicat.id";
+
+  const isDefaultOperatorEmail =
+    cleanEmail === "operator@catara.id" ||
+    cleanEmail === "operator@primarib.id" ||
+    cleanEmail === "operator@simulasicat.id";
 
   if (isSupabaseConfigured()) {
     try {
@@ -707,6 +723,8 @@ export async function authenticateUserAsync(
               email: dbProfile.email,
               role: isDefaultAdminEmail
                 ? ("admin" as UserRole)
+                : isDefaultOperatorEmail
+                ? ("operator" as UserRole)
                 : ((dbProfile.role as UserRole) || "user"),
               is_active: dbProfile.is_active ?? true,
               phone: dbProfile.phone ?? null,
@@ -724,6 +742,8 @@ export async function authenticateUserAsync(
               email: cleanEmail,
               role: isDefaultAdminEmail
                 ? ("admin" as UserRole)
+                : isDefaultOperatorEmail
+                ? ("operator" as UserRole)
                 : ("user" as UserRole),
               is_active: true,
               phone: null,
@@ -763,7 +783,11 @@ export async function authenticateUserAsync(
           ok: true,
           user: resolvedProfile,
           redirectTo:
-            resolvedProfile.role === "admin" ? "/admin" : "/dashboard",
+            resolvedProfile.role === "admin"
+              ? "/admin"
+              : resolvedProfile.role === "operator"
+              ? "/admin/bank-soal"
+              : "/dashboard",
         };
       }
 
@@ -781,6 +805,8 @@ export async function authenticateUserAsync(
           email: String(remoteByEmail.email || cleanEmail).toLowerCase(),
           role: isDefaultAdminEmail
             ? ("admin" as UserRole)
+            : isDefaultOperatorEmail
+            ? ("operator" as UserRole)
             : ((remoteByEmail.role as UserRole) || "user"),
           is_active: remoteByEmail.is_active !== false,
           phone: remoteByEmail.phone ? String(remoteByEmail.phone) : null,
@@ -823,7 +849,11 @@ export async function authenticateUserAsync(
           ok: true,
           user: resolvedRemote,
           redirectTo:
-            resolvedRemote.role === "admin" ? "/admin" : "/dashboard",
+            resolvedRemote.role === "admin"
+              ? "/admin"
+              : resolvedRemote.role === "operator"
+              ? "/admin/bank-soal"
+              : "/dashboard",
         };
       }
     } catch {

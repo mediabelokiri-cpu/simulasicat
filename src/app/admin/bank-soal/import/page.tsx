@@ -38,8 +38,10 @@ import {
   isSupabaseConfigured,
 } from "@/lib/supabase/client";
 import { OptionKey, QuestionRow, QuestionStatus } from "@/types/database";
+import { AuthUser, getCurrentUserClient } from "@/lib/auth";
 
 export default function ImportSoalPage() {
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string>("");
   const [rawRows, setRawRows] = useState<BulkImportRowRaw[]>([]);
   const [validatedRows, setValidatedRows] = useState<BulkImportValidatedRow[]>(
@@ -54,6 +56,10 @@ export default function ImportSoalPage() {
     supabaseSyncedCount: number;
     timestamp: string;
   } | null>(null);
+
+  React.useEffect(() => {
+    setCurrentUser(getCurrentUserClient());
+  }, []);
 
   const validRows = validatedRows.filter((r) => r.isValid);
   const invalidRows = validatedRows.filter((r) => !r.isValid);
@@ -487,11 +493,18 @@ export default function ImportSoalPage() {
     });
   }
 
+  const isOperator = currentUser?.role === "operator";
+
   return (
     <AppShell
-      role="admin"
-      userName="Admin CATARA"
-      userSubtitle="Impor Excel Bank Soal"
+      role={isOperator ? "operator" : "admin"}
+      userName={
+        currentUser?.full_name ||
+        (isOperator ? "Operator CATARA" : "Admin CATARA")
+      }
+      userSubtitle={
+        isOperator ? "Operator Bank Soal" : "Impor Excel Bank Soal"
+      }
     >
       <PageHeader
         title="Import Bank Soal dari Excel (.xlsx / .csv)"
