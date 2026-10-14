@@ -11,6 +11,7 @@ import {
   ExamSessionRow,
   ProfileRow,
   QuestionRow,
+  QuestionAssetRow,
   SafeQuestionSnapshot,
 } from "@/types/database";
 import {
@@ -278,18 +279,44 @@ function shuffleArray<T>(items: T[]): T[] {
 export function sanitizeQuestionForClient(
   q: QuestionRow
 ): SafeQuestionSnapshot {
+  const assets: QuestionAssetRow[] = [];
+  if (Array.isArray(q.assets) && q.assets.length > 0) {
+    assets.push(...q.assets);
+  }
+  const promptImg =
+    q.prompt_image_url ||
+    q.assets?.find((a) => a.placement === "prompt")?.storage_path ||
+    null;
+
+  if (promptImg && !assets.some((a) => a.placement === "prompt")) {
+    assets.push({
+      id: `asset-${q.id}-prompt`,
+      question_id: q.id,
+      placement: "prompt",
+      option_key: null,
+      storage_path: promptImg,
+      mime_type: "image/png",
+      byte_size: 0,
+      alt_text: "Gambar pertanyaan",
+      display_order: 1,
+      created_at: q.created_at || new Date().toISOString(),
+    });
+  }
+
   return {
     question_id: q.id,
     question_code: q.question_code || q.id,
     subtest_key: q.subtest_key,
     question_type: q.question_type,
     prompt: q.prompt,
+    prompt_image_url: promptImg,
     options: q.options.map((o) => ({
       key: o.key,
       text: o.text,
       asset_id: o.asset_id ?? null,
       asset_url: o.asset_url ?? null,
     })),
+    assets: assets.length > 0 ? assets : undefined,
   };
 }
 

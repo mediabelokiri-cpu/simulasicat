@@ -29,6 +29,7 @@ import { INITIAL_CATEGORIES } from "@/lib/mock-store";
 import { validateQuestionInput } from "@/lib/validation";
 import {
   OptionKey,
+  QuestionAssetRow,
   QuestionOptionItem,
   QuestionRow,
   QuestionStatus,
@@ -101,6 +102,11 @@ function QuestionEditorInner() {
         if (target.tkp_scores) setTkpScores(target.tkp_scores);
         setExplanation(target.explanation || "");
         setStatus(target.status);
+        const promptImg =
+          target.prompt_image_url ||
+          target.assets?.find((a) => a.placement === "prompt")?.storage_path ||
+          null;
+        setPromptImageUrl(promptImg);
       }
     }
   }, [editId]);
@@ -171,6 +177,23 @@ function QuestionEditorInner() {
     const now = new Date().toISOString();
     const code = questionCode.trim().toUpperCase();
 
+    const promptAssets: QuestionAssetRow[] = promptImageUrl
+      ? [
+          {
+            id: `asset-${editId || code}-prompt`,
+            question_id: editId || `q-${Date.now()}`,
+            placement: "prompt",
+            option_key: null,
+            storage_path: promptImageUrl,
+            mime_type: "image/png",
+            byte_size: 0,
+            alt_text: "Gambar pertanyaan",
+            display_order: 1,
+            created_at: now,
+          },
+        ]
+      : [];
+
     if (editId) {
       const updated = existingQuestions.map((q) =>
         q.id === editId
@@ -182,6 +205,8 @@ function QuestionEditorInner() {
               subtest_key: subtestKey.trim().toUpperCase(),
               question_type: questionType,
               prompt: prompt.trim(),
+              prompt_image_url: promptImageUrl || null,
+              assets: promptAssets,
               options,
               correct_option:
                 questionType === "multiple_choice" ? correctOption : null,
@@ -201,14 +226,34 @@ function QuestionEditorInner() {
         details: { question_code: code, status },
       });
     } else {
+      const newQuestionId = `q-${Date.now()}`;
+      const newPromptAssets: QuestionAssetRow[] = promptImageUrl
+        ? [
+            {
+              id: `asset-${newQuestionId}-prompt`,
+              question_id: newQuestionId,
+              placement: "prompt",
+              option_key: null,
+              storage_path: promptImageUrl,
+              mime_type: "image/png",
+              byte_size: 0,
+              alt_text: "Gambar pertanyaan",
+              display_order: 1,
+              created_at: now,
+            },
+          ]
+        : [];
+
       const newQuestion: QuestionRow = {
-        id: `q-${Date.now()}`,
+        id: newQuestionId,
         question_code: code,
         category_id: categoryId,
         institution_label: institutionLabel.trim() || null,
         subtest_key: subtestKey.trim().toUpperCase(),
         question_type: questionType,
         prompt: prompt.trim(),
+        prompt_image_url: promptImageUrl || null,
+        assets: newPromptAssets,
         options,
         correct_option:
           questionType === "multiple_choice" ? correctOption : null,

@@ -354,6 +354,23 @@ export function validateBulkImportRows(
             subtest_key: subtestUpper,
             question_type: qType,
             prompt: row.prompt.trim(),
+            prompt_image_url: rawImg || null,
+            assets: rawImg
+              ? [
+                  {
+                    id: `asset-${code}-prompt`,
+                    question_id: code,
+                    placement: "prompt",
+                    option_key: null,
+                    storage_path: rawImg,
+                    mime_type: "image/png",
+                    byte_size: 0,
+                    alt_text: "Gambar pertanyaan",
+                    display_order: 1,
+                    created_at: new Date().toISOString(),
+                  },
+                ]
+              : undefined,
             options: optEntries.map((o) => ({
               key: o.key,
               text: o.val.trim(),

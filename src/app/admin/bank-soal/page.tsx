@@ -507,6 +507,10 @@ export default function BankSoalPage() {
             key: "prompt",
             header: "Cuplikan Pertanyaan",
             render: (row) => {
+              const hasPromptImg = Boolean(
+                row.prompt_image_url ||
+                  row.assets?.some((a) => a.placement === "prompt")
+              );
               const hasOptionImg = row.options.some((o) => Boolean(o.asset_url));
               return (
                 <div className="max-w-md space-y-1">
@@ -520,9 +524,16 @@ export default function BankSoalPage() {
                         ? "Bobot TKP (1–5)"
                         : `Pilihan Ganda (Kunci: ${row.correct_option})`}
                     </span>
-                    {hasOptionImg && (
-                      <span className="inline-flex items-center gap-1 text-[#0b49d0] font-semibold">
-                        <ImageIcon className="h-3 w-3" /> Bergambar
+                    {(hasPromptImg || hasOptionImg) && (
+                      <span className="inline-flex items-center gap-1 rounded bg-[#eef4ff] px-1.5 py-0.5 font-bold text-[#0b49d0]">
+                        <ImageIcon className="h-3 w-3" />
+                        <span>
+                          {hasPromptImg && hasOptionImg
+                            ? "Gambar Soal & Opsi"
+                            : hasPromptImg
+                            ? "Gambar Soal"
+                            : "Gambar Opsi"}
+                        </span>
                       </span>
                     )}
                   </div>
@@ -666,8 +677,24 @@ export default function BankSoalPage() {
             </div>
 
             {/* Isi Pertanyaan */}
-            <div className="rounded-xl border border-neutral-200 bg-[#fcfbf7] p-4 text-sm sm:text-base text-[#151515] leading-relaxed">
-              {previewQuestion.prompt}
+            <div className="rounded-xl border border-neutral-200 bg-[#fcfbf7] p-4 text-sm sm:text-base text-[#151515] leading-relaxed space-y-3">
+              <p className="whitespace-pre-line">{previewQuestion.prompt}</p>
+              {(previewQuestion.prompt_image_url ||
+                previewQuestion.assets?.find((a) => a.placement === "prompt")
+                  ?.storage_path) && (
+                <div className="rounded-lg border border-neutral-200 bg-white p-2">
+                  <img
+                    src={
+                      previewQuestion.prompt_image_url ||
+                      previewQuestion.assets?.find(
+                        (a) => a.placement === "prompt"
+                      )?.storage_path
+                    }
+                    alt="Gambar pertanyaan"
+                    className="max-h-56 w-auto rounded object-contain mx-auto"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Daftar Opsi A-E beserta Kunci / Bobot TKP */}

@@ -102,6 +102,7 @@ export interface FullQuestionSnapshot {
   subtest_key: string;
   question_type: QuestionType;
   prompt: string;
+  prompt_image_url?: string | null;
   options: QuestionOptionItem[];
   correct_option?: OptionKey | null;
   tkp_scores?: TkpScoresMap | null;
@@ -119,6 +120,7 @@ export interface SafeQuestionSnapshot {
   subtest_key: string;
   question_type: QuestionType;
   prompt: string;
+  prompt_image_url?: string | null;
   options: QuestionOptionItem[];
   assets?: QuestionAssetRow[];
 }
@@ -230,11 +232,13 @@ export interface QuestionRow {
   subtest_key: string;
   question_type: QuestionType;
   prompt: string;
+  prompt_image_url?: string | null;
   options: QuestionOptionItem[];
   correct_option: OptionKey | null;
   tkp_scores: TkpScoresMap | null;
   explanation: string | null;
   status: QuestionStatus;
+  assets?: QuestionAssetRow[];
   created_by: string;
   reviewed_by: string | null;
   reviewed_at: string | null;

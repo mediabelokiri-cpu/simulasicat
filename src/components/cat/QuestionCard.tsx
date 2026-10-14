@@ -5,6 +5,7 @@ import { Flag, RotateCcw, ZoomIn, X } from "lucide-react";
 import { ExamSessionQuestionRow, OptionKey } from "@/types/database";
 import { AnswerOption } from "./AnswerOption";
 import { StatusBadge } from "@/components/ui";
+import { getQuestions } from "@/lib/admin-store";
 
 interface QuestionCardProps {
   sessionQuestion: ExamSessionQuestionRow;
@@ -33,6 +34,30 @@ export function QuestionCard({
   const promptAsset = question_snapshot.assets?.find(
     (a) => a.placement === "prompt"
   );
+
+  const bankQuestion =
+    !promptAsset && typeof window !== "undefined"
+      ? getQuestions().find(
+          (bq) =>
+            bq.id === question_snapshot.question_id ||
+            (bq.question_code &&
+              question_snapshot.question_code &&
+              bq.question_code === question_snapshot.question_code) ||
+            (bq.prompt && bq.prompt.trim() === question_snapshot.prompt.trim())
+        )
+      : null;
+
+  const legacySnapshotImage = (
+    question_snapshot as unknown as { image_url?: string }
+  ).image_url;
+
+  const promptImageUrl: string | null =
+    promptAsset?.storage_path ||
+    question_snapshot.prompt_image_url ||
+    legacySnapshotImage ||
+    bankQuestion?.prompt_image_url ||
+    bankQuestion?.assets?.find((a) => a.placement === "prompt")?.storage_path ||
+    null;
 
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-4 sm:p-6 shadow-xs space-y-5">
@@ -80,11 +105,11 @@ export function QuestionCard({
           {question_snapshot.prompt.replace(/^\[Simulasi[^\]]*\]\s*/i, "")}
         </div>
 
-        {promptAsset && (
+        {promptImageUrl && (
           <div className="rounded-xl border border-neutral-200 bg-[#f5f8ff] p-3 space-y-2">
             <img
-              src={promptAsset.storage_path}
-              alt={promptAsset.alt_text || "Gambar pertanyaan"}
+              src={promptImageUrl}
+              alt={promptAsset?.alt_text || "Gambar pertanyaan"}
               className="max-h-72 w-auto rounded-lg object-contain mx-auto"
             />
             <div className="flex justify-center">
@@ -92,8 +117,8 @@ export function QuestionCard({
                 type="button"
                 onClick={() =>
                   setZoomedImage({
-                    url: promptAsset.storage_path,
-                    alt: promptAsset.alt_text || "Gambar pertanyaan",
+                    url: promptImageUrl,
+                    alt: promptAsset?.alt_text || "Gambar pertanyaan",
                   })
                 }
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#494ae2] hover:underline"
@@ -108,16 +133,28 @@ export function QuestionCard({
 
       {/* Pilihan Jawaban A-E */}
       <div className="space-y-2.5 pt-1" role="radiogroup" aria-label={`Pilihan jawaban soal nomor ${display_number}`}>
-        {question_snapshot.options.map((opt) => (
-          <AnswerOption
-            key={opt.key}
-            option={opt}
-            isSelected={selectedOption === opt.key}
-            disabled={disabled}
-            onSelect={(key) => onSelectOption(key)}
-            onOpenImageZoom={(url, alt) => setZoomedImage({ url, alt })}
-          />
-        ))}
+        {question_snapshot.options.map((opt) => {
+          const resolvedOpt = bankQuestion
+            ? {
+                ...opt,
+                asset_url:
+                  opt.asset_url ||
+                  bankQuestion.options?.find((bo) => bo.key === opt.key)?.asset_url ||
+                  null,
+              }
+            : opt;
+
+          return (
+            <AnswerOption
+              key={resolvedOpt.key}
+              option={resolvedOpt}
+              isSelected={selectedOption === resolvedOpt.key}
+              disabled={disabled}
+              onSelect={(key) => onSelectOption(key)}
+              onOpenImageZoom={(url, alt) => setZoomedImage({ url, alt })}
+            />
+          );
+        })}
       </div>
 
       {/* Tombol Batal Pilih Jawaban */}
