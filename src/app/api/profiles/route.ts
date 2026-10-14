@@ -136,6 +136,29 @@ export async function PATCH(request: Request) {
       ? await query.eq("id", body.id)
       : await query.eq("email", String(body.email).toLowerCase());
 
+    if (hasServiceKey && patch.role) {
+      try {
+        let authUserId = body.id;
+        if (!authUserId && body.email) {
+          const { data: userFound } = await supabase.auth.admin.listUsers();
+          const matched = userFound?.users?.find(
+            (u) => u.email?.toLowerCase() === String(body.email).toLowerCase()
+          );
+          if (matched) authUserId = matched.id;
+        }
+        if (authUserId) {
+          await supabase.auth.admin.updateUserById(authUserId, {
+            user_metadata: {
+              role: patch.role,
+              target_selection: patch.target_selection,
+            },
+          });
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     return NextResponse.json({ ok: !error });
   } catch {
     return NextResponse.json({ ok: false }, { status: 500 });
@@ -224,6 +247,7 @@ export async function POST(request: Request) {
           user_metadata: {
             full_name: String(body.full_name).trim(),
             role: payload.role,
+            target_selection: payload.target_selection,
           },
         });
         if (authCreated?.user?.id) {

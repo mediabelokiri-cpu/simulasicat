@@ -34,6 +34,8 @@ import {
   getStoredProfiles,
   saveStoredProfiles,
   syncProfilesFromSupabase,
+  getCurrentUserClient,
+  setCurrentUserClient,
 } from "@/lib/auth";
 import {
   getGroups,
@@ -279,14 +281,37 @@ export default function ManajemenPesertaPage() {
     const all = getStoredProfiles();
     const idx = all.findIndex((p) => p.id === user.id);
     if (idx === -1) return;
+    const targetSel =
+      newRole === "operator"
+        ? "Operator Bank Soal"
+        : all[idx].target_selection === "Operator Bank Soal"
+        ? "CPNS"
+        : all[idx].target_selection || "CPNS";
+
     all[idx] = {
       ...all[idx],
       role: newRole,
+      target_selection: targetSel,
       updated_at: new Date().toISOString(),
     };
     saveStoredProfiles(all);
     setProfiles(all);
     setSelectedUser(all[idx]);
+
+    // Jika user yang diubah saat ini sedang login di perangkat ini, sinkronkan sesi lokalnya
+    const currentActive = getCurrentUserClient();
+    if (
+      currentActive &&
+      (currentActive.id === user.id ||
+        currentActive.email.toLowerCase() === user.email.toLowerCase())
+    ) {
+      setCurrentUserClient({
+        ...currentActive,
+        role: newRole,
+        target_selection: targetSel,
+      });
+    }
+
     void fetch("/api/profiles", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -294,8 +319,10 @@ export default function ManajemenPesertaPage() {
         id: user.id,
         email: user.email,
         role: newRole,
+        target_selection: targetSel,
       }),
     }).catch(() => {});
+
     appendAuditLog({
       action: "CHANGE_USER_ROLE",
       entity_type: "profiles",
@@ -365,7 +392,7 @@ export default function ManajemenPesertaPage() {
 
     // 2. Simpan ke Supabase via API route
     try {
-      await fetch("/api/profiles", {
+      const res = await fetch("/api/profiles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -373,30 +400,15 @@ export default function ManajemenPesertaPage() {
           password: password,
         }),
       });
+      const data = await res.json();
+      if (data?.profile?.id) {
+        newProfile.id = String(data.profile.id);
+        const updatedList = [newProfile, ...stored];
+        saveStoredProfiles(updatedList);
+        setProfiles(updatedList);
+      }
     } catch {
       // Local fallback tersimpan
-    }
-
-    // 3. Simpan ke Supabase Browser Client jika configured
-    if (isSupabaseConfigured()) {
-      try {
-        const supabase = createSupabaseBrowserClient();
-        await supabase.auth.signUp({
-          email: cleanEmail,
-          password: password,
-          options: {
-            data: {
-              full_name: fullName,
-              role: createForm.role,
-            },
-          },
-        });
-        await supabase
-          .from("profiles")
-          .upsert(newProfile, { onConflict: "email" });
-      } catch {
-        // ignore
-      }
     }
 
     appendAuditLog({

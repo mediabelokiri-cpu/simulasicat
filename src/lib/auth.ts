@@ -504,12 +504,22 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
         const emailKey = remote.email.toLowerCase();
         if (deletedEmails.has(emailKey)) continue;
         const existing = mergedByEmail.get(emailKey);
+        const resolvedRole: UserRole =
+          remote.role === "operator" || existing?.role === "operator"
+            ? "operator"
+            : remote.role === "admin" || existing?.role === "admin"
+            ? "admin"
+            : (remote.role || existing?.role || "user");
+
         const combined: ProfileRow = {
           ...existing,
           ...remote,
+          role: resolvedRole,
           institution: remote.institution || existing?.institution || null,
           target_selection:
-            remote.target_selection || existing?.target_selection || "CPNS",
+            resolvedRole === "operator"
+              ? "Operator Bank Soal"
+              : remote.target_selection || existing?.target_selection || "CPNS",
           avatar_url:
             remote.avatar_url !== undefined && remote.avatar_url !== null
               ? remote.avatar_url
@@ -583,9 +593,13 @@ export function getCurrentUserClient(): ProfileRow | null {
       latest &&
       (latest.id !== parsed.id ||
         latest.is_active !== parsed.is_active ||
+        latest.role !== parsed.role ||
+        latest.target_selection !== parsed.target_selection ||
         resolved.avatar_url !== parsed.avatar_url)
     ) {
       window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(resolved));
+      document.cookie = `prima_cat_role=${resolved.role}; path=/; max-age=86400; SameSite=Lax`;
+      document.cookie = `prima_cat_active=${resolved.is_active ? "1" : "0"}; path=/; max-age=86400; SameSite=Lax`;
     }
     return resolved;
   } catch {
@@ -711,41 +725,52 @@ export async function authenticateUserAsync(
           .eq("id", data.user.id)
           .maybeSingle();
 
-        const resolvedProfile: ProfileRow = dbProfile
-          ? {
-              id: dbProfile.id,
-              full_name: dbProfile.full_name,
-              email: dbProfile.email,
-              role: isDefaultAdminEmail
-                ? ("admin" as UserRole)
-                : ((dbProfile.role as UserRole) || "user"),
-              is_active: dbProfile.is_active ?? true,
-              phone: dbProfile.phone ?? null,
-              institution: dbProfile.institution ?? null,
-              target_selection: dbProfile.target_selection ?? "CPNS",
-              email_verified: dbProfile.email_verified ?? true,
-              created_at: dbProfile.created_at ?? now,
-              updated_at: dbProfile.updated_at ?? now,
-            }
-          : {
-              id: data.user.id,
-              full_name:
-                (data.user.user_metadata?.full_name as string) ||
-                cleanEmail.split("@")[0],
-              email: cleanEmail,
-              role: isDefaultAdminEmail
-                ? ("admin" as UserRole)
-                : ((data.user.user_metadata?.role as UserRole) || "user"),
-              is_active: true,
-              phone: null,
-              institution:
-                (data.user.user_metadata?.institution as string) || null,
-              target_selection:
-                (data.user.user_metadata?.target_selection as string) || "CPNS",
-              email_verified: true,
-              created_at: data.user.created_at || now,
-              updated_at: now,
-            };
+        const localMatched = getStoredProfiles().find(
+          (p) =>
+            p.email.toLowerCase() === cleanEmail ||
+            p.id === data.user.id
+        );
+
+        const metadataRole = data.user.user_metadata?.role as UserRole | undefined;
+        const resolvedRole: UserRole = isDefaultAdminEmail
+          ? "admin"
+          : dbProfile?.role === "operator" ||
+            metadataRole === "operator" ||
+            localMatched?.role === "operator"
+          ? "operator"
+          : dbProfile?.role === "admin" ||
+            metadataRole === "admin" ||
+            localMatched?.role === "admin"
+          ? "admin"
+          : ((dbProfile?.role as UserRole) || metadataRole || localMatched?.role || "user");
+
+        const resolvedProfile: ProfileRow = {
+          id: dbProfile?.id || data.user.id,
+          full_name:
+            dbProfile?.full_name ||
+            (data.user.user_metadata?.full_name as string) ||
+            localMatched?.full_name ||
+            cleanEmail.split("@")[0],
+          email: cleanEmail,
+          role: resolvedRole,
+          is_active: dbProfile?.is_active ?? localMatched?.is_active ?? true,
+          phone: dbProfile?.phone ?? localMatched?.phone ?? null,
+          institution:
+            dbProfile?.institution ??
+            (data.user.user_metadata?.institution as string) ??
+            localMatched?.institution ??
+            null,
+          target_selection:
+            resolvedRole === "operator"
+              ? "Operator Bank Soal"
+              : dbProfile?.target_selection ??
+                (data.user.user_metadata?.target_selection as string) ??
+                localMatched?.target_selection ??
+                "CPNS",
+          email_verified: dbProfile?.email_verified ?? true,
+          created_at: dbProfile?.created_at ?? data.user.created_at ?? now,
+          updated_at: now,
+        };
 
         if (!resolvedProfile.is_active) {
           await supabase.auth.signOut();
@@ -790,21 +815,44 @@ export async function authenticateUserAsync(
         .maybeSingle();
 
       if (remoteByEmail) {
+        const localMatched = getStoredProfiles().find(
+          (p) =>
+            p.email.toLowerCase() === cleanEmail ||
+            p.id === String(remoteByEmail.id)
+        );
+
+        const resolvedRole: UserRole = isDefaultAdminEmail
+          ? "admin"
+          : remoteByEmail.role === "operator" ||
+            localMatched?.role === "operator"
+          ? "operator"
+          : remoteByEmail.role === "admin" ||
+            localMatched?.role === "admin"
+          ? "admin"
+          : ((remoteByEmail.role as UserRole) || localMatched?.role || "user");
+
         const resolvedRemote: ProfileRow = {
           id: String(remoteByEmail.id),
-          full_name: String(remoteByEmail.full_name || "Peserta"),
+          full_name: String(
+            remoteByEmail.full_name ||
+              localMatched?.full_name ||
+              "Peserta"
+          ),
           email: String(remoteByEmail.email || cleanEmail).toLowerCase(),
-          role: isDefaultAdminEmail
-            ? ("admin" as UserRole)
-            : ((remoteByEmail.role as UserRole) || "user"),
+          role: resolvedRole,
           is_active: remoteByEmail.is_active !== false,
-          phone: remoteByEmail.phone ? String(remoteByEmail.phone) : null,
+          phone: remoteByEmail.phone
+            ? String(remoteByEmail.phone)
+            : localMatched?.phone ?? null,
           institution: remoteByEmail.institution
             ? String(remoteByEmail.institution)
-            : null,
-          target_selection: remoteByEmail.target_selection
-            ? String(remoteByEmail.target_selection)
-            : "CPNS",
+            : localMatched?.institution ?? null,
+          target_selection:
+            resolvedRole === "operator"
+              ? "Operator Bank Soal"
+              : remoteByEmail.target_selection
+              ? String(remoteByEmail.target_selection)
+              : localMatched?.target_selection || "CPNS",
           email_verified: Boolean(remoteByEmail.email_verified ?? true),
           created_at: remoteByEmail.created_at
             ? String(remoteByEmail.created_at)
