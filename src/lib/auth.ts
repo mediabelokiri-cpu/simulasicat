@@ -541,8 +541,16 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
           if (activeRaw) {
             const activeParsed = JSON.parse(activeRaw) as ProfileRow;
             const activeEmail = String(activeParsed.email || "").toLowerCase();
+            const isAdmin =
+              activeParsed.role === "admin" ||
+              activeEmail === "admin@primarib.id" ||
+              activeEmail === "admin@simulasicat.id";
+
             if (deletedEmails.has(activeEmail)) {
               setCurrentUserClient(null);
+              if (!isAdmin) {
+                window.location.href = "/login";
+              }
             } else {
               const syncedSelf =
                 finalProfiles.find((p) => p.id === activeParsed.id) ||
@@ -550,11 +558,25 @@ export async function syncProfilesFromSupabase(): Promise<ProfileRow[]> {
                   (p) => p.email.toLowerCase() === activeEmail
                 );
               if (syncedSelf) {
-                window.localStorage.setItem(
-                  AUTH_STORAGE_KEY,
-                  JSON.stringify(syncedSelf)
-                );
-                window.dispatchEvent(new CustomEvent("prima-profiles-synced"));
+                if (
+                  syncedSelf.full_name === "__DELETED_USER__" ||
+                  !syncedSelf.is_active
+                ) {
+                  setCurrentUserClient(null);
+                  if (!isAdmin) {
+                    window.location.href = "/login";
+                  }
+                } else {
+                  window.localStorage.setItem(
+                    AUTH_STORAGE_KEY,
+                    JSON.stringify(syncedSelf)
+                  );
+                  window.dispatchEvent(new CustomEvent("prima-profiles-synced"));
+                }
+              } else if (!isAdmin) {
+                // Akun sudah tidak ditemukan di daftar profil terbaru (telah dihapus oleh Admin)
+                setCurrentUserClient(null);
+                window.location.href = "/login";
               }
             }
           }
@@ -646,11 +668,11 @@ export function authenticateUser(email: string, password: string): AuthResult {
   const profiles = getStoredProfiles();
   const matched = profiles.find((p) => p.email.toLowerCase() === cleanEmail);
 
-  if (!matched) {
+  if (!matched || matched.full_name === "__DELETED_USER__") {
     return {
       ok: false,
       error:
-        "Akun dengan alamat email tersebut tidak ditemukan. Silakan daftar terlebih dahulu.",
+        "Akun dengan alamat email tersebut tidak ditemukan atau telah dihapus.",
     };
   }
 
@@ -719,17 +741,56 @@ export async function authenticateUserAsync(
       const now = new Date().toISOString();
 
       if (data?.user) {
-        const { data: dbProfile } = await supabase
+        const { data: dbProfileById } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", data.user.id)
           .maybeSingle();
+
+        const { data: dbProfileByEmail } = dbProfileById
+          ? { data: dbProfileById }
+          : await supabase
+              .from("profiles")
+              .select("*")
+              .ilike("email", cleanEmail)
+              .maybeSingle();
+
+        const dbProfile = dbProfileById || dbProfileByEmail;
 
         const localMatched = getStoredProfiles().find(
           (p) =>
             p.email.toLowerCase() === cleanEmail ||
             p.id === data.user.id
         );
+
+        // 1. Cek apakah akun ditandai terhapus permanen (__DELETED_USER__)
+        if (
+          dbProfile?.full_name === "__DELETED_USER__" ||
+          localMatched?.full_name === "__DELETED_USER__"
+        ) {
+          await supabase.auth.signOut();
+          return {
+            ok: false,
+            error:
+              "Akun Anda telah dihapus secara permanen oleh Administrator dan tidak dapat digunakan lagi.",
+          };
+        }
+
+        // 2. Cek apakah akun sama sekali tidak terdaftar di database profil (dan bukan akun default admin)
+        // Menolak pembuatan ulang profil otomatis jika akun sebenarnya sudah dihapus oleh Admin
+        if (!dbProfile && !localMatched && !isDefaultAdminEmail) {
+          await supabase.auth.signOut();
+          void fetch("/api/profiles", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: data.user.id, email: cleanEmail }),
+          }).catch(() => {});
+          return {
+            ok: false,
+            error:
+              "Akun dengan alamat email ini tidak ditemukan atau telah dihapus oleh Administrator.",
+          };
+        }
 
         const metadataRole = data.user.user_metadata?.role as UserRole | undefined;
         const resolvedRole: UserRole = isDefaultAdminEmail
@@ -815,6 +876,18 @@ export async function authenticateUserAsync(
         .maybeSingle();
 
       if (remoteByEmail) {
+        if (
+          remoteByEmail.full_name === "__DELETED_USER__" ||
+          remoteByEmail.is_active === false
+        ) {
+          return {
+            ok: false,
+            error:
+              remoteByEmail.full_name === "__DELETED_USER__"
+                ? "Akun Anda telah dihapus secara permanen oleh Administrator dan tidak dapat digunakan lagi."
+                : "Akun Anda saat ini dinonaktifkan oleh Administrator. Riwayat ujian Anda tetap tersimpan, silakan hubungi Admin CATARA.",
+          };
+        }
         const localMatched = getStoredProfiles().find(
           (p) =>
             p.email.toLowerCase() === cleanEmail ||

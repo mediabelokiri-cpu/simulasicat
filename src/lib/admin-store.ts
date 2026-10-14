@@ -750,22 +750,34 @@ export async function deleteUserAccountPermanently(
     if (isSupabaseConfigured()) {
       try {
         const supabase = createSupabaseBrowserClient();
-        await supabase.from("profiles").delete().eq("id", user.id);
-        await supabase.from("profiles").delete().eq("email", cleanEmail);
-        // Pastikan jika kebijakan RLS membatasi DELETE langsung dari anon key,
-        // baris ditandai sebagai __DELETED_USER__ agar tersinkron terhapus di semua browser
-        await supabase.from("profiles").upsert(
-          {
-            id: user.id,
+        const now = new Date().toISOString();
+        const isUuid = Boolean(
+          user.id &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(user.id)
+        );
+
+        // Tandai baris di public.profiles menjadi __DELETED_USER__ & is_active = false
+        await supabase
+          .from("profiles")
+          .update({
             full_name: "__DELETED_USER__",
-            email: cleanEmail,
-            role: "user",
             is_active: false,
             email_verified: false,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "email" }
-        );
+            updated_at: now,
+          })
+          .ilike("email", cleanEmail);
+
+        if (isUuid) {
+          await supabase
+            .from("profiles")
+            .update({
+              full_name: "__DELETED_USER__",
+              is_active: false,
+              email_verified: false,
+              updated_at: now,
+            })
+            .eq("id", user.id);
+        }
       } catch {
         // ignore
       }

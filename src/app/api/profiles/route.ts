@@ -288,22 +288,61 @@ export async function DELETE(request: Request) {
       ? createServiceRoleClient()
       : await createServerSupabaseClient();
 
-    if (body.id) {
-      await supabase.from("profiles").delete().eq("id", body.id);
-    }
-    if (body.email) {
-      await supabase
-        .from("profiles")
-        .delete()
-        .eq("email", String(body.email).toLowerCase());
+    const cleanEmail = body.email ? String(body.email).toLowerCase().trim() : "";
+    const isIdUuid = Boolean(
+      body.id &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.id)
+    );
+
+    let targetAuthUserId = isIdUuid ? body.id : undefined;
+
+    // 1. Jika Service Role tersedia, cari user di auth.users berdasarkan email (jika ID belum UUID asli)
+    if (hasServiceKey && cleanEmail) {
+      try {
+        const { data: userList } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+        const matched = userList?.users?.find(
+          (u) => u.email?.toLowerCase() === cleanEmail
+        );
+        if (matched) {
+          targetAuthUserId = matched.id;
+        }
+      } catch {
+        // ignore
+      }
     }
 
-    if (hasServiceKey && body.id) {
+    // 2. Hapus tuntas dari auth.users jika Service Role aktif dan ID ditemukan
+    if (hasServiceKey && targetAuthUserId) {
       try {
-        await supabase.auth.admin.deleteUser(body.id);
+        await supabase.auth.admin.deleteUser(targetAuthUserId);
       } catch {
-        // ignore if user was not in auth.users
+        // ignore if already deleted
       }
+    }
+
+    // 3. Tandai baris di public.profiles menjadi __DELETED_USER__ dan is_active: false
+    const now = new Date().toISOString();
+    if (cleanEmail) {
+      await supabase
+        .from("profiles")
+        .update({
+          full_name: "__DELETED_USER__",
+          is_active: false,
+          email_verified: false,
+          updated_at: now,
+        })
+        .ilike("email", cleanEmail);
+    }
+    if (targetAuthUserId) {
+      await supabase
+        .from("profiles")
+        .update({
+          full_name: "__DELETED_USER__",
+          is_active: false,
+          email_verified: false,
+          updated_at: now,
+        })
+        .eq("id", targetAuthUserId);
     }
 
     return NextResponse.json({ ok: true });
