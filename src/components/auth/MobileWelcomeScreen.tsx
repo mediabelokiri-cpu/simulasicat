@@ -54,15 +54,14 @@ export function MobileWelcomeScreen({ onStart }: MobileWelcomeScreenProps) {
   }
 
   return (
-    <div className="min-h-dvh w-full bg-[#f5f8ff] p-3 sm:p-5 flex items-center justify-center lg:hidden">
-      <div className="relative mx-auto flex min-h-[calc(100dvh-24px)] sm:min-h-[680px] w-full max-w-[390px] flex-col justify-between overflow-hidden rounded-[40px] bg-gradient-to-br from-[#494ae2] via-[#5e4fe7] to-[#7854ec] p-5 sm:p-6 text-white shadow-[0_24px_60px_rgba(73,74,226,0.35)]">
-        {/* Garis Gelombang Dekoratif Atas (3 Wavy Lines sesuai referensi) */}
-        <svg
-          viewBox="0 0 400 130"
-          fill="none"
-          className="pointer-events-none absolute inset-x-0 top-2 w-full opacity-25"
-          aria-hidden="true"
-        >
+    <div className="relative min-h-dvh w-full bg-gradient-to-br from-[#494ae2] via-[#5e4fe7] to-[#7854ec] text-white flex flex-col justify-between overflow-x-hidden overflow-y-auto lg:hidden">
+      {/* Garis Gelombang Dekoratif Atas (3 Wavy Lines sesuai referensi) */}
+      <svg
+        viewBox="0 0 400 130"
+        fill="none"
+        className="pointer-events-none absolute inset-x-0 top-0 w-full opacity-25"
+        aria-hidden="true"
+      >
           <path
             d="M-20 28 C 90 10, 180 55, 290 25 C 350 10, 390 25, 430 18"
             stroke="white"
@@ -80,8 +79,9 @@ export function MobileWelcomeScreen({ onStart }: MobileWelcomeScreenProps) {
           />
         </svg>
 
-        {/* Bagian Atas: Brand Pill CATARA */}
-        <div className="relative z-10 flex items-center justify-center pt-1">
+        <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-[420px] flex-col justify-between px-4 py-5 sm:px-6 sm:py-6">
+          {/* Bagian Atas: Brand Pill CATARA */}
+          <div className="relative z-10 flex items-center justify-center pt-1">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-xs border border-white/20 px-3.5 py-1.5">
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white p-1">
               <img
