@@ -18,10 +18,13 @@ import {
   getExamRuns,
   getExamSessions,
   getResults,
+  saveExamSessions,
 } from "@/lib/admin-store";
 import {
+  buildQuestionsForSession,
   getSessionAnswers,
   getSessionQuestions,
+  saveAllSessionQuestions,
   toggleQuestionFlag,
   updateSessionCurrentNumber,
   upsertSessionAnswer,
@@ -111,7 +114,16 @@ export default function CatExamRoomPage() {
     const allExams = getExams();
     const foundExam = allExams.find((e) => e.id === foundRun?.exam_id);
 
-    const sqList = getSessionQuestions(foundSession.id);
+    let sqList = getSessionQuestions(foundSession.id);
+    if (sqList.length === 0 && foundExam) {
+      // Auto-heal: jika butir soal belum tersimpan di memori lokal perangkat, susun kembali sekarang
+      const recovered = buildQuestionsForSession(foundSession, foundExam);
+      if (recovered.length > 0) {
+        saveAllSessionQuestions(recovered);
+        sqList = recovered;
+      }
+    }
+
     const ansList = getSessionAnswers(foundSession.id);
 
     const map: Record<string, OptionKey | null> = {};
@@ -309,14 +321,42 @@ export default function CatExamRoomPage() {
   if (errorMsg || !session || !activeQuestion) {
     return (
       <div className="min-h-screen bg-[#f5f8ff] flex items-center justify-center p-6">
-        <div className="max-w-md w-full">
+        <div className="max-w-md w-full space-y-3">
           <ErrorState
             title="Tidak Dapat Membuka Ruang Ujian"
             description={
-              errorMsg || "Sesi ujian tidak ditemukan atau soal belum tersedia."
+              errorMsg ||
+              "Sesi ujian belum memuat butir soal. Silakan klik Coba Lagi untuk menyusun ulang soal otomatis atau kembali ke Beranda."
             }
-            onRetry={() => router.push("/dashboard")}
+            onRetry={() => {
+              if (session && exam) {
+                const rec = buildQuestionsForSession(session, exam);
+                if (rec.length > 0) {
+                  saveAllSessionQuestions(rec);
+                  setQuestions(rec);
+                  return;
+                }
+              }
+              router.push("/dashboard");
+            }}
           />
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => {
+                if (session) {
+                  const remaining = getExamSessions().filter(
+                    (s) => s.id !== session.id
+                  );
+                  saveExamSessions(remaining);
+                }
+                router.push("/dashboard");
+              }}
+              className="text-xs font-semibold text-neutral-500 hover:text-[#494ae2] underline cursor-pointer"
+            >
+              Reset sesi ujian ini dan kembali ke Beranda
+            </button>
+          </div>
         </div>
       </div>
     );

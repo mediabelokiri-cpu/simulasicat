@@ -22,6 +22,7 @@ import {
   getExamSessions,
   getQuestions,
   getRunAssignments,
+  getScoringSnapshots,
   saveExamSessions,
   appendAuditLog,
   getUserEnrolledGroups,
@@ -42,6 +43,23 @@ export function getSessionQuestions(
     if (window.localStorage.getItem("prima_cat_session_questions_v1")) {
       window.localStorage.removeItem("prima_cat_session_questions_v1");
     }
+
+    // 1. Cek penyimpanan terisolasi per-sesi jika sessionId diberikan
+    if (sessionId) {
+      const perSessionRaw = window.localStorage.getItem(`prima_cat_sq_${sessionId}`);
+      if (perSessionRaw) {
+        try {
+          const perSessionParsed: ExamSessionQuestionRow[] = JSON.parse(perSessionRaw);
+          if (Array.isArray(perSessionParsed) && perSessionParsed.length > 0) {
+            return perSessionParsed.sort((a, b) => a.display_number - b.display_number);
+          }
+        } catch {
+          // fallback ke global
+        }
+      }
+    }
+
+    // 2. Fallback ke penyimpanan global
     const raw = window.localStorage.getItem(SESSION_QUESTIONS_KEY);
     const all: ExamSessionQuestionRow[] = raw ? JSON.parse(raw) : [];
     return sessionId
@@ -57,9 +75,62 @@ export function getSessionQuestions(
 export function saveAllSessionQuestions(
   rows: ExamSessionQuestionRow[]
 ): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(SESSION_QUESTIONS_KEY, JSON.stringify(rows));
-  void pushStoreKeyToSupabase(SESSION_QUESTIONS_KEY, rows, true);
+  if (typeof window === "undefined" || !rows || rows.length === 0) return;
+
+  // 1. Simpan per-session storage secara terisolasi agar 1 sesi aktif selalu mandiri & aman
+  const grouped = new Map<string, ExamSessionQuestionRow[]>();
+  for (const r of rows) {
+    if (r.exam_session_id) {
+      const list = grouped.get(r.exam_session_id) || [];
+      list.push(r);
+      grouped.set(r.exam_session_id, list);
+    }
+  }
+
+  for (const [sId, sRows] of grouped.entries()) {
+    try {
+      window.localStorage.setItem(`prima_cat_sq_${sId}`, JSON.stringify(sRows));
+    } catch {
+      // ignore
+    }
+  }
+
+  // 2. Gabungkan dengan data global lama tetapi HANYA simpan maksimal 2 sesi terbaru
+  // agar memori localStorage (limit 5 MB) tidak pernah penuh/QuotaExceededError
+  try {
+    const rawExisting = window.localStorage.getItem(SESSION_QUESTIONS_KEY);
+    const existing: ExamSessionQuestionRow[] = rawExisting ? JSON.parse(rawExisting) : [];
+    const existingMap = new Map<string, ExamSessionQuestionRow>();
+    for (const item of existing) {
+      if (item && item.id) existingMap.set(item.id, item);
+    }
+    for (const item of rows) {
+      if (item && item.id) existingMap.set(item.id, item);
+    }
+
+    const merged = Array.from(existingMap.values());
+    const allSessions = getExamSessions();
+    const recentSessionIds = new Set(allSessions.slice(0, 2).map((s) => s.id));
+    for (const sId of grouped.keys()) {
+      recentSessionIds.add(sId);
+    }
+
+    const pruned = merged.filter(
+      (m) => !m.exam_session_id || recentSessionIds.has(m.exam_session_id)
+    );
+
+    const nextJson = JSON.stringify(pruned);
+    window.localStorage.setItem(SESSION_QUESTIONS_KEY, nextJson);
+    void pushStoreKeyToSupabase(SESSION_QUESTIONS_KEY, pruned, true);
+  } catch {
+    // Fallback darurat jika kuota localStorage masih mepet: simpan hanya soal sesi aktif
+    try {
+      window.localStorage.setItem(SESSION_QUESTIONS_KEY, JSON.stringify(rows));
+      void pushStoreKeyToSupabase(SESSION_QUESTIONS_KEY, rows, true);
+    } catch {
+      // ignore
+    }
+  }
 }
 
 export function getSessionAnswers(sessionId?: string): AnswerRow[] {
@@ -321,6 +392,78 @@ export function sanitizeQuestionForClient(
 }
 
 /**
+ * Menyusun butir soal untuk sesi ujian tertentu berdasarkan bank soal aktif
+ * dan konfigurasi subtes ujian (TWK, TIU, TKP).
+ */
+export function buildQuestionsForSession(
+  session: ExamSessionRow,
+  exam: ExamRow
+): ExamSessionQuestionRow[] {
+  const activeBank = getQuestions().filter(
+    (q) => q.status === "active" && q.category_id === exam.category_id
+  );
+  const fallbackBank =
+    activeBank.length > 0
+      ? activeBank
+      : getQuestions().filter((q) => q.status === "active");
+
+  if (fallbackBank.length === 0) {
+    return [];
+  }
+
+  const examSections = getExamSections()
+    .filter((s) => s.exam_id === exam.id)
+    .sort((a, b) => a.display_order - b.display_order);
+
+  const sectionsToBuild =
+    examSections.length > 0
+      ? examSections.map((s) => ({
+          section_key: s.section_key,
+          title: s.title,
+          question_count: s.question_count,
+          shuffle: s.shuffle_questions,
+        }))
+      : SKD_CPNS_2024_PRESET.sections.map((s) => ({
+          section_key: s.section_key,
+          title: s.title,
+          question_count: s.question_count,
+          shuffle: true,
+        }));
+
+  const frozenQuestions: ExamSessionQuestionRow[] = [];
+  let displayNum = 1;
+
+  for (const sec of sectionsToBuild) {
+    let pool = fallbackBank.filter(
+      (q) => q.subtest_key.toUpperCase() === sec.section_key.toUpperCase()
+    );
+
+    if (sec.shuffle && exam.settings?.shuffle_questions_per_section) {
+      pool = shuffleArray(pool);
+    }
+
+    if (sec.question_count > 0 && pool.length > sec.question_count) {
+      pool = pool.slice(0, sec.question_count);
+    }
+
+    for (const q of pool) {
+      frozenQuestions.push({
+        id: `sq-${session.id}-${displayNum}`,
+        exam_session_id: session.id,
+        exam_question_id: `eq-${exam.id}-${q.id}`,
+        display_number: displayNum,
+        section_key: sec.section_key,
+        question_snapshot: sanitizeQuestionForClient(q),
+        is_flagged: false,
+      });
+      displayNum++;
+    }
+  }
+
+  return frozenQuestions;
+}
+
+/**
  * Memulai atau Melanjutkan Sesi Ujian Peserta (exam_sessions & exam_session_questions).
  * - Jika peserta sudah memiliki sesi in_progress pada run tersebut, langsung kembalikan sesi yang ada
  *   sehingga urutan soal dan timer TIDAK diacak ulang atau direset.
@@ -354,44 +497,20 @@ export function startOrResumeExamSession(
 
   // Resume sesi yang sudah aktif tanpa mereset timer atau urutan soal
   if (eligibility.canResume && eligibility.activeSession) {
-    return { ok: true, session: eligibility.activeSession };
+    let activeQuestions = getSessionQuestions(eligibility.activeSession.id);
+    // Auto-heal: jika sesi yang di-resume butir soalnya hilang dari memori browser, susun kembali
+    if (activeQuestions.length === 0) {
+      const recovered = buildQuestionsForSession(eligibility.activeSession, exam);
+      if (recovered.length > 0) {
+        saveAllSessionQuestions(recovered);
+        activeQuestions = recovered;
+      }
+    }
+    if (activeQuestions.length > 0) {
+      return { ok: true, session: eligibility.activeSession };
+    }
+    // Jika sesi lama benar-benar kosong dan gagal disusun, jangan kembalikan sesi kosong; buat sesi baru
   }
-
-  // Susun soal per blok subtes (TWK, TIU, TKP) dari bank soal aktif
-  const activeBank = getQuestions().filter(
-    (q) => q.status === "active" && q.category_id === exam.category_id
-  );
-  const fallbackBank =
-    activeBank.length > 0
-      ? activeBank
-      : getQuestions().filter((q) => q.status === "active");
-
-  if (fallbackBank.length === 0) {
-    return {
-      ok: false,
-      error:
-        "Bank soal berstatus Aktif belum tersedia untuk ujian ini. Silakan hubungi Administrator.",
-    };
-  }
-
-  const examSections = getExamSections()
-    .filter((s) => s.exam_id === exam.id)
-    .sort((a, b) => a.display_order - b.display_order);
-
-  const sectionsToBuild =
-    examSections.length > 0
-      ? examSections.map((s) => ({
-          section_key: s.section_key,
-          title: s.title,
-          question_count: s.question_count,
-          shuffle: s.shuffle_questions,
-        }))
-      : SKD_CPNS_2024_PRESET.sections.map((s) => ({
-          section_key: s.section_key,
-          title: s.title,
-          question_count: s.question_count,
-          shuffle: true,
-        }));
 
   const now = new Date();
   const deadline = new Date(
@@ -399,35 +518,8 @@ export function startOrResumeExamSession(
   );
   const sessionId = `ses-${Date.now()}`;
 
-  const frozenQuestions: ExamSessionQuestionRow[] = [];
-  let displayNum = 1;
-
-  for (const sec of sectionsToBuild) {
-    let pool = fallbackBank.filter(
-      (q) => q.subtest_key.toUpperCase() === sec.section_key.toUpperCase()
-    );
-
-    if (sec.shuffle && exam.settings.shuffle_questions_per_section) {
-      pool = shuffleArray(pool);
-    }
-
-    if (sec.question_count > 0 && pool.length > sec.question_count) {
-      pool = pool.slice(0, sec.question_count);
-    }
-
-    for (const q of pool) {
-      frozenQuestions.push({
-        id: `sq-${sessionId}-${displayNum}`,
-        exam_session_id: sessionId,
-        exam_question_id: `eq-${exam.id}-${q.id}`,
-        display_number: displayNum,
-        section_key: sec.section_key,
-        question_snapshot: sanitizeQuestionForClient(q),
-        is_flagged: false,
-      });
-      displayNum++;
-    }
-  }
+  const tempSession = { id: sessionId } as ExamSessionRow;
+  const frozenQuestions = buildQuestionsForSession(tempSession, exam);
 
   if (frozenQuestions.length === 0) {
     return {
@@ -450,7 +542,10 @@ export function startOrResumeExamSession(
     last_activity_at: now.toISOString(),
     current_question_number: 1,
     time_extension_seconds: 0,
-    scoring_snapshot_id: run.scoring_snapshot_id,
+    scoring_snapshot_id:
+      run.scoring_snapshot_id ||
+      getScoringSnapshots().find((s) => s.exam_id === exam.id)?.id ||
+      "snapshot-default",
     created_at: now.toISOString(),
     updated_at: now.toISOString(),
   };
@@ -458,8 +553,8 @@ export function startOrResumeExamSession(
   const allSessions = getExamSessions();
   saveExamSessions([newSession, ...allSessions]);
 
-  const allSq = getSessionQuestions();
-  saveAllSessionQuestions([...allSq, ...frozenQuestions]);
+  // Simpan soal sesi ini (dengan per-session storage & auto-pruning agar tidak quota exceeded)
+  saveAllSessionQuestions(frozenQuestions);
 
   appendAuditLog({
     actor_id: user.id,

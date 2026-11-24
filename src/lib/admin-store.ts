@@ -352,8 +352,21 @@ export async function syncAdminStoreFromSupabase(): Promise<boolean> {
               const mergedArr = Array.from(mergedMap.values());
               const nextJson = JSON.stringify(mergedArr);
               if (nextJson !== localRaw) {
-                window.localStorage.setItem(key, nextJson);
-                anyUpdated = true;
+                try {
+                  window.localStorage.setItem(key, nextJson);
+                  anyUpdated = true;
+                } catch {
+                  // Jika kuota localStorage penuh pada data soal sesi, pangkas simpan hanya sesi terbaru
+                  if (key === KEYS.sessionQuestions) {
+                    try {
+                      const pruned = mergedArr.slice(-110);
+                      window.localStorage.setItem(key, JSON.stringify(pruned));
+                      anyUpdated = true;
+                    } catch {
+                      // ignore
+                    }
+                  }
+                }
               }
               if (nextJson !== remoteRow.institution) {
                 void pushStoreKeyToSupabase(key, mergedArr, true);
