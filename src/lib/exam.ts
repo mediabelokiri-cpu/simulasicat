@@ -171,6 +171,9 @@ export interface ExamEligibilityEvaluation {
   reasonIfBlocked: string | null;
   activeSession?: ExamSessionRow;
   completedSession?: ExamSessionRow;
+  attemptCount?: number;
+  maxAttempts?: number;
+  isRetake?: boolean;
 }
 
 /**
@@ -238,19 +241,47 @@ export function evaluateUserExamEligibility(
     };
   }
 
-  const finished = userSessions.find(
-    (s) => s.status === "submitted" || s.status === "timed_out"
-  );
-  if (finished && !exam.settings.allow_retake) {
-    return {
-      canStart: false,
-      canResume: false,
-      displayStatus: "completed",
-      statusLabel: "Selesai Dikerjakan",
-      reasonIfBlocked:
-        "Anda telah menyelesaikan sesi ujian ini. Silakan lihat hasil pengerjaan Anda.",
-      completedSession: finished,
-    };
+  const finishedSessions = userSessions
+    .filter((s) => s.status === "submitted" || s.status === "timed_out")
+    .sort((a, b) => (b.attempt_no || 0) - (a.attempt_no || 0));
+
+  const allowRetake =
+    run.allow_retake_override !== undefined
+      ? run.allow_retake_override
+      : (exam.settings?.allow_retake ?? false);
+
+  const maxAttempts =
+    run.max_attempts_override !== undefined
+      ? run.max_attempts_override
+      : (exam.settings?.max_attempts ?? 1);
+
+  if (finishedSessions.length > 0) {
+    if (!allowRetake) {
+      return {
+        canStart: false,
+        canResume: false,
+        displayStatus: "completed",
+        statusLabel: "Selesai Dikerjakan",
+        reasonIfBlocked:
+          "Anda telah menyelesaikan sesi ujian ini. Silakan lihat hasil pengerjaan Anda.",
+        completedSession: finishedSessions[0],
+        attemptCount: finishedSessions.length,
+        maxAttempts: 1,
+      };
+    }
+
+    if (maxAttempts > 0 && finishedSessions.length >= maxAttempts) {
+      return {
+        canStart: false,
+        canResume: false,
+        displayStatus: "completed",
+        statusLabel: `Selesai (${finishedSessions.length}/${maxAttempts} Percobaan)`,
+        reasonIfBlocked: `Anda telah mencapai batas maksimal pengerjaan (${maxAttempts} kali percobaan). Silakan lihat hasil pengerjaan Anda.`,
+        completedSession: finishedSessions[0],
+        attemptCount: finishedSessions.length,
+        maxAttempts,
+      };
+    }
   }
 
   // Cek Hak Akses (Open vs Restricted)
@@ -321,12 +352,23 @@ export function evaluateUserExamEligibility(
     };
   }
 
+  const isRetake = finishedSessions.length > 0;
+  const statusLabel = isRetake
+    ? maxAttempts > 0
+      ? `Boleh Diulang (${finishedSessions.length}/${maxAttempts})`
+      : "Bebas Diulang"
+    : "Siap Dimulai";
+
   return {
     canStart: true,
     canResume: false,
     displayStatus: "ready_to_start",
-    statusLabel: "Siap Dimulai",
+    statusLabel,
     reasonIfBlocked: null,
+    attemptCount: finishedSessions.length,
+    maxAttempts,
+    isRetake,
+    completedSession: isRetake ? finishedSessions[0] : undefined,
   };
 }
 
@@ -529,11 +571,19 @@ export function startOrResumeExamSession(
     };
   }
 
+  const userSessions = getExamSessions().filter(
+    (s) => s.exam_run_id === run.id && s.user_id === user.id
+  );
+  const finishedCount = userSessions.filter(
+    (s) => s.status === "submitted" || s.status === "timed_out"
+  ).length;
+  const nextAttemptNo = finishedCount + 1;
+
   const newSession: ExamSessionRow = {
     id: sessionId,
     exam_run_id: run.id,
     user_id: user.id,
-    attempt_no: 1,
+    attempt_no: nextAttemptNo,
     status: "in_progress",
     started_at: now.toISOString(),
     original_deadline_at: deadline.toISOString(),

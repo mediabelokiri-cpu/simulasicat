@@ -295,6 +295,8 @@ export interface ExamRunRow {
   total_paused_seconds: number;
   pause_reason: string | null;
   late_policy_override?: "allow_full_time" | "deduct_time" | "require_admin_approval";
+  allow_retake_override?: boolean;
+  max_attempts_override?: number;
   completed_at: string | null;
   created_by: string;
   created_at: string;

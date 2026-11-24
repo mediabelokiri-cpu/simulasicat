@@ -89,6 +89,8 @@ export default function ManajemenUjianPage() {
   >("require_admin_approval");
   const [shufflePerSection, setShufflePerSection] = useState(true);
   const [shuffleOptions, setShuffleOptions] = useState(false);
+  const [allowRetake, setAllowRetake] = useState(false);
+  const [maxAttempts, setMaxAttempts] = useState(1);
 
   // Publication config
   const [pubScoreImmediate, setPubScoreImmediate] = useState(true);
@@ -147,6 +149,8 @@ export default function ManajemenUjianPage() {
     setLatePolicy("require_admin_approval");
     setShufflePerSection(true);
     setShuffleOptions(false);
+    setAllowRetake(false);
+    setMaxAttempts(1);
     setPubScoreImmediate(true);
     setPubExplanation(false);
     setPubAnswerKey(false);
@@ -167,6 +171,8 @@ export default function ManajemenUjianPage() {
     setLatePolicy(exam.settings.late_policy);
     setShufflePerSection(exam.settings.shuffle_questions_per_section);
     setShuffleOptions(exam.settings.shuffle_options);
+    setAllowRetake(exam.settings.allow_retake ?? false);
+    setMaxAttempts(exam.settings.max_attempts ?? 1);
     setPubScoreImmediate(exam.publication_config.publish_score_immediately);
     setPubExplanation(exam.publication_config.publish_explanations);
     setPubAnswerKey(exam.publication_config.publish_answer_key);
@@ -286,8 +292,8 @@ export default function ManajemenUjianPage() {
         shuffle_options: shuffleOptions,
         late_policy: latePolicy,
         late_grace_minutes: 15,
-        allow_retake: false,
-        max_attempts: 1,
+        allow_retake: allowRetake,
+        max_attempts: maxAttempts,
         require_verified_email: true,
       },
       publication_config: {
@@ -608,6 +614,21 @@ export default function ManajemenUjianPage() {
                     </>
                   )}
                 </span>
+                <div className="pt-0.5">
+                  <span
+                    className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
+                      row.settings?.allow_retake
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-neutral-100 text-neutral-600 border border-neutral-200"
+                    }`}
+                  >
+                    {row.settings?.allow_retake
+                      ? row.settings.max_attempts && row.settings.max_attempts > 0
+                        ? `Boleh Diulang (Maks. ${row.settings.max_attempts}x)`
+                        : "Bebas Diulang (Unlimited)"
+                      : "1x Percobaan Saja"}
+                  </span>
+                </div>
               </div>
             ),
           },
@@ -1041,6 +1062,54 @@ export default function ManajemenUjianPage() {
                     </option>
                   </select>
                 </FormField>
+              </div>
+
+              {/* Pengaturan Pengulangan Ujian (Retake & Attempts) */}
+              <div className="rounded-xl border border-neutral-200 p-4 space-y-3 bg-[#f5f8ff]/50">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-[#151515]">
+                      Pengulangan Ujian (Boleh Diikuti Berkali-kali)
+                    </h3>
+                    <p className="text-xs text-neutral-500 mt-0.5">
+                      Izinkan akun yang telah menyelesaikan ujian ini untuk mengerjakan kembali
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={allowRetake}
+                      onChange={(e) => setAllowRetake(e.target.checked)}
+                      className="h-4 w-4 accent-[#494ae2]"
+                    />
+                    <span className="ml-2 text-xs font-bold text-[#0c0c13]">
+                      {allowRetake ? "Aktif" : "Nonaktif"}
+                    </span>
+                  </label>
+                </div>
+
+                {allowRetake && (
+                  <div className="pt-2 border-t border-neutral-200/80">
+                    <FormField
+                      id="ex-max-attempts"
+                      label="Batas Maksimal Percobaan (Attempts)"
+                      hint="Pilih 'Tanpa Batas' jika sesi ini adalah latihan/tryout bebas yang boleh diulang kapan saja"
+                    >
+                      <select
+                        id="ex-max-attempts"
+                        value={maxAttempts}
+                        onChange={(e) => setMaxAttempts(Number(e.target.value))}
+                        className={inputBaseClasses}
+                      >
+                        <option value={0}>Tanpa Batas (Bebas Diulang Berkali-kali)</option>
+                        <option value={2}>Maksimal 2 Kali Percobaan</option>
+                        <option value={3}>Maksimal 3 Kali Percobaan</option>
+                        <option value={5}>Maksimal 5 Kali Percobaan</option>
+                        <option value={10}>Maksimal 10 Kali Percobaan</option>
+                      </select>
+                    </FormField>
+                  </div>
+                )}
               </div>
 
               <div className="rounded-xl border border-neutral-200 p-4 space-y-3">

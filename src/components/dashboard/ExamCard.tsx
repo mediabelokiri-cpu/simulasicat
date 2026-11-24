@@ -184,8 +184,7 @@ export function ExamCard({
           </Button>
         )}
 
-        {eligibility.displayStatus === "completed" &&
-        eligibility.completedSession ? (
+        {eligibility.completedSession && (
           <Link
             href={`/hasil?sessionId=${eligibility.completedSession.id}`}
             className="flex-1 sm:flex-initial"
@@ -193,13 +192,15 @@ export function ExamCard({
             <Button
               variant="outline"
               size="sm"
-              className="w-full"
+              className="w-full text-xs"
               leftIcon={<CheckCircle2 className="h-4 w-4 text-emerald-600" />}
             >
               Lihat Hasil
             </Button>
           </Link>
-        ) : eligibility.canStart ? (
+        )}
+
+        {eligibility.canStart ? (
           <Button
             variant={eligibility.canResume ? "accent" : "primary"}
             size="sm"
@@ -209,9 +210,11 @@ export function ExamCard({
           >
             {eligibility.canResume
               ? "Lanjutkan Ujian (Resume)"
+              : eligibility.isRetake
+              ? `Ulangi Ujian (Ke-${(eligibility.attemptCount ?? 0) + 1})`
               : "Mulai Ujian"}
           </Button>
-        ) : (
+        ) : eligibility.displayStatus !== "completed" ? (
           <Button
             variant="outline"
             size="sm"
@@ -221,7 +224,7 @@ export function ExamCard({
           >
             {eligibility.statusLabel}
           </Button>
-        )}
+        ) : null}
       </div>
     </article>
   );

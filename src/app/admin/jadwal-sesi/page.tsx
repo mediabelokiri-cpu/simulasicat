@@ -62,6 +62,8 @@ export default function JadwalSesiPage() {
   const [scheduledStart, setScheduledStart] = useState("2026-10-12T08:00");
   const [scheduledEnd, setScheduledEnd] = useState("2026-10-12T12:00");
   const [assignedGroupId, setAssignedGroupId] = useState("");
+  const [retakeOverride, setRetakeOverride] = useState<"inherit" | "allow" | "disallow">("inherit");
+  const [maxAttemptsOverride, setMaxAttemptsOverride] = useState<number>(0);
 
   const [assignModalRun, setAssignModalRun] = useState<ExamRunRow | null>(null);
   const [latePermitUserId, setLatePermitUserId] = useState("");
@@ -119,6 +121,14 @@ export default function JadwalSesiPage() {
       paused_at: null,
       total_paused_seconds: 0,
       pause_reason: null,
+      allow_retake_override:
+        retakeOverride === "inherit"
+          ? undefined
+          : retakeOverride === "allow",
+      max_attempts_override:
+        retakeOverride === "allow" && maxAttemptsOverride > 0
+          ? maxAttemptsOverride
+          : undefined,
       completed_at: null,
       created_by: "usr-admin-01",
       created_at: now,
@@ -156,6 +166,8 @@ export default function JadwalSesiPage() {
 
     setCreateModalOpen(false);
     setSessionName("");
+    setRetakeOverride("inherit");
+    setMaxAttemptsOverride(0);
     setToast({
       type: "success",
       title: "Sesi Pelaksanaan Berhasil Dijadwalkan",
@@ -321,6 +333,40 @@ export default function JadwalSesiPage() {
     }
   }
 
+  function renderRetakeBadge(row: ExamRunRow, parentExam?: ExamRow) {
+    let allow = parentExam?.settings?.allow_retake ?? false;
+    let maxAtt = parentExam?.settings?.max_attempts ?? 1;
+    let isOverride = false;
+
+    if (row.allow_retake_override !== undefined) {
+      allow = row.allow_retake_override;
+      maxAtt = row.max_attempts_override ?? 0;
+      isOverride = true;
+    }
+
+    if (!allow) {
+      return (
+        <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-neutral-100 text-neutral-600">
+          1x Percobaan {isOverride && "(Override)"}
+        </span>
+      );
+    }
+
+    if (maxAtt && maxAtt > 0) {
+      return (
+        <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+          Boleh Diulang (Maks. {maxAtt}x) {isOverride && "(Override)"}
+        </span>
+      );
+    }
+
+    return (
+      <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+        Bebas Diulang (Unlimited) {isOverride && "(Override)"}
+      </span>
+    );
+  }
+
   return (
     <AppShell
       role="admin"
@@ -435,8 +481,16 @@ export default function JadwalSesiPage() {
           },
           {
             key: "status",
-            header: "Status Sesi",
-            render: (row) => renderRunStatusBadge(row.status),
+            header: "Status & Akses Ujian",
+            render: (row) => {
+              const parentExam = exams.find((e) => e.id === row.exam_id);
+              return (
+                <div className="space-y-1.5">
+                  <div>{renderRunStatusBadge(row.status)}</div>
+                  <div>{renderRetakeBadge(row, parentExam)}</div>
+                </div>
+              );
+            },
           },
           {
             key: "actions",
@@ -510,6 +564,10 @@ export default function JadwalSesiPage() {
                 {
                   label: "Batas Sesi",
                   value: formatDateTimeID(row.scheduled_end),
+                },
+                {
+                  label: "Pengulangan",
+                  value: renderRetakeBadge(row, parentExam),
                 },
               ]}
               actions={
@@ -659,6 +717,58 @@ export default function JadwalSesiPage() {
                 ))}
               </select>
             </FormField>
+
+            {/* Pengaturan Pengulangan Ujian untuk Sesi Ini */}
+            <div className="rounded-xl border border-neutral-200 bg-[#f5f8ff]/50 p-4 space-y-3">
+              <div>
+                <label className="block text-sm font-semibold text-[#151515]">
+                  Kebijakan Pengulangan Ujian (Retake) Sesi Ini
+                </label>
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  Tentukan apakah peserta dalam sesi ini diizinkan mengulangi ujian berkali-kali.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="run-retake-policy" className="block text-xs font-medium text-neutral-700 mb-1">
+                    Aturan Pengulangan Sesi
+                  </label>
+                  <select
+                    id="run-retake-policy"
+                    value={retakeOverride}
+                    onChange={(e) =>
+                      setRetakeOverride(e.target.value as "inherit" | "allow" | "disallow")
+                    }
+                    className={inputBaseClasses}
+                  >
+                    <option value="inherit">Ikuti Pengaturan Ujian Induk (Default)</option>
+                    <option value="allow">Izinkan Pengulangan (Boleh Diulang)</option>
+                    <option value="disallow">Kunci 1x Saja (Tidak Boleh Diulang)</option>
+                  </select>
+                </div>
+
+                {retakeOverride === "allow" && (
+                  <div>
+                    <label htmlFor="run-max-attempts" className="block text-xs font-medium text-neutral-700 mb-1">
+                      Maksimal Percobaan
+                    </label>
+                    <select
+                      id="run-max-attempts"
+                      value={maxAttemptsOverride}
+                      onChange={(e) => setMaxAttemptsOverride(Number(e.target.value))}
+                      className={inputBaseClasses}
+                    >
+                      <option value={0}>Tanpa Batas (Bebas Diulang Berkali-kali)</option>
+                      <option value={2}>Maksimal 2 Kali</option>
+                      <option value={3}>Maksimal 3 Kali</option>
+                      <option value={5}>Maksimal 5 Kali</option>
+                      <option value={10}>Maksimal 10 Kali</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+            </div>
 
             <div className="flex justify-end gap-2.5 pt-2">
               <Button
